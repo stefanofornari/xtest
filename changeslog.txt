@@ -1,2 +1,4 @@
 20130302
 - released v1.0
+- in v1.1-SNAPSHOT: removed script execution in BeanShellTest.setUp(); if needed
+  this must now be done subclassing and in the overridden beanshellSetup().
