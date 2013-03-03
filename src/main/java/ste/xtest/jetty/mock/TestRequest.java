@@ -30,4 +30,16 @@ public class TestRequest extends org.eclipse.jetty.server.Request {
     public TestRequest() {
         super(null, null);
     }
+    
+    /**
+     * Creates a new request object creating a session if requested
+     * 
+     * @param createSession if true a new session will be created
+     */
+    public TestRequest(boolean createSession) {
+        this();
+        if (createSession) {
+            setSession(new TestSession());
+        }
+    }
 }
