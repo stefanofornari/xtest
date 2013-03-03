@@ -22,7 +22,7 @@
     <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>XTest</name>
+    <name>xTest</name>
     
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
