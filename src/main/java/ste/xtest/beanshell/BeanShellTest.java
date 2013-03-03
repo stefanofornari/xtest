@@ -135,8 +135,6 @@ public abstract class BeanShellTest {
         }
         
         beanshellSetup();
-        
-        exec();
     }
 
     @After
