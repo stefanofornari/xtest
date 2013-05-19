@@ -1,5 +1,5 @@
 /*
- * BeanShell Web
+ * xTest
  * Copyright (C) 2012 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -35,40 +35,40 @@ import javax.servlet.http.HttpServletResponse;
  * @author ste
  */
 public class TestResponse implements HttpServletResponse {
-    
+
     public ByteArrayOutputStream out;
     public int status;
     public String statusMessage;
-    
+
     private PrintWriter writer;
-    
+
     public TestResponse() {
         super();
         out = new ByteArrayOutputStream();
         writer = new PrintWriter(out);
     }
-    
+
     @Override
     public PrintWriter getWriter() {
         return writer;
     }
-    
+
     @Override
     public void setStatus(final int status) {
         this.status = status;
     }
-    
+
     @Override
     public int getStatus() {
         return status;
     }
-    
+
     @Override
     public void sendError(int status, String msg) {
         this.status = status;
         this.statusMessage = msg;
     }
-    
+
     @Override
     public void addCookie(Cookie cookie) {
         throw new UnsupportedOperationException("Not supported yet.");

@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2012 Stefano Fornari
+ * Copyright (C) 2013 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -19,26 +19,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.jetty.mock;
-
-import org.eclipse.jetty.server.session.HashSessionIdManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
-import org.eclipse.jetty.server.session.HashedSession;
-
-/**
- *
- * @author ste
- */
-public class TestSession extends HashedSession {
-
-
-    public TestSession() {
-        super(
-            new TestSessionManager(),
-            System.currentTimeMillis(),
-            System.currentTimeMillis(),
-            "id0"
-        );
+print = function () {
+    for( var i = 0; i < arguments.length; i++ ) {
+       java.lang.System.out.print( arguments[i] + " ");
     }
-
-}
+    java.lang.System.out.println();
+};

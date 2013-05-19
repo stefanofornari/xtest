@@ -1,5 +1,5 @@
 /*
- * BeanShell Web
+ * xTest
  * Copyright (C) 2012 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -26,14 +26,14 @@ package ste.xtest.jetty.mock;
  * @author ste
  */
 public class TestRequest extends org.eclipse.jetty.server.Request {
-    
+
     public TestRequest() {
         super(null, null);
     }
-    
+
     /**
      * Creates a new request object creating a session if requested
-     * 
+     *
      * @param createSession if true a new session will be created
      */
     public TestRequest(boolean createSession) {

@@ -95,10 +95,10 @@ public abstract class BeanShellTest {
     public void setBshFileName(String bshFileName) {
         this.fileName = bshFileName;
     }
-    
+
     /** a directory where to find commands **/
     private String commandsDirectory;
-    
+
     /**
      * @return the commandsDirectory
      */
@@ -112,28 +112,31 @@ public abstract class BeanShellTest {
     public void setCommandsDirectory(String commandsDirectory) {
         this.commandsDirectory = commandsDirectory;
     }
-    
+
     // ---------------------------------------------------------- Protected data
-    
+
     protected Interpreter beanshell = null;
 
     // ------------------------------------------------------------ Private data
     private bsh.This bshThis = null;
-    
+
     // ---------------------------------------------------------- Public methods
-    
+
     public BeanShellTest() {
         fileName = null;
         commandsDirectory = null;
     }
-    
+
+    //
+    // TODO: move to beforeClass ???
+    //
     @Before
     public void setUp() throws Exception {
         beanshell = new Interpreter();
         if (getCommandsDirectory() != null) {
             beanshell.eval("addClassPath(\".\"); importCommands(\"" + getCommandsDirectory() + "\");");
         }
-        
+
         beanshellSetup();
     }
 
@@ -143,21 +146,24 @@ public abstract class BeanShellTest {
 
 
     // ------------------------------------------------------- Protected methods
-    
+
     /**
      * Allows an implementation to set up the interpreter right before the
      * script is executed.
-     * 
+     *
      */
+    //
+    // TODO: use normal @Before???
+    //
     protected void beanshellSetup() throws Exception { }
-    
+
     /**
-     * Sources the beanshell script and returns the object result of the 
+     * Sources the beanshell script and returns the object result of the
      * execution. It update <code>bshThis</code>.
-     * 
+     *
      * @return the object result of the execution of the beanshell script
      * @throws Exception in case of errors
-     * 
+     *
      */
     protected Object exec() throws Exception {
         Object ret = null;
@@ -165,7 +171,7 @@ public abstract class BeanShellTest {
         if (fileName != null) {
             ret = beanshell.source(fileName);
         }
-        
+
         bshThis = (bsh.This)beanshell.eval(";return this;");
 
         return ret;
