@@ -23,6 +23,7 @@
 package ste.xtest.js;
 
 import java.io.FileNotFoundException;
+import java.util.Random;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -91,12 +92,24 @@ public class JavaScriptTestTest {
         }
     }
 
-    //@Test
+    @Test
     public void execFunction() throws Throwable {
         JavaScriptTest test = new JavaScriptTest(){};
 
         test.loadScript(TEST_SCRIPT_1);
-        assertEquals("none", test.exec("noprameters"));
+        try {
+            test.exec("notExistingFunction");
+            fail("missing not found function check!");
+        } catch (IllegalArgumentException x) {
+            assertTrue(x.getMessage().contains("notExistingFunction"));
+        }
+        assertEquals("none", test.exec("noParameters"));
+        Random r = new Random();
+        String p1 = String.valueOf(r.nextInt());
+        assertEquals("p1:"+p1, test.exec("oneParameter", p1));
+
+        String p2 = String.valueOf(r.nextInt());
+        assertEquals("p1:"+p1+ " p2:"+p2, test.exec("twoParameters", p1, p2));
 
     }
 

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import javax.script.ScriptException;
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.UniqueTag;
 
@@ -78,16 +79,13 @@ public abstract class JavaScriptTest {
     //
     // TODO: extract common base class between JavaScriptTest and BeanShellTest
     //
-
     // ---------------------------------------------------------- Protected data
-
     /**
      * The JavaScript scope scripts are executed into
      */
     protected Scriptable scope;
 
     // ------------------------------------------------------------ Constructors
-
     /**
      * Creates a new JavaScripttest
      *
@@ -104,7 +102,8 @@ public abstract class JavaScriptTest {
         try {
             is = JavaScriptTest.class.getResourceAsStream("/js/xtest.js");
             cx.evaluateReader(scope, new InputStreamReader(is), "/js/xtest.js", 1, null);
-            is.close(); is = null;
+            is.close();
+            is = null;
 
             is = JavaScriptTest.class.getResourceAsStream("/js/env.rhino.1.2.js");
             cx.evaluateReader(scope, new InputStreamReader(is), "/js/env.rhino.1.2.js", 1, null);
@@ -122,7 +121,6 @@ public abstract class JavaScriptTest {
     }
 
     // ---------------------------------------------------------- Public methods
-
     /**
      * Returns an object as defined in the current script scope
      *
@@ -167,12 +165,13 @@ public abstract class JavaScriptTest {
             cx.evaluateReader(scope, r, script, 1, null);
         } finally {
             Context.exit();
-            if (r != null) r.close();
+            if (r != null) {
+                r.close();
+            }
         }
     }
 
     // ------------------------------------------------------- Protected methods
-
     /**
      * Exec the given function assuming it is defined in the current script
      * scope
@@ -182,10 +181,21 @@ public abstract class JavaScriptTest {
      * @return the object returned by the invoked function
      *
      * @throws java.lang.Throwable if an error occurs
+     * @throws IllegalArgumentException if name is not a function
      */
-     protected Object exec(String name, Object... args) throws Throwable {
-         return null;
-     }
+    protected Object exec(String name, Object... args) throws Throwable {
+        Object o = scope.get(name, scope);
+        if (!(o instanceof Function)) {
+            throw new IllegalArgumentException(name + " is undefined or not a function.");
+        }
+
+        Function f = (Function)o;
+        Context cx = Context.enter();
+        Object result = f.call(cx, scope, scope, args);
+        Context.exit();
+
+        return result;
+    }
 
     /**
      * Exec the given method calling it on the configured engine file. This
