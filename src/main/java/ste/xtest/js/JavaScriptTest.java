@@ -21,11 +21,15 @@
  */
 package ste.xtest.js;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import javax.script.ScriptException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
@@ -39,9 +43,9 @@ import org.mozilla.javascript.UniqueTag;
  * It provides two useful methods to invoke a method defined in a javascript
  * file:
  * <ul>
- * <li><code>String exec(String method, String... args)</code>: to use if the
+ * <li><code>String call(String method, String... args)</code>: to use if the
  * invoked method returns a String and has just String parameters</li>
- * <li><code>Object exec(String method, Object... args)</code>: generic version
+ * <li><code>Object call(String method, Object... args)</code>: generic version
  * of the previous one. It can be used to invoke any method</li>
  * </ul>
  * <p/>
@@ -65,7 +69,7 @@ import org.mozilla.javascript.UniqueTag;
  *         String arg2 = "cat";
  *         String arg3 = "dog";
  *
- *         String result = exec(method, arg1, arg2, arg3);
+ *         String result = call(method, arg1, arg2, arg3);
  *
  *         assertEquals("this is my dog", result);
  *     }
@@ -100,15 +104,38 @@ public abstract class JavaScriptTest {
 
         InputStream is = null;
         try {
+            //
+            // xtest initialization
+            //
             is = JavaScriptTest.class.getResourceAsStream("/js/xtest.js");
-            cx.evaluateReader(scope, new InputStreamReader(is), "/js/xtest.js", 1, null);
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.js", 1, null);
+            if (is == null) {
+                throw new FileNotFoundException("/js/xtest.js not found in classpath");
+            }
             is.close();
             is = null;
 
+            //
+            // Envjs loading and initialization
+            //
             is = JavaScriptTest.class.getResourceAsStream("/js/env.rhino.1.2.js");
-            cx.evaluateReader(scope, new InputStreamReader(is), "/js/env.rhino.1.2.js", 1, null);
+            if (is == null) {
+                throw new FileNotFoundException("/js/env.rhino.1.2.js not found in classpath");
+            }
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/env.rhino.1.2.js", 1, null);
+            is.close();
+
+            //
+            // jQuery loading and initialization
+            //
+            is = JavaScriptTest.class.getResourceAsStream("/js/jquery-1.10.0.min.js");
+            if (is == null) {
+                throw new FileNotFoundException("/js/jquery-2.0.0.min");
+            }
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/jquery-1.10.0.min.js", 1, null);
+            is.close();
         } catch (Exception x) {
-            throw new ScriptException("Error initializing the javascript engine: envjs/env.rhino.1.2.js could not be loaded from the classpath");
+            throw new ScriptException("Error initializing the javascript engine: " + x.getMessage());
         } finally {
             Context.exit();
             if (is != null) {
@@ -171,6 +198,35 @@ public abstract class JavaScriptTest {
         }
     }
 
+    /**
+     * Load the given fixture. The fixture is basically an html fragment which
+     * will be wrapped inside a:
+     * <code>
+     * $("body").append(... html ...);
+     * <code>
+     * Double quotes will be escaped.
+     *
+     * @param fixture the fixture file name - NOT NULL
+     *
+     * @throws IllegalArgumentException if fixtureis null
+     * @throws NotFoundException if the fixture is not found
+     * @throws IOException in case of IO errors
+     *
+     */
+    public void loadFixture(String fixture) throws IOException {
+        if (fixture == null) {
+            throw new IllegalArgumentException("fixture cannot be null");
+        }
+
+        String script = String.format("$(\"body\").append(\"%s\");",
+                            StringEscapeUtils.escapeJava(
+                                FileUtils.readFileToString(new File(fixture))
+                            )
+                        );
+
+        exec(script);
+    }
+
     // ------------------------------------------------------- Protected methods
     /**
      * Exec the given function assuming it is defined in the current script
@@ -183,7 +239,7 @@ public abstract class JavaScriptTest {
      * @throws java.lang.Throwable if an error occurs
      * @throws IllegalArgumentException if name is not a function
      */
-    protected Object exec(String name, Object... args) throws Throwable {
+    protected Object call(String name, Object... args) throws Throwable {
         Object o = scope.get(name, scope);
         if (!(o instanceof Function)) {
             throw new IllegalArgumentException(name + " is undefined or not a function.");
@@ -198,22 +254,23 @@ public abstract class JavaScriptTest {
     }
 
     /**
-     * Exec the given method calling it on the configured engine file. This
-     * version is useful for methods that don't return an object and that have
-     * not defined arguments.
+     * Exec the given script assuming it is defined in the current script
+     * scope
      *
-     * @param method
-     * @param args
-     * @throws Throwable
+     * @param script the script to execute - NOT NULL
+     * @return the object returned by execution of the script
+     *
+     * @throws IllegalArgumentException if script is null
      */
-    /*
-     protected void execWithoutReturn(String method, Object... args) throws Throwable
-     {
-     try {
-     bshThis.invokeMethod(method, args);
-     } catch (TargetError e) {
-     throw e.getTarget();
-     }
-     }
-     */
+    protected Object exec(String script) {
+        if (script == null) {
+            throw new IllegalArgumentException("script cannot be null");
+        }
+
+        Context cx = Context.enter();
+        Object result = cx.evaluateString(scope, script, "script", 1, null);
+        Context.exit();
+
+        return result;
+    }
 }
