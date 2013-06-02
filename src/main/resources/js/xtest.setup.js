@@ -19,23 +19,10 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.js;
 
-/**
- *
- * @author ste
- */
-public class Constants {
-    /**
-     * Generic simple script with functions
-     */
-    static final String TEST_SCRIPT_1 = "src/test/resources/js/test1.js";
-    static final String TEST_SCRIPT_2 = "src/test/resources/js/test2.js";
-    static final String TEST_SCRIPT_3 = "src/test/resources/js/test3.js";
-
-    /**
-     * Simple fixtures
-     */
-    static final String TEST_FIXTURE_1 = "src/test/resources/js/fixtures/fixture1.html";
-    static final String TEST_FIXTURE_2 = "src/test/resources/js/fixtures/fixture2.html";
-}
+//
+// For some reasons asynchronous ajax calls do not work in env.rhino
+//
+$.ajaxSetup({
+    async: false
+});

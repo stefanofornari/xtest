@@ -19,9 +19,34 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-print = function () {
-    for( var i = 0; i < arguments.length; i++ ) {
-       java.lang.System.out.print( arguments[i] + " ");
+package ste.xtest.js;
+
+import java.io.FileNotFoundException;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+import static ste.xtest.js.Constants.*;
+
+/**
+ *
+ * @author ste
+ */
+public class BugFreeMockjax {
+
+    @Test
+    public void loadMockjax() throws Throwable {
+        JavaScriptTest test = new JavaScriptTest(){};
+
+        test.loadScript(TEST_SCRIPT_2);
+
+        assertEquals("success", test.exec("ret.status"));
+        assertEquals("ste", test.exec("ret.name"));
+
+        test.loadScript(TEST_SCRIPT_3);
+
+        assertEquals("error", test.exec("ret.status"));
+        assertEquals(500, test.exec("ret.code"));
+        assertEquals("Server error", test.exec("ret.message"));
     }
-    java.lang.System.out.println();
-};
+
+}

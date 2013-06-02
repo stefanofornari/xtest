@@ -107,13 +107,12 @@ public abstract class JavaScriptTest {
             //
             // xtest initialization
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/xtest.js");
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.js", 1, null);
+            is = JavaScriptTest.class.getResourceAsStream("/js/xtest.init.js");
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.init.js", 1, null);
             if (is == null) {
-                throw new FileNotFoundException("/js/xtest.js not found in classpath");
+                throw new FileNotFoundException("/js/xtest.init.js not found in classpath");
             }
-            is.close();
-            is = null;
+            is.close(); is = null;
 
             //
             // Envjs loading and initialization
@@ -123,7 +122,7 @@ public abstract class JavaScriptTest {
                 throw new FileNotFoundException("/js/env.rhino.1.2.js not found in classpath");
             }
             cx.evaluateReader(scope, new InputStreamReader(is), "js/env.rhino.1.2.js", 1, null);
-            is.close();
+            is.close(); is = null;
 
             //
             // jQuery loading and initialization
@@ -133,7 +132,28 @@ public abstract class JavaScriptTest {
                 throw new FileNotFoundException("/js/jquery-2.0.0.min");
             }
             cx.evaluateReader(scope, new InputStreamReader(is), "js/jquery-1.10.0.min.js", 1, null);
-            is.close();
+            is.close(); is = null;
+
+            //
+            // Mockjax loading and initialization
+            //
+            is = JavaScriptTest.class.getResourceAsStream("/js/jquery.mockjax.js");
+            if (is == null) {
+                throw new FileNotFoundException("/js/jquery.mockjax.min");
+            }
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/jquery.mockjax.js", 1, null);
+            is.close(); is = null;
+
+            //
+            // xtest settp
+            //
+            is = JavaScriptTest.class.getResourceAsStream("/js/xtest.setup.js");
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.setup.js", 1, null);
+            if (is == null) {
+                throw new FileNotFoundException("/js/xtest.setup.js not found in classpath");
+            }
+            is.close(); is = null;
+
         } catch (Exception x) {
             throw new ScriptException("Error initializing the javascript engine: " + x.getMessage());
         } finally {
