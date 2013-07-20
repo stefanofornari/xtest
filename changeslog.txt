@@ -1,3 +1,7 @@
+20130720
+- released v1.1
+- added getElementsByClassName
+
 20130302
 - released v1.0
 - in v1.1-SNAPSHOT: removed script execution in BeanShellTest.setUp(); if needed

@@ -33,6 +33,8 @@ import static ste.xtest.js.Constants.*;
 /**
  *
  * @author ste
+ *
+ * TODO: exec object's method
  */
 public class BugFreeJavaScriptTest {
 

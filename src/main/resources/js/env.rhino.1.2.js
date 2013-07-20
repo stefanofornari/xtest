@@ -2762,6 +2762,18 @@ __extend__(Node.prototype, {
         // use Implementation.hasFeature to determine if this feature is supported
         return __ownerDocument__(this).implementation.hasFeature(feature, version);
     },
+    getElementsByClassName : function(name) {
+        // delegate to _getElementsByClassNameRecursive
+        // recurse childNodes
+        var nodelist = new NodeList(__ownerDocument__(this));
+        for (var i = 0; i < this.childNodes.length; i++) {
+            __getElementsByClassNameRecursive__(this.childNodes.item(i),
+                                                name,
+                                                nodelist);
+        }
+
+        return new HTMLCollection(nodelist);
+    },
     getElementsByTagName : function(tagname) {
         // delegate to _getElementsByTagNameRecursive
         // recurse childNodes
@@ -2949,7 +2961,33 @@ __extend__(Node.prototype, {
 
 });
 
+/**
+ * @method __getElementsByClassNameRecursive__ - implements getElementsByClassName()
+ *
+ * @param  elem     : Element  - The element which are checking and then recursing into
+ * @param  name     : string   - The name of the class to match on. The special value "*" matches all tags
+ * @param  nodeList : NodeList - The accumulating list of matching nodes
+ *
+ * @return : NodeList
+ */
+ var __getElementsByClassNameRecursive__ = function (elem, name, nodeList) {
 
+    if (elem.nodeType == Node.ELEMENT_NODE || elem.nodeType == Node.DOCUMENT_NODE) {
+
+        if(elem.nodeType !== Node.DOCUMENT_NODE &&
+            ((elem.className.split(" ").indexOf(name) >= 0) || (name == "*")) ){
+            // add matching node to nodeList
+            __appendChild__(nodeList, elem);
+        }
+
+        // recurse childNodes
+        for(var i = 0; i < elem.childNodes.length; i++) {
+            nodeList = __getElementsByClassNameRecursive__(elem.childNodes.item(i), name, nodeList);
+        }
+    }
+
+    return nodeList;
+};
 
 /**
  * @method __getElementsByTagNameRecursive__ - implements getElementsByTagName()
