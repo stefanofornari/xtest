@@ -1,3 +1,7 @@
+20130721
+- fixed initKeyboardEvent and added keyCode
+- released v1.1.1
+
 20130720
 - released v1.1
 - added getElementsByClassName

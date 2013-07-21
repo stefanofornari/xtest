@@ -5957,6 +5957,9 @@ KeyboardEvent.prototype = new UIEvent();
 
 __extend__(KeyboardEvent.prototype,{
 
+    get keyCode(){
+        return this._keyIdentifier;
+    },
     get ctrlKey(){
         return this._ctrlKey;
     },
@@ -5978,7 +5981,7 @@ __extend__(KeyboardEvent.prototype,{
     getModifiersState: function(keyIdentifier){
 
     },
-    initMouseEvent: function(type, bubbles, cancelable, windowObject,
+    initKeyboardEvent: function(type, bubbles, cancelable, windowObject,
             keyIdentifier, keyLocation, modifiersList, repeat){
         this.initUIEvent(type, bubbles, cancelable, windowObject, 0);
         this._keyIdentifier = keyIdentifier;
