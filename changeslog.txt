@@ -1,6 +1,7 @@
 20130721
 - fixed initKeyboardEvent and added keyCode
-- released v1.1.1
+- updated to beanshell 2.05b
+- released v1.1.2
 
 20130720
 - released v1.1
