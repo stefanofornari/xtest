@@ -5998,8 +5998,6 @@ KeyboardEvent.DOM_KEY_LOCATION_NUMPAD        = 3;
 KeyboardEvent.DOM_KEY_LOCATION_MOBILE        = 4;
 KeyboardEvent.DOM_KEY_LOCATION_JOYSTICK      = 5;
 
-
-
 //We dont fire mutation events until someone has registered for them
 var __supportedMutations__ = /DOMSubtreeModified|DOMNodeInserted|DOMNodeRemoved|DOMAttrModified|DOMCharacterDataModified/;
 
