@@ -1,3 +1,6 @@
+20130809
+- added utility methods getMessage() nad size()
+
 20130808
 - added ste.xtest.logging.ListLogHandler
 - released v1.2

@@ -31,27 +31,37 @@ import java.util.logging.LogRecord;
  * @author ste
  */
 public class ListLogHandler extends Handler {
-    
+
     /**
      * The list of collected log records
      */
     private List<LogRecord> records;
-    
+
     public ListLogHandler() {
         records = new ArrayList<>();
     }
-    
+
     /**
      * Returns the registered records
-     * 
+     *
      * @return the registered records
      */
     public List<LogRecord> getRecords() {
         return records;
     }
 
+    /**
+     * Publishes the given log record
+     *
+     * @param record the log record - NOT NULL
+     *
+     * @throws IllegalArgumentException if record is null
+     */
     @Override
-    public void publish(LogRecord record) {
+    public void publish(LogRecord record) throws IllegalArgumentException {
+        if (record == null) {
+            throw new IllegalArgumentException("record cannot be null");
+        }
         records.add(record);
     }
 
@@ -68,5 +78,32 @@ public class ListLogHandler extends Handler {
         // Nothing to do
         //
     }
-    
+
+    /**
+     * Returns the message given the index
+     *
+     * @param index the index in the list
+     *
+     * @return the <i>index</i>th message
+     *
+     * @throws IllegalArgumentException if index is out of the valid range
+     */
+    public String getMessage(int index) throws IllegalArgumentException {
+        if ((index < 0) || (index >= records.size())) {
+            throw new IllegalArgumentException(
+                String.format("index cannot be < 0 or > %d (it was %d)", records.size(), index)
+            );
+        }
+        return records.get(index).getMessage();
+    }
+
+    /**
+     * Returns the number of records logged
+     *
+     * @return number of records logged
+     */
+    public int size() {
+        return records.size();
+    }
+
 }

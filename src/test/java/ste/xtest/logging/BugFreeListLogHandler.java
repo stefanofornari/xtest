@@ -30,28 +30,84 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
+ * TODO: hide access to records
+ * 
  * @author ste
  */
 public class BugFreeListLogHandler {
-    
+
+    static final private LogRecord LOG1 = new LogRecord(Level.INFO, "first"),
+                                   LOG2 = new LogRecord(Level.SEVERE, "second"),
+                                   LOG3 = new LogRecord(Level.FINE, "third");
+
     @Test
     public void constructorsAndInitialization() {
         ListLogHandler h = new ListLogHandler();
-        
+
         assertEquals(0, h.getRecords().size());
     }
-    
+
     @Test
     public void addLogRecords() {
-        final LogRecord log1 = new LogRecord(Level.INFO, "first"),
-                        log2 = new LogRecord(Level.SEVERE, "second"),
-                        log3 = new LogRecord(Level.FINE, "third");
-        
         ListLogHandler h = new ListLogHandler();
         List<LogRecord> records = h.getRecords();
-        h.publish(log1); assertSame(log1, records.get(0));
-        h.publish(log2); assertSame(log2, records.get(1));
-        h.publish(log3); assertSame(log3, records.get(2));
+        assertEquals(0, records.size());
+        h.publish(LOG1); assertSame(LOG1, records.get(0));
+        h.publish(LOG2); assertSame(LOG2, records.get(1));
+        h.publish(LOG3); assertSame(LOG3, records.get(2));
+    }
+
+    @Test
+    public void publishArgument() {
+        ListLogHandler h = new ListLogHandler();
+
+        try {
+            h.publish(null);
+            fail("missing null value check");
+        } catch (IllegalArgumentException x) {
+            assertTrue(x.getMessage().indexOf("record") >=0 );
+            assertTrue(x.getMessage().indexOf("cannot be null") >=0 );
+        }
+    }
+
+    @Test
+    public void getMessage() {
+        ListLogHandler h = new ListLogHandler();
+
+        try {
+            h.getMessage(-1);
+            fail("missing invalid index value check");
+        } catch (IllegalArgumentException x) {
+            assertTrue(x.getMessage().indexOf("index cannot be < 0 or >") >=0 );
+        }
+
+        try {
+            h.getMessage(0);
+            fail("missing invalid index value check");
+        } catch (IllegalArgumentException x) {
+            assertTrue(x.getMessage().indexOf("index cannot be < 0 or >") >=0 );
+        }
+
+        h.publish(LOG1);
+        h.publish(LOG2);
+        h.publish(LOG3);
+
+        assertEquals(LOG1.getMessage(), h.getMessage(0));
+        assertEquals(LOG2.getMessage(), h.getMessage(1));
+        assertEquals(LOG3.getMessage(), h.getMessage(2));
+
+        try {
+            h.getMessage(3);
+            fail("missing invalid index value check");
+        } catch (IllegalArgumentException x) {
+            assertTrue(x.getMessage().indexOf("index cannot be < 0 or >") >=0 );
+        }
+    }
+
+    @Test
+    public void size() {
+         ListLogHandler h = new ListLogHandler();
+
+         assertEquals(0, h.size());
     }
 }
