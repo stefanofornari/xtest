@@ -106,4 +106,19 @@ public class ListLogHandler extends Handler {
         return records.size();
     }
 
+    /**
+     * Returns the record messages as a List<String>
+     *
+     * @return the record messages as a List<String>
+     */
+    public List<String> getMessages() {
+        List<String> messages = new ArrayList<>();
+
+        for (LogRecord r: records) {
+            messages.add(r.getMessage());
+        }
+
+        return messages;
+    }
+
 }

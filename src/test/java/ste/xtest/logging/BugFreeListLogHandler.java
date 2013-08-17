@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 
 /**
  * TODO: hide access to records
- * 
+ *
  * @author ste
  */
 public class BugFreeListLogHandler {
@@ -109,5 +109,32 @@ public class BugFreeListLogHandler {
          ListLogHandler h = new ListLogHandler();
 
          assertEquals(0, h.size());
+    }
+
+    @Test
+    public void getMessages() {
+        ListLogHandler h = new ListLogHandler();
+
+        List<String> messages = h.getMessages();
+        assertNotNull(messages);
+        assertEquals(0, messages.size());
+
+        h.publish(LOG1);
+        messages = h.getMessages();
+        assertEquals(1, messages.size());
+        assertEquals(LOG1.getMessage(), messages.get(0));
+
+        h.publish(LOG2);
+        messages = h.getMessages();
+        assertEquals(2, messages.size());
+        assertEquals(LOG1.getMessage(), messages.get(0));
+        assertEquals(LOG2.getMessage(), messages.get(1));
+
+        h.publish(LOG3);
+        messages = h.getMessages();
+        assertEquals(3, messages.size());
+        assertEquals(LOG1.getMessage(), messages.get(0));
+        assertEquals(LOG2.getMessage(), messages.get(1));
+        assertEquals(LOG3.getMessage(), messages.get(2));
     }
 }
