@@ -30,10 +30,11 @@ import java.nio.file.WatchEvent;
 public class WatchEventMock<T> implements WatchEvent<T> {
 
     public T context;
+    public WatchEvent.Kind kind;
 
     @Override
     public Kind<T> kind() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return kind;
     }
 
     @Override

@@ -21,6 +21,7 @@
  */
 package ste.xtest.nio;
 
+import static java.nio.file.StandardWatchEventKinds.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,6 +109,7 @@ public class WatchServiceMock implements WatchService {
 
         WatchEventMock<Path> event = new WatchEventMock<Path>();
         event.context = Paths.get(path);
+        event.kind = ENTRY_MODIFY;
 
         WatchKeyMock watchKey = new WatchKeyMock();
         watchKey.valid = true;
