@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.jetty.mock;
+package ste.xtest.jetty;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,6 +39,7 @@ public class TestResponse implements HttpServletResponse {
     public ByteArrayOutputStream out;
     public int status;
     public String statusMessage;
+    public String redirection; // null means no redirection
 
     private PrintWriter writer;
 
@@ -46,6 +47,7 @@ public class TestResponse implements HttpServletResponse {
         super();
         out = new ByteArrayOutputStream();
         writer = new PrintWriter(out);
+        redirection = null;
     }
 
     @Override
@@ -105,8 +107,8 @@ public class TestResponse implements HttpServletResponse {
     }
 
     @Override
-    public void sendRedirect(String string) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void sendRedirect(String url) throws IOException {
+        redirection = url;
     }
 
     @Override

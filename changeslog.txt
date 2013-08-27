@@ -1,3 +1,6 @@
+20130827
+- renamed *mock packages removing .mock
+
 20130817
 - added ListLogHandler.getMessages()
 - released v1.2.2

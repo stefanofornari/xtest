@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2013 Stefano Fornari
+ * Copyright (C) 2012 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -19,22 +19,27 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.jetty.mock;
-
-import org.eclipse.jetty.server.session.HashSessionIdManager;
-import org.eclipse.jetty.server.session.HashSessionManager;
-import org.eclipse.jetty.server.session.HashedSession;
+package ste.xtest.jetty;
 
 /**
  *
  * @author ste
  */
-public class TestSessionManager extends HashSessionManager {
-    
-    
-    public TestSessionManager() {
-        super();
-        setSessionIdManager(new HashSessionIdManager());
+public class TestRequest extends org.eclipse.jetty.server.Request {
+
+    public TestRequest() {
+        super(null, null);
     }
 
+    /**
+     * Creates a new request object creating a session if requested
+     *
+     * @param createSession if true a new session will be created
+     */
+    public TestRequest(boolean createSession) {
+        this();
+        if (createSession) {
+            setSession(new TestSession());
+        }
+    }
 }
