@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 public class WatchServiceMock implements WatchService {
 
     public boolean interrupt;
+    public int interruptAfterNPolls;
     public long interval;
     public LinkedList<WatchKeyMock> paths = null;
 
@@ -54,6 +55,7 @@ public class WatchServiceMock implements WatchService {
         }
         interrupt = closed = false;
         interval = 1000;
+        interruptAfterNPolls = -1;
 
         this.paths = new LinkedList<WatchKeyMock>();
         for (String path: paths) {
@@ -87,8 +89,10 @@ public class WatchServiceMock implements WatchService {
             throw new IllegalStateException("the service is closed");
         }
 
-        if (interrupt) {
+        if (interruptAfterNPolls == 0) {
             throw new InterruptedException("mocked interrumption");
+        } else if (interruptAfterNPolls > 0) {
+            --interruptAfterNPolls;
         }
 
         Thread.sleep(interval);

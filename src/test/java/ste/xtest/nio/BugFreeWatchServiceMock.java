@@ -57,4 +57,36 @@ public class BugFreeWatchServiceMock {
             assertEquals(Paths.get(path), w.paths.pollLast().path);
         }
     }
+    
+    @Test
+    public void interruptAfterNPolls() throws Exception {
+        WatchServiceMock w = new WatchServiceMock(TEST_PATHS);
+        for (int i=0; i<TEST_PATHS.length; ++i) {
+            w.take();
+        } 
+        assertFalse(w.interrupt);  
+        
+        w = new WatchServiceMock(TEST_PATHS);
+        w.interruptAfterNPolls = 0;
+        try {
+            w.take();
+            fail("missing InterruptedException");
+        } catch (InterruptedException x) {
+            //
+            // OK
+            //
+        }
+        
+        w = new WatchServiceMock(TEST_PATHS);
+        w.interruptAfterNPolls = 3;
+        w.take(); w.take(); w.take();
+        try {
+            w.take();
+            fail("missing InterruptedException");
+        } catch (InterruptedException x) {
+            //
+            // OK
+            //
+        }
+    }
 }
