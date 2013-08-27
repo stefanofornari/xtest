@@ -1,5 +1,7 @@
 20130827
 - renamed *mock packages removing .mock
+- mocking java.nio.WatcherService
+- released v1.3.0
 
 20130817
 - added ListLogHandler.getMessages()
