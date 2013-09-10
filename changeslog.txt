@@ -1,3 +1,7 @@
+20130910
+- fixed WatchService.poll(timeout)
+- released v1.3.1
+
 20130827
 - renamed *mock packages removing .mock
 - mocking java.nio.WatcherService

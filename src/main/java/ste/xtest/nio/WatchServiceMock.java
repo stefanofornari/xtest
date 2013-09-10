@@ -80,7 +80,10 @@ public class WatchServiceMock implements WatchService {
 
     @Override
     public WatchKey poll(long timeout, TimeUnit unit) throws InterruptedException {
-        return poll();
+        //
+        // TODO: mock better the poll method
+        //
+        return take();
     }
 
     @Override
