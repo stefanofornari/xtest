@@ -1,3 +1,6 @@
+20130911
+- added getAsString() to return the value of a variable as a String
+
 20130910
 - fixed WatchService.poll(timeout)
 - released v1.3.1
