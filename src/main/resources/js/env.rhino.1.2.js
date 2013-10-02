@@ -10925,22 +10925,28 @@ __extend__(CSS2Properties.prototype, {
         __cssTextToStyles__(this, cssText);
     },
     getPropertyCSSValue: function(name) {
-        //?
+        //console.log('getPropertyCSSValue - name: %s', name);
     },
-    getPropertyPriority: function() {
+    getPropertyPriority: function(name) {
+        //console.log('getProperty - name: %s', name);
+    },
+    getProperty: function() {
 
     },
     getPropertyValue: function(name) {
+        //console.log('getPropertyValue - name: %s (%s)', name, __toCamelCase__(name));
         var index, cname = __toCamelCase__(name);
+        var value = null;
         if (cname in this.styleIndex) {
-            return this[cname];
+            value = this[cname];
         } else {
             index = Array.prototype.indexOf.apply(this, [name]);
             if (index > -1) {
-                return this[index];
+                value = this[index];
             }
         }
-        return null;
+
+        return value;
     },
     item: function(index) {
         return this[index];
@@ -10954,6 +10960,7 @@ __extend__(CSS2Properties.prototype, {
         }
     },
     setProperty: function(name, value, priority) {
+        //console.log('setProperty - name: %s, value: %s, priority: %s', name, value, priority);
         var nval;
         name = __toCamelCase__(name);
         if (value !== undefined && name in this.styleIndex) {
@@ -11366,6 +11373,7 @@ var $css2properties = [{}];
 
 __extend__(HTMLElement.prototype, {
     get style(){
+        //console.log("HTMLElement get style");
         if ( !this.css2uuid ) {
             this.css2uuid = $css2properties.length;
             $css2properties[this.css2uuid] = new CSS2Properties(this);
