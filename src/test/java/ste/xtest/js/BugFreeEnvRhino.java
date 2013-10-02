@@ -22,13 +22,8 @@
 
 package ste.xtest.js;
 
-import java.io.FileNotFoundException;
-import java.util.Random;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.mozilla.javascript.RhinoException;
-
-import static ste.xtest.js.Constants.*;
 
 /**
  *
@@ -36,7 +31,7 @@ import static ste.xtest.js.Constants.*;
  *
  * TODO: exec object's method
  */
-public class BugFreeGetElementsByClassName {
+public class BugFreeEnvRhino {
 
     @Test
     public void getElementsByClassName() throws Exception {
@@ -51,6 +46,19 @@ public class BugFreeGetElementsByClassName {
         assertEquals(1.0, test.exec("d.getElementsByClassName('c121b').length;"));
         assertEquals(2.0, test.exec("d.getElementsByClassName('c11b').length;"));
         assertEquals(4.0, test.exec("d.getElementsByClassName('c').length;"));
+    }
+
+    @Test
+    public void getSetStyle() throws Exception {
+        JavaScriptTest test = new JavaScriptTest(){};
+
+        test.exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
+
+        test.exec("var div = document.createElement('DIV');");
+        test.exec("div.style.height = '10px';");
+        assertEquals("10px", test.exec("div.style.height"));
+        test.exec("div.style.height = '20px';");
+        assertEquals("20px", test.exec("div.style.height"));
     }
 
 }
