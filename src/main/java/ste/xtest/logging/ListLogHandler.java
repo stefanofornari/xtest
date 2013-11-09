@@ -35,7 +35,7 @@ public class ListLogHandler extends Handler {
     /**
      * The list of collected log records
      */
-    private List<LogRecord> records;
+    private final List<LogRecord> records;
 
     public ListLogHandler() {
         records = new ArrayList<>();
@@ -67,9 +67,7 @@ public class ListLogHandler extends Handler {
 
     @Override
     public void flush() {
-        //
-        // Nothing to do
-        //
+        records.clear();
     }
 
     @Override
