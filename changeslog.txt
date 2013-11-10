@@ -2,7 +2,7 @@
 - merged fixes from https://github.com/thatcher/envjs-site
 - implemented setTimeout() and clearTimeout() so that they can now be used to
   simulate multithreaded tasks
-- released v1.3.2
+- released v1.3.4
 
 20131109
 - improved ListLogHandler to clear the records list when flushed
