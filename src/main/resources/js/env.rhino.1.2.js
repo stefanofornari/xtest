@@ -6228,16 +6228,18 @@ var Timer = function(fn, interval){
 
     var me = this;
     this.run = function() {
-        me.running = true;
-        me.thread.sleep(interval);
-        //
-        // If run in a multithreded way, stop may set running to false before the
-        // interval has expired. In such case, the task shall not be executed.
-        // Hoever, please note that the current implementation of Timer does not
-        // spawn new threads
-        //
-        if (this.running) {
-            me.fn();
+        if (interval != Infinity) {
+            me.running = true;
+            me.thread.sleep(interval);
+            //
+            // If run in a multithreded way, stop may set running to false before the
+            // interval has expired. In such case, the task shall not be executed.
+            // Hoever, please note that the current implementation of Timer does not
+            // spawn new threads
+            //
+            if (this.running) {
+                me.fn();
+            }
         }
         me.running = false;
     }
@@ -11550,7 +11552,18 @@ var nai,oai,pai;function gbi(){gbi=v0i;obi=fji(new eji());sbi(new bbi())}
 function fbi(a){if(a.b){clearInterval(a.c)}else{clearTimeout(a.c)}lji(obi,a)}
 function hbi(a){if(!a.b){lji(obi,a)}rni(a)}
 function ibi(b,a){if(a<=0){throw Fci(new Eci(),Bqg)}fbi(b);b.b=false;b.c=lbi(b,a);gji(obi,b)}
-function lbi(b,a){return setTimeout(function(){b.zb()},a)}
+// -----------------------------------------------------------------------------
+// This is the original line:
+//
+// function lbi(b,a){return setTimeout(function(){b.zb()},a)}
+//
+// I really do not know what it does and why it uses setTimeout, however, making
+// Timeouts asynchronous broken the call above; I am therefore replacing it with
+// the version below that makes direct calls. I have no idea of what I am
+// breaking :(
+//
+function lbi(b,a){if (a != Infinity) b.zb()}
+// -----------------------------------------------------------------------------
 function mbi(){hbi(this)}
 function nbi(){return b$h}
 function abi(){}

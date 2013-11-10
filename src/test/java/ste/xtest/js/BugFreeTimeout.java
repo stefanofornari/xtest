@@ -59,4 +59,18 @@ public class BugFreeTimeout {
         assertEquals(test.get("s"), test.get("e"));
     }
 
+    @Test
+    public void setTimeoutWithInfinityInterval() throws Exception {
+        JavaScriptTest test = new JavaScriptTest(){};
+
+        test.exec("var ran = false; setTimeout(function() {ran = true;}, Infinity);");
+
+        //
+        // No much we can test it: at least it does not throws an error, and it
+        // has not ran
+        //
+        Thread.sleep(1000);
+        assertFalse((boolean)test.get("ran"));
+    }
+
 }
