@@ -117,6 +117,7 @@
 
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/xtest.git</connection>
+        <url>https://github.com/stefanofornari/xtest</url>
     </scm>
 
     <distributionManagement>
