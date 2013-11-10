@@ -6223,10 +6223,33 @@ var Timer = function(fn, interval){
     this.at = Date.now() + interval;
     // allows for calling wait() from callbacks
     this.running = false;
+
+    this.thread = new java.lang.Thread(java.lang.Runnable(this));
+
+    var me = this;
+    this.run = function() {
+        me.running = true;
+        me.thread.sleep(interval);
+        //
+        // If run in a multithreded way, stop may set running to false before the
+        // interval has expired. In such case, the task shall not be executed.
+        // Hoever, please note that the current implementation of Timer does not
+        // spawn new threads
+        //
+        if (this.running) {
+            me.fn();
+        }
+        me.running = false;
+    }
 };
 
-Timer.prototype.start = function(){};
-Timer.prototype.stop = function(){};
+Timer.prototype.start = function(){
+    this.thread.start();
+};
+
+Timer.prototype.stop = function(){
+    this.running = false;
+};
 
 //static
 Timer.normalize = function(time) {
