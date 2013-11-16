@@ -5739,14 +5739,12 @@ function __dispatchEvent__(target, event, bubbles){
                 Envjs.defaultEventBehaviors[event.type](event);
             }
         }
-        console.log('deleting event %s', event.uuid);
+        //console.log('deleting event %s', event.uuid);
         event.target = null;
         event = null;
     }else{
-        console.log("check3.3");
         throw new EventException(EventException.UNSPECIFIED_EVENT_TYPE_ERR);
     }
-    console.log("check3.4");
 }
 
 function __captureEvent__(target, event){
