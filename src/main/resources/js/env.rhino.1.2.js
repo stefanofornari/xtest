@@ -5317,6 +5317,7 @@ var Event,
     DocumentEvent,
     EventTarget,
     EventException,
+    CustomEvent,
     //nonstandard but very useful for implementing mutation events
     //among other things like general profiling
     Aspect;
@@ -5733,17 +5734,19 @@ function __dispatchEvent__(target, event, bubbles){
             //with default behavior being executed in a browser but I could be
             //wrong as usual.  The goal is much more to filter at this point
             //what events have no need to be handled
-            //console.log('triggering default behavior for %s', event.type);
+            console.log('triggering default behavior for %s', event.type);
             if(event.type in Envjs.defaultEventBehaviors){
                 Envjs.defaultEventBehaviors[event.type](event);
             }
         }
-        //console.log('deleting event %s', event.uuid);
+        console.log('deleting event %s', event.uuid);
         event.target = null;
         event = null;
     }else{
+        console.log("check3.3");
         throw new EventException(EventException.UNSPECIFIED_EVENT_TYPE_ERR);
     }
+    console.log("check3.4");
 }
 
 function __captureEvent__(target, event){
@@ -6101,6 +6104,26 @@ MutationEvent.ADDITION = 0;
 MutationEvent.MODIFICATION = 1;
 MutationEvent.REMOVAL = 2;
 
+/**
+ * @name CustomEvent
+ * @param {Object} options
+ */
+CustomEvent = function(type, options) {
+    this._type = type;
+    this._detail = "";
+};
+
+CustomEvent.prototype = new Event();
+__extend__(Event.prototype,{
+    get detail(){
+        return this._detail;
+    },
+    initCustomEvent: function(type, bubbles, cancelable, windowObject, detail){
+        this.initEvent(type, bubbles, cancelable);
+        this._detail = "";
+    }
+});
+
 
 /**
  * @name EventException
@@ -6152,7 +6175,10 @@ DocumentEvent.prototype.__EventMap__ = {
     // Safari4: both accepted
     // Firefox3.6: none accepted
     'KeyboardEvent'  : KeyboardEvent,
-    'KeyboardEvents' : KeyboardEvent
+    'KeyboardEvents' : KeyboardEvent,
+
+    // CustomEvent tested on Firefox 25
+    'CustomEvent'    : CustomEvent
 };
 
 DocumentEvent.prototype.createEvent = function(eventType) {
@@ -6839,7 +6865,7 @@ __extend__(HTMLDocument.prototype, {
         //no head?  ugh bad news html.. I guess we'll force the issue?
         return element.appendChild(this.createElement('body'));
     },
-    set body(){console.log('set body');/**in firefox this is a benevolent do nothing*/},
+    set body(){console.log('set body');},
     get cookie(){
         return Envjs.getCookies(this.location+'');
     },
@@ -7633,6 +7659,9 @@ __extend__(HTMLElement.prototype, {
     scrollRight: 0,
     get style(){
         return this.getAttribute('style')||'';
+    },
+    set style(value){
+        return this.setAttribute('style', value);
     },
     get title() {
         return this.getAttribute("title");
