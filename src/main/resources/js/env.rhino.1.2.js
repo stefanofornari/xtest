@@ -5734,7 +5734,7 @@ function __dispatchEvent__(target, event, bubbles){
             //with default behavior being executed in a browser but I could be
             //wrong as usual.  The goal is much more to filter at this point
             //what events have no need to be handled
-            console.log('triggering default behavior for %s', event.type);
+            //console.log('triggering default behavior for %s', event.type);
             if(event.type in Envjs.defaultEventBehaviors){
                 Envjs.defaultEventBehaviors[event.type](event);
             }
