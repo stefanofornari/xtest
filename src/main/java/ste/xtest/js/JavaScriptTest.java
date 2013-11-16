@@ -127,11 +127,13 @@ public abstract class JavaScriptTest {
             //
             // jQuery loading and initialization
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/jquery-1.10.0.min.js");
+            //final String JQUERY = "/js/jquery-1.10.0.min.js";
+            final String JQUERY = "/js/jquery-1.10.2.min.js";
+            is = JavaScriptTest.class.getResourceAsStream(JQUERY);
             if (is == null) {
-                throw new FileNotFoundException("/js/jquery-2.0.0.min");
+                throw new FileNotFoundException(JQUERY);
             }
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/jquery-1.10.0.min.js", 1, null);
+            cx.evaluateReader(scope, new InputStreamReader(is), JQUERY, 1, null);
             is.close(); is = null;
 
             //
