@@ -1,3 +1,8 @@
+20131117
+- added support for CustomEvent
+- made style read/write
+- released v1.3.5
+
 20131110
 - merged fixes from https://github.com/thatcher/envjs-site
 - implemented setTimeout() and clearTimeout() so that they can now be used to
