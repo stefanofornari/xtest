@@ -30,15 +30,17 @@ import static org.junit.Assert.*;
  * @author ste
  */
 public class BugFreeTestResponse {
+
     @Test
     public void redirect() throws Exception  {
         final String TEST_REDIRECT_URL = "http://someurl";
 
         TestResponse response = new TestResponse();
-        assertNull(response.redirection);
+        assertNull(response.get(TestResponse.RES_REDIRECTION));
 
         response.sendRedirect(TEST_REDIRECT_URL);
 
-        assertEquals(TEST_REDIRECT_URL, response.redirection);
+        assertEquals(TEST_REDIRECT_URL, response.get(TestResponse.RES_REDIRECTION));
     }
+
 }

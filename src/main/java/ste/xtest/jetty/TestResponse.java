@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -34,41 +35,42 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ste
  */
-public class TestResponse implements HttpServletResponse {
+public class TestResponse
+extends HashMap<String,Object>
+implements HttpServletResponse {
 
-    public ByteArrayOutputStream out;
-    public int status;
+    public final static String RES_WRITER = "writer";
+    public final static String RES_STATUS = "status";
+    public final static String RES_STATUS_MESSAGE = "status.message";
+    public final static String RES_REDIRECTION = "redirtection";
+
     public String statusMessage;
-    public String redirection; // null means no redirection
-
-    private PrintWriter writer;
 
     public TestResponse() {
         super();
-        out = new ByteArrayOutputStream();
-        writer = new PrintWriter(out);
-        redirection = null;
+
+        put(RES_WRITER, new PrintWriter(new ByteArrayOutputStream()));
     }
 
     @Override
     public PrintWriter getWriter() {
-        return writer;
+        return (PrintWriter)get(RES_WRITER);
     }
 
     @Override
     public void setStatus(final int status) {
-        this.status = status;
+        put(RES_STATUS, status);
     }
 
     @Override
     public int getStatus() {
-        return status;
+        return (int)get(RES_STATUS);
     }
 
     @Override
     public void sendError(int status, String msg) {
-        this.status = status;
-        this.statusMessage = msg;
+        setStatus(status);
+        put(RES_STATUS_MESSAGE, msg);
     }
 
     @Override
@@ -108,7 +110,7 @@ public class TestResponse implements HttpServletResponse {
 
     @Override
     public void sendRedirect(String url) throws IOException {
-        redirection = url;
+        put(RES_REDIRECTION, url);
     }
 
     @Override
