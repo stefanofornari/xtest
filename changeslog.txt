@@ -1,3 +1,7 @@
+20131201
+- added support for content-type
+- released v1.3.6
+
 20131117
 - added support for CustomEvent
 - made style read/write
