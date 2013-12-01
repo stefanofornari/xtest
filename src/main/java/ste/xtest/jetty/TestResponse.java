@@ -41,9 +41,9 @@ implements HttpServletResponse {
 
     public final static String RES_WRITER = "writer";
     public final static String RES_STATUS = "status";
-    public final static String RES_STATUS_MESSAGE = "status.message";
+    public final static String RES_STATUS_MESSAGE = "statusMessage";
     public final static String RES_REDIRECTION = "redirtection";
-    public final static String RES_CONTENT_TYPE = "mime";
+    public final static String RES_CONTENT_TYPE = "contentType";
 
     public String statusMessage;
 
