@@ -43,6 +43,7 @@ implements HttpServletResponse {
     public final static String RES_STATUS = "status";
     public final static String RES_STATUS_MESSAGE = "status.message";
     public final static String RES_REDIRECTION = "redirtection";
+    public final static String RES_CONTENT_TYPE = "mime";
 
     public String statusMessage;
 
@@ -170,7 +171,7 @@ implements HttpServletResponse {
 
     @Override
     public String getContentType() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return (String)get(RES_CONTENT_TYPE);
     }
 
     @Override
@@ -190,7 +191,7 @@ implements HttpServletResponse {
 
     @Override
     public void setContentType(String string) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        put(RES_CONTENT_TYPE, string);
     }
 
     @Override

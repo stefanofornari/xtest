@@ -43,4 +43,14 @@ public class BugFreeTestResponse {
         assertEquals(TEST_REDIRECT_URL, response.get(TestResponse.RES_REDIRECTION));
     }
 
+    @Test
+    public void setAndGetContentType() throws Exception  {
+        TestResponse response = new TestResponse();
+        assertNull(response.get(TestResponse.RES_CONTENT_TYPE));
+
+        final String TEST_CONTENT_TYPE1 = "application/text";
+        response.setContentType(TEST_CONTENT_TYPE1);
+        assertEquals(TEST_CONTENT_TYPE1, response.getContentType());
+    }
+
 }
