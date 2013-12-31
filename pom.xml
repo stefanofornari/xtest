@@ -19,7 +19,7 @@
 
     <groupId>ste.test</groupId>
     <artifactId>xtest</artifactId>
-    <version>1.3.6</version>
+    <version>1.3.7-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
