@@ -21,7 +21,6 @@
  */
 package ste.xtest.js;
 
-import java.io.FileNotFoundException;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
