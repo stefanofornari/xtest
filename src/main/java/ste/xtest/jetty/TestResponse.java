@@ -47,10 +47,12 @@ implements HttpServletResponse {
 
     public String statusMessage;
 
+    private ByteArrayOutputStream baos;
+
     public TestResponse() {
         super();
 
-        put(RES_WRITER, new PrintWriter(new ByteArrayOutputStream()));
+        put(RES_WRITER, new PrintWriter(baos = new ByteArrayOutputStream()));
     }
 
     @Override
@@ -232,5 +234,13 @@ implements HttpServletResponse {
     @Override
     public Locale getLocale() {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public byte[] getContent() {
+        return baos.toByteArray();
+    }
+
+    public String getText() {
+        return baos.toString();
     }
 }

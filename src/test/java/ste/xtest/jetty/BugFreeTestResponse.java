@@ -21,7 +21,7 @@
  */
 package ste.xtest.jetty;
 
-import ste.xtest.jetty.TestResponse;
+import java.io.PrintWriter;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -44,13 +44,45 @@ public class BugFreeTestResponse {
     }
 
     @Test
-    public void setAndGetContentType() throws Exception  {
+    public void setAndGetContentType() throws Exception {
         TestResponse response = new TestResponse();
         assertNull(response.get(TestResponse.RES_CONTENT_TYPE));
 
         final String TEST_CONTENT_TYPE1 = "application/text";
         response.setContentType(TEST_CONTENT_TYPE1);
         assertEquals(TEST_CONTENT_TYPE1, response.getContentType());
+    }
+
+    @Test
+    public void getContentAsByteArray() throws Exception {
+        TestResponse response = new TestResponse();
+
+        final String TEST_CONTENT1 = "Hello world one";
+        final String TEST_CONTENT2 = "Hello world two";
+
+        assertEquals(0, response.getContent().length);
+
+        PrintWriter w = response.getWriter();
+        w.print(TEST_CONTENT1); w.flush();
+        assertEquals(TEST_CONTENT1, new String(response.getContent()));
+        w.print(TEST_CONTENT2); w.flush();
+        assertEquals(TEST_CONTENT1+TEST_CONTENT2, new String(response.getContent()));
+    }
+
+    @Test
+    public void getContentAsString() throws Exception {
+        TestResponse response = new TestResponse();
+
+        final String TEST_CONTENT1 = "Hello world one";
+        final String TEST_CONTENT2 = "Hello world two";
+
+        assertEquals(0, response.getContent().length);
+
+        PrintWriter w = response.getWriter();
+        w.print(TEST_CONTENT1); w.flush();
+        assertEquals(TEST_CONTENT1, response.getText());
+        w.print(TEST_CONTENT2); w.flush();
+        assertEquals(TEST_CONTENT1+TEST_CONTENT2, response.getText());
     }
 
 }
