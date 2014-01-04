@@ -45,8 +45,6 @@ implements HttpServletResponse {
     public final static String RES_REDIRECTION = "redirtection";
     public final static String RES_CONTENT_TYPE = "contentType";
 
-    public String statusMessage;
-
     private ByteArrayOutputStream baos;
 
     public TestResponse() {
@@ -63,6 +61,12 @@ implements HttpServletResponse {
     @Override
     public void setStatus(final int status) {
         put(RES_STATUS, status);
+    }
+
+    @Override
+    public void setStatus(final int i, final String msg) {
+        setStatus(i);
+        put(RES_STATUS_MESSAGE, msg);
     }
 
     @Override
@@ -143,11 +147,6 @@ implements HttpServletResponse {
 
     @Override
     public void addIntHeader(String string, int i) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void setStatus(int i, String string) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -243,4 +242,10 @@ implements HttpServletResponse {
     public String getText() {
         return baos.toString();
     }
+
+    public String getStatusMessage() {
+        return (String)get(RES_STATUS_MESSAGE);
+    }
+
+
 }

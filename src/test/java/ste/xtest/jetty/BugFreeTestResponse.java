@@ -54,6 +54,19 @@ public class BugFreeTestResponse {
     }
 
     @Test
+    public void setAndGetStatusMessage() throws Exception {
+        TestResponse response = new TestResponse();
+        assertNull(response.get(TestResponse.RES_STATUS_MESSAGE));
+
+        final String TEST_STATUS_MSG1 = "this is status one";
+        final String TEST_STATUS_MSG2 = "this is status two";
+
+        response.setStatus(1, TEST_STATUS_MSG1);
+        assertEquals(1, response.getStatus());
+        assertEquals(TEST_STATUS_MSG1, response.getStatusMessage());
+    }
+
+    @Test
     public void getContentAsByteArray() throws Exception {
         TestResponse response = new TestResponse();
 
