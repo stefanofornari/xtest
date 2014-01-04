@@ -1,6 +1,6 @@
 20140104
 - added an easy way to get the content of a response
-- released v1.3.7
+- released v1.3.6 (the release of v1.3.6 on 20131201 was not completed...)
 
 20131201
 - added support for content-type
