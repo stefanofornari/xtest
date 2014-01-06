@@ -1,3 +1,7 @@
+20140106
+- added a new framework to mock URL handling
+- released v1.4.0
+
 20140104
 - added an easy way to get the content of a response
 - released v1.3.7
