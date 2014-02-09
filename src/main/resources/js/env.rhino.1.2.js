@@ -11442,7 +11442,6 @@ __extend__(HTMLElement.prototype, {
             this.css2uuid = $css2properties.length;
             $css2properties[this.css2uuid] = new CSS2Properties(this);
         }
-        Envjs.debug("HTMLElement get style 2");
         return $css2properties[this.css2uuid];
     },
 });
