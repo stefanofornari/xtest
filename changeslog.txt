@@ -1,3 +1,9 @@
+20140209
+- added debug functionality: to enable debug tracing set Envjs.DEBUG to true
+- added sprintf.js
+- fixed an issue in Envjs that prevented style='...' to be parsed and therefore 
+  styles to be applied to elements
+
 20140106
 - added a new framework to mock URL handling
 - released v1.4.0

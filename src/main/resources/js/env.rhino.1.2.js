@@ -86,9 +86,10 @@ Envjs.DEBUG = false;
 /**
  * Writes debug message to system out if Envjs.DEBUG = true
  */
-Envjs.debug = function(arguments){
+Envjs.debug = function(message){
     if (Envjs.DEBUG) {
-        Envjs.log("DEBUG: " + sprintf(arguments));
+        var args = Array.prototype.splice.call(arguments, 1);
+        Envjs.log("DEBUG: " + vsprintf(message, args));
     }
 };
 
@@ -216,7 +217,7 @@ Envjs.loadLocalScript = function(script){
         };
         xhr.send(null, false);
     } catch(e) {
-        console.log("could not load script %s \n %s", filename, e );
+        Envjs.debug("could not load script %s \n %s", filename, e );
         Envjs.onScriptLoadError(script, e);
         return false;
     }
@@ -449,14 +450,14 @@ function __cookieString__(cookies, url) {
         i=0;
     for (domain in cookies) {
         // check if the cookie is in the current domain (if domain is set)
-        // console.log('cookie domain %s', domain);
+        Envjs.debug('cookie domain %s', domain);
         if (domain == "" || domain == url.hostname) {
             for (path in cookies[domain]) {
-                // console.log('cookie domain path %s', path);
+                Envjs.debug('cookie domain path %s', path);
                 // make sure path is at or below the window location path
                 if (path == "/" || url.path.indexOf(path) > -1) {
                     for (name in cookies[domain][path]) {
-                        // console.log('cookie domain path name %s', name);
+                        Envjs.debug('cookie domain path name %s', name);
                         cookieString +=
                             ((i++ > 0)?'; ':'') +
                             name + "=" +
@@ -1384,7 +1385,7 @@ Envjs.onExit = function(callback){
         listener = new rhino.ContextFactory.Listener({
             contextReleased: function(context){
                 if(context === __context__)
-                    console.log('context released', context);
+                    Envjs.debug('context released', context);
                 contextFactory.removeListener(this);
                 if(callback)
                     callback();
@@ -4043,11 +4044,6 @@ __extend__(Element.prototype, {
             }
         }
 
-        // if this Attribute is an ID
-        //if (__isIdDeclaration__(name)) {
-        //    this.id = value;
-        //}
-
         // assign values to properties (and aliases)
         attr.value     = value;
         attr.nodeValue = value;
@@ -5235,8 +5231,8 @@ var __toDomNode__ = function(e4, parent, doc){
             }
             break;
         case 'attribute':
-            // console.log('setting attribute %s %s %s',
-            //       xnode.localName(), xnode.namespace(), xnode.valueOf());
+            Envjs.debug('setting attribute %s %s %s',
+                   xnode.localName(), xnode.namespace(), xnode.valueOf());
 
             //
             // cross-platform alert.  The original code used
@@ -7101,7 +7097,7 @@ Aspect.around({
                         break;
                     default:
                         if(node.getAttribute('onload')){
-                            console.log('calling attribute onload %s | %s', node.onload, node.tagName);
+                            Envjs.debug('calling attribute onload %s | %s', node.onload, node.tagName);
                             node.onload();
                         }
                         break;
@@ -7111,7 +7107,7 @@ Aspect.around({
             }//switch on ns
             break;
         default:
-            // console.log('element appended: %s %s', node+'', node.namespaceURI);
+            Envjs.debug('element appended: %s %s', node+'', node.namespaceURI);
     }//switch on doc.parsing
     return node;
 
@@ -7179,7 +7175,7 @@ Aspect.around({
             }//switch on ns
             break;
         default:
-            console.log('element appended: %s %s', node+'', node.namespaceURI);
+            Envjs.debug('element appended: %s %s', node+'', node.namespaceURI);
     }//switch on doc.parsing
     return node;
 
@@ -10968,11 +10964,18 @@ var __toDashed__ = function(camelCaseName) {
 };
 
 CSS2Properties = function(element){
-    //Envjs.debug('css2properties %s', __cssproperties__++);
+    if (Envjs.DEBUG) {
+        if (typeof __cssproperties__ === 'undefined') {
+            Envjs.debug('CSS2Properties %s', element.getAttribute('style'));
+        } else {
+            Envjs.debug('CSS2Properties <%d>', __cssproperties__++);
+        }
+    }
+
     this.styleIndex = __supportedStyles__;//non-standard
     this.type = element.tagName;//non-standard
     __setArray__(this, []);
-    __cssTextToStyles__(this, element.cssText || '');
+    __cssTextToStyles__(this, element.getAttribute('style') || '');
 };
 __extend__(CSS2Properties.prototype, {
     get cssText() {
@@ -11434,11 +11437,12 @@ var $css2properties = [{}];
 
 __extend__(HTMLElement.prototype, {
     get style(){
-        console.log("HTMLElement get style");
+        Envjs.debug("HTMLElement get style");
         if ( !this.css2uuid ) {
             this.css2uuid = $css2properties.length;
             $css2properties[this.css2uuid] = new CSS2Properties(this);
         }
+        Envjs.debug("HTMLElement get style 2");
         return $css2properties[this.css2uuid];
     },
 });
@@ -11455,7 +11459,7 @@ __extend__(HTMLElement.prototype, {
  * This could be wrapped in a closure if desired.
  */
 var updateCss2Props = function(elem, values) {
-    console.log('__updateCss2Props__ %s %s', elem, values);
+    Envjs.debug('__updateCss2Props__ %s %s', elem, values);
     if ( !elem.css2uuid ) {
         elem.css2uuid = $css2properties.length;
         $css2properties[elem.css2uuid] = new CSS2Properties(elem);
@@ -11466,8 +11470,7 @@ var updateCss2Props = function(elem, values) {
 var origSetAttribute =  HTMLElement.prototype.setAttribute;
 
 HTMLElement.prototype.setAttribute = function(name, value) {
-    console.log("CSS set attribute: " + name + ", " + value);
-    Envjs.debug("CSS2 set attribute: " + name + ", " + value);
+    Envjs.debug("CSS set attribute: " + name + ", " + value);
     origSetAttribute.apply(this, arguments);
     if (name === "style") {
         updateCss2Props(this, value);
@@ -12173,7 +12176,7 @@ HTMLParser.parseFragment = function(htmlstring, element){
         }
     }
 
-    // console.log('finished fragment: %s', element.outerHTML);
+    Envjs.debug('finished fragment: %s', element.outerHTML);
     return element;
 };
 
@@ -12283,7 +12286,7 @@ var __elementPopped__ = function(ns, name, node){
                                 case 'script':
                                     try{
                                         okay = Envjs.loadLocalScript(node, null);
-                                        // console.log('loaded script? %s %s', node.uuid, okay);
+                                        Envjs.debug('loaded script? %s %s', node.uuid, okay);
                                         // only fire event if we actually had something to load
                                         if (node.src && node.src.length > 0){
                                             event = doc.createEvent('HTMLEvents');
@@ -12417,7 +12420,7 @@ var __elementPopped__ = function(ns, name, node){
                     }//switch on ns
                     break;
                 default:
-                    console.log('element popped: %s %s', ns, name, node.ownerDocument+'');
+                    Envjs.debug('element popped: %s %s', ns, name, node.ownerDocument+'');
             }//switch on doc type
         default:
             break;
@@ -13112,7 +13115,7 @@ var __exchangeHTMLDocument__ = function(doc, text, url) {
     } catch (e) {
         console.log('parsererror %s', e);
         try {
-            console.log('document \n %s', doc.documentElement.outerHTML);
+            Envjs.debug('document \n %s', doc.documentElement.outerHTML);
         } catch (e) {
             // swallow
         }
@@ -13146,7 +13149,7 @@ var __exchangeHTMLDocument__ = function(doc, text, url) {
 
         try {
             if (doc === window.document) {
-                console.log('triggering window.load');
+                Envjs.debug('triggering window.load');
                 event = doc.createEvent('HTMLEvents');
                 event.initEvent('load', false, false);
                 window.dispatchEvent( event, false );
@@ -14023,7 +14026,7 @@ Window = function(scope, parent, opener){
 
         open: function(url, name, features, replace){
             if (features) {
-                console.log("'features argument not yet implemented");
+                Envjs.debug("'features argument not yet implemented");
             }
             var _window = Envjs.proxy({}),
                 open;
@@ -14078,7 +14081,7 @@ Window = function(scope, parent, opener){
 //finally pre-supply the window with the window-like environment
 Envjs.debug('Default Window');
 new Window(__this__, __this__);
-console.log('[ %s ]',window.navigator.userAgent);
+Envjs.debug('[ %s ]',window.navigator.userAgent);
 /**
  *
  * @param {Object} event
@@ -14095,7 +14098,7 @@ __extend__(Envjs.defaultEventBehaviors,{
         }
     },
     'click': function(event) {
-        // console.log('handling event target default behavior for click');
+        Envjs.debug('handling event target default behavior for click');
     }
 
 });

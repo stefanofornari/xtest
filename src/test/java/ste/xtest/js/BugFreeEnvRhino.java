@@ -75,11 +75,15 @@ public class BugFreeEnvRhino {
     
     @Test
     public void debugON() throws Exception {
-        final String TEST = "debug is ON";
+        final String TEST1 = "debug is ON";
+        final String TEST2 = "debug is %s";
         
         test.exec("Envjs.DEBUG = true;");
-        test.exec("Envjs.debug('" + TEST + "');");
-        assertThat(test.exec("__LOG__")).isEqualTo("DEBUG: " + TEST);
+        test.exec("Envjs.debug('" + TEST1 + "');");
+        assertThat(test.exec("__LOG__")).isEqualTo("DEBUG: " + TEST1);
+        assertThat(test.exec("Envjs.debug('" + TEST2 + "', 'ON'); __LOG__"))
+            .isEqualTo("DEBUG: " + TEST1);
+        
     }
 
 }
