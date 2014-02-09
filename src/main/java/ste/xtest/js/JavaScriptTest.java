@@ -113,7 +113,7 @@ public abstract class JavaScriptTest {
                 throw new FileNotFoundException("/js/xtest.init.js not found in classpath");
             }
             is.close(); is = null;
-
+            
             //
             // Envjs loading and initialization
             //
@@ -123,11 +123,20 @@ public abstract class JavaScriptTest {
             }
             cx.evaluateReader(scope, new InputStreamReader(is), "js/env.rhino.1.2.js", 1, null);
             is.close(); is = null;
-
+            
+            //
+            // printf.js loading and initialization
+            //
+            is = JavaScriptTest.class.getResourceAsStream("/js/sprintf-0.0.7.min.js");
+            if (is == null) {
+                throw new FileNotFoundException("/js/sprintf-0.0.7 not found in classpath");
+            }
+            cx.evaluateReader(scope, new InputStreamReader(is), "js/sprintf-0.0.7", 1, null);
+            is.close(); is = null;
+            
             //
             // jQuery loading and initialization
             //
-            //final String JQUERY = "/js/jquery-1.10.0.min.js";
             final String JQUERY = "/js/jquery-1.10.2.min.js";
             is = JavaScriptTest.class.getResourceAsStream(JQUERY);
             if (is == null) {
@@ -145,9 +154,9 @@ public abstract class JavaScriptTest {
             }
             cx.evaluateReader(scope, new InputStreamReader(is), "js/jquery.mockjax.js", 1, null);
             is.close(); is = null;
-
+            
             //
-            // xtest settp
+            // xtest setup
             //
             is = JavaScriptTest.class.getResourceAsStream("/js/xtest.setup.js");
             cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.setup.js", 1, null);

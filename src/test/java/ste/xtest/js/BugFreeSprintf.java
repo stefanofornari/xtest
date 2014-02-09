@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2013 Stefano Fornari
+ * Copyright (C) 2014 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -20,9 +20,31 @@
  * MA 02110-1301 USA.
  */
 
-//
-// For some reasons asynchronous ajax calls do not work in env.rhino
-//
-$.ajaxSetup({
-    async: false
-});
+package ste.xtest.js;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+import org.junit.Before;
+
+/**
+ *
+ * @author ste
+ */
+public class BugFreeSprintf {
+
+    //
+    // We do not test all cases becase we added sprintf.js. We just make sure it
+    // is loaded and it is available
+    //
+    @Test
+    public void simplePrintfs() throws Exception {
+        JavaScriptTest test = new JavaScriptTest(){};
+        
+        final String TESTF1 = "Hello %s!";
+        final String TESTF2 = "%d %d %d";
+
+        assertThat(test.exec("sprintf('" + TESTF1 + "', 'world');")).isEqualTo("Hello world!");
+        assertThat(test.exec("sprintf('" + TESTF1 + "', 'john');")).isEqualTo("Hello john!");
+        assertThat(test.exec("sprintf('" + TESTF2 + "', 1, 2, 3);")).isEqualTo("1 2 3");
+    }
+}

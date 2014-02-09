@@ -22,8 +22,9 @@
 
 package ste.xtest.js;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.Before;
 
 /**
  *
@@ -32,33 +33,53 @@ import static org.junit.Assert.*;
  * TODO: exec object's method
  */
 public class BugFreeEnvRhino {
+    
+    private JavaScriptTest test = null;
+    
+    @Before
+    public void setUp() throws Exception {
+        test = new JavaScriptTest(){};
+        
+        test.exec("var __LOG__ = ''; Envjs.log = function(message) {__LOG__ = message; };");
+    }
 
     @Test
     public void getElementsByClassName() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
-
         test.exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
 
         test.exec("d = document.getElementById('0');");
 
-        assertEquals(0.0, test.exec("d.getElementsByClassName('none').length;"));
-        assertEquals(1.0, test.exec("d.getElementsByClassName('c1').length;"));
-        assertEquals(1.0, test.exec("d.getElementsByClassName('c121b').length;"));
-        assertEquals(2.0, test.exec("d.getElementsByClassName('c11b').length;"));
-        assertEquals(4.0, test.exec("d.getElementsByClassName('c').length;"));
+        assertThat(test.exec("d.getElementsByClassName('none').length;")).isEqualTo(0.0);
+        assertThat(test.exec("d.getElementsByClassName('c1').length;")).isEqualTo(1.0);
+        assertThat(test.exec("d.getElementsByClassName('c121b').length;")).isEqualTo(1.0);
+        assertThat(test.exec("d.getElementsByClassName('c11b').length;")).isEqualTo(2.0);
+        assertThat(test.exec("d.getElementsByClassName('c').length;")).isEqualTo(4.0);
     }
 
     @Test
     public void getSetStyle() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
-
         test.exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
 
         test.exec("var div = document.createElement('DIV');");
         test.exec("div.style.height = '10px';");
-        assertEquals("10px", test.exec("div.style.height"));
+        assertThat(test.exec("div.style.height")).isEqualTo("10px");
         test.exec("div.style.height = '20px';");
-        assertEquals("20px", test.exec("div.style.height"));
+        assertThat(test.exec("div.style.height")).isEqualTo("20px");
+    }
+    
+    @Test
+    public void debugOFF() throws Exception {
+        test.exec("Envjs.debug('debug is OFF');");
+        assertThat(test.exec("__LOG__")).isEqualTo("");
+    }
+    
+    @Test
+    public void debugON() throws Exception {
+        final String TEST = "debug is ON";
+        
+        test.exec("Envjs.DEBUG = true;");
+        test.exec("Envjs.debug('" + TEST + "');");
+        assertThat(test.exec("__LOG__")).isEqualTo("DEBUG: " + TEST);
     }
 
 }
