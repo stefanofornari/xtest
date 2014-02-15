@@ -1,6 +1,7 @@
 20140215
 - added a base class for all BugFree classes
 - renamed BeanShellTest into BugFreeBeanShell
+- renamed JavaScriptTest into BugFreeJavaScript
 
 20140209
 - added debug functionality: to enable debug tracing set Envjs.DEBUG to true

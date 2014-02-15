@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2013 Stefano Fornari
+ * Copyright (C) 2014 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.UniqueTag;
+import ste.xtest.junit.BugFree;
 
 /**
  * Base class for junit tests for JavaSctript scripts. It provides a simple
@@ -77,11 +78,8 @@ import org.mozilla.javascript.UniqueTag;
  * }
  * </pre></blockquote>
  *
- * @deprecated use {@link BugFreeJavaScript} instead
- *
  */
-@Deprecated
-public abstract class JavaScriptTest extends BugFreeJavaScript {
+public abstract class BugFreeJavaScript  extends BugFree {
 
     //
     // TODO: extract common base class between JavaScriptTest and BeanShellTest
@@ -98,7 +96,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
      *
      * @throws ScriptException if any setup script could not be loaded.
      */
-    public JavaScriptTest() throws ScriptException {
+    public BugFreeJavaScript() throws ScriptException {
         scope = null;
 
         Context cx = Context.enter();
@@ -110,7 +108,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
             //
             // xtest initialization
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/xtest.init.js");
+            is = BugFreeJavaScript.class.getResourceAsStream("/js/xtest.init.js");
             cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.init.js", 1, null);
             if (is == null) {
                 throw new FileNotFoundException("/js/xtest.init.js not found in classpath");
@@ -120,7 +118,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
             //
             // Envjs loading and initialization
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/env.rhino.1.2.js");
+            is = BugFreeJavaScript.class.getResourceAsStream("/js/env.rhino.1.2.js");
             if (is == null) {
                 throw new FileNotFoundException("/js/env.rhino.1.2.js not found in classpath");
             }
@@ -130,7 +128,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
             //
             // printf.js loading and initialization
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/sprintf-0.0.7.min.js");
+            is = BugFreeJavaScript.class.getResourceAsStream("/js/sprintf-0.0.7.min.js");
             if (is == null) {
                 throw new FileNotFoundException("/js/sprintf-0.0.7 not found in classpath");
             }
@@ -141,7 +139,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
             // jQuery loading and initialization
             //
             final String JQUERY = "/js/jquery-1.10.2.min.js";
-            is = JavaScriptTest.class.getResourceAsStream(JQUERY);
+            is = BugFreeJavaScript.class.getResourceAsStream(JQUERY);
             if (is == null) {
                 throw new FileNotFoundException(JQUERY);
             }
@@ -151,7 +149,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
             //
             // Mockjax loading and initialization
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/jquery.mockjax.js");
+            is = BugFreeJavaScript.class.getResourceAsStream("/js/jquery.mockjax.js");
             if (is == null) {
                 throw new FileNotFoundException("/js/jquery.mockjax.min");
             }
@@ -161,7 +159,7 @@ public abstract class JavaScriptTest extends BugFreeJavaScript {
             //
             // xtest setup
             //
-            is = JavaScriptTest.class.getResourceAsStream("/js/xtest.setup.js");
+            is = BugFreeJavaScript.class.getResourceAsStream("/js/xtest.setup.js");
             cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.setup.js", 1, null);
             if (is == null) {
                 throw new FileNotFoundException("/js/xtest.setup.js not found in classpath");
