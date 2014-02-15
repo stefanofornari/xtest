@@ -22,13 +22,8 @@
 
 package ste.xtest.beanshell;
 
-import bsh.*;
-
-import org.junit.After;
-import org.junit.Before;
-
 /**
- * Base class for junit test cases to use testing BeanShell scripts. It provides
+ * Base class for junit test cases to use testing BugFreeBeanShell scripts. It provides
  * a simple framework to work with beanshell.
  * <p/>
  * It provides two useful methods to invoke a method defined in a beanshell file:
@@ -43,10 +38,10 @@ import org.junit.Before;
  * <code>replaceString(String arg1, String arg2, String arg3)</code> defined
  * in <code>replace.beanshell</code> script file.
  * <blockquote><pre>
- * public class ReplaceTest extends BeanShellTest {
- *
- *     public ReplaceTest() {
- *         fileName =  "<SOMEWHERE>/replace.beanshell"
+ public class ReplaceTest extends BugFreeBeanShell {
+
+     public ReplaceTest() {
+         fileName =  "<SOMEWHERE>/replace.beanshell"
  *     }
  *
  *     @Test
@@ -67,164 +62,9 @@ import org.junit.Before;
  * }
  * </pre></blockquote>
  *
+ * @deprecated use {@link BugFreeBenShell} instead
+ *
  */
-public abstract class BeanShellTest {
-
-    // -------------------------------------------------------------- Properties
-
-    /** The beanshell file to test */
-    private String fileName;
-
-    public String getBshFileName() {
-        return fileName;
-    }
-
-    public void setBshFileName(String bshFileName) {
-        this.fileName = bshFileName;
-    }
-
-    /** a directory where to find commands **/
-    private String commandsDirectory;
-
-    /**
-     * @return the commandsDirectory
-     */
-    public String getCommandsDirectory() {
-        return commandsDirectory;
-    }
-
-    /**
-     * @param commandsDirectory the commandsDirectory to set
-     */
-    public void setCommandsDirectory(String commandsDirectory) {
-        this.commandsDirectory = commandsDirectory;
-    }
-
-    // ---------------------------------------------------------- Protected data
-
-    protected Interpreter beanshell = null;
-
-    // ------------------------------------------------------------ Private data
-    private bsh.This bshThis = null;
-
-    // ---------------------------------------------------------- Public methods
-
-    public BeanShellTest() {
-        fileName = null;
-        commandsDirectory = null;
-    }
-
-    //
-    // TODO: move to beforeClass ???
-    //
-    @Before
-    public void setUp() throws Exception {
-        beanshell = new Interpreter();
-        if (getCommandsDirectory() != null) {
-            beanshell.eval("addClassPath(\".\"); importCommands(\"" + getCommandsDirectory() + "\");");
-        }
-
-        beanshellSetup();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
-
-    /**
-     * Returns the value of the given variable as string
-     *
-     * @param var the variable to return
-     *
-     * @return  the value of the given variable as string
-     *
-     * @throws EvalError if beanshell cannot return the variable
-     */
-    public String getAsString(final String var) throws EvalError {
-        Object o = beanshell.get(var);
-        return (o != null) ? String.valueOf(o) : null;
-    }
-
-
-    // ------------------------------------------------------- Protected methods
-
-    /**
-     * Allows an implementation to set up the interpreter right before the
-     * script is executed.
-     *
-     */
-    //
-    // TODO: use normal @Before???
-    //
-    protected void beanshellSetup() throws Exception { }
-
-    /**
-     * Sources the beanshell script and returns the object result of the
-     * execution. It update <code>bshThis</code>.
-     *
-     * @return the object result of the execution of the beanshell script
-     * @throws Exception in case of errors
-     *
-     */
-    protected Object exec() throws Exception {
-        Object ret = null;
-
-        if (fileName != null) {
-            ret = beanshell.source(fileName);
-        }
-
-        bshThis = (bsh.This)beanshell.eval(";return this;");
-
-        return ret;
-    }
-
-    /**
-     * Exec the given method calling it on the configured beanshell file.
-     * This version is useful for methods that returns an object and that have
-     * not defined arguments.
-     *
-     * @param method the method to invoke
-     * @param args the arguments of the method
-     * @return the object returned by the invoked method
-     * @throws java.lang.Throwable if an error occurs
-     */
-    protected Object exec(String method, Object... args) throws Throwable {
-        Object o = null;
-
-        try {
-            o = bshThis.invokeMethod(method, args);
-        } catch (TargetError e) {
-            throw e.getTarget();
-        }
-
-        if (o == null) {
-            return null;
-        }
-        if (o == bsh.Primitive.NULL) {
-            return null;
-        }
-        if (o instanceof Primitive) {
-            return ((Primitive)o).getValue();
-        }
-        return o;
-    }
-
-
-    /**
-     * Exec the given method calling it on the configured beanshell file.
-     * This version is useful for methods that don't return an object and that have
-     * not defined arguments.
-     *
-     * @param method
-     * @param args
-     * @throws Throwable
-     */
-    protected void execWithoutReturn(String method, Object... args) throws Throwable
-    {
-        try {
-            bshThis.invokeMethod(method, args);
-        } catch (TargetError e) {
-            throw e.getTarget();
-        }
-    }
+@Deprecated
+public abstract class BeanShellTest extends BugFreeBeanShell {
 }

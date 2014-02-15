@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
  *
  * @author ste
  */
-public class BugFreeBeanShellTest {
+public class BugFreeBugFreeBeanShell {
 
     public static final String  TEST_VAR1 = "variable1";
     public static final String  TEST_VAL1 = "value1";
@@ -38,7 +38,7 @@ public class BugFreeBeanShellTest {
 
     @Test
     public void getVariableAsString() throws Exception {
-        BeanShellTest test = new BeanShellTest() {
+        BugFreeBeanShell test = new BugFreeBeanShell() {
             @Override
             public void beanshellSetup() throws Exception {
                 beanshell.set(TEST_VAR1, TEST_VAL1);
