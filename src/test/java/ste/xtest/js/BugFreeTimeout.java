@@ -24,6 +24,7 @@ package ste.xtest.js;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
+import ste.xtest.junit.BugFree;
 
 /**
  *
@@ -31,7 +32,7 @@ import org.junit.Test;
  *
  * TODO: exec object's method
  */
-public class BugFreeTimeout {
+public class BugFreeTimeout extends BugFree {
 
     @Test
     public void setTimeoutNoStop() throws Exception {
