@@ -22,7 +22,7 @@
 
 package ste.xtest.js;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.xtest.junit.BugFree;
 
@@ -36,33 +36,33 @@ public class BugFreeTimeout extends BugFree {
 
     @Test
     public void setTimeoutNoStop() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         test.exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 50);");
         Thread.sleep(100);
 
         long s = ((Double)test.get("s")).longValue(), e = ((Double)test.get("e")).longValue();
-        assertTrue(e-s >= 50);
+        then(e-s).isGreaterThanOrEqualTo(50);
 
         test.exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 75);");
         Thread.sleep(100);
 
         s = ((Double)test.get("s")).longValue(); e = ((Double)test.get("e")).longValue();
-        assertTrue(e-s >= 75);
+        then(e-s).isGreaterThanOrEqualTo(75);
     }
 
     @Test
     public void setTimeoutWithStop() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         test.exec("var s = new Date().getTime(), e = s; var t = setTimeout(function() {e = new Date().getTime();}, 50); clearTimeout(t);");
 
-        assertEquals(test.get("s"), test.get("e"));
+        then(test.get("e")).isEqualTo(test.get("s"));
     }
 
     @Test
     public void setTimeoutWithInfinityInterval() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         test.exec("var ran = false; setTimeout(function() {ran = true;}, Infinity);");
 
@@ -71,7 +71,7 @@ public class BugFreeTimeout extends BugFree {
         // has not ran
         //
         Thread.sleep(1000);
-        assertFalse((boolean)test.get("ran"));
+        then((boolean)test.get("ran")).isFalse();
     }
 
 }
