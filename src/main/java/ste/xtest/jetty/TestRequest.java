@@ -21,14 +21,24 @@
  */
 package ste.xtest.jetty;
 
+import java.io.IOException;
+import java.io.InputStream;
+import javax.servlet.ServletInputStream;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpHeader;
+
 /**
  *
  * @author ste
  */
 public class TestRequest extends org.eclipse.jetty.server.Request {
-
+    
+    private String content;
+    
     public TestRequest() {
         super(null, null);
+        this.content = null;
     }
 
     /**
@@ -41,5 +51,42 @@ public class TestRequest extends org.eclipse.jetty.server.Request {
         if (createSession) {
             setSession(new TestSession());
         }
+    }
+    
+    @Override
+    public ServletInputStream getInputStream() {
+        return (content == null) ? null : new TestServletInputStream(content);
+    }
+    
+    /**
+     * Sets the body of the request as a string.
+     * 
+     * @param content 
+     */
+    public void setContent(final String content) {
+        this.content = content;
+        
+        HttpFields headers = getHttpFields();
+        headers.add(
+            HttpHeader.CONTENT_LENGTH.toString(), 
+            (content == null) ? "-1" : String.valueOf(content.length())
+        );
+    }
+    
+    // -------------------------------------------------- TestServletInputStream
+    
+    private class TestServletInputStream extends ServletInputStream {
+        
+       private InputStream is;
+        
+        public TestServletInputStream(final String data) {
+            is = IOUtils.toInputStream(data);
+        }
+
+        @Override
+        public int read() throws IOException {
+            return is.read();
+        }
+        
     }
 }
