@@ -57,7 +57,7 @@ public class WatchServiceMock implements WatchService {
         interval = 1000;
         interruptAfterNPolls = -1;
 
-        this.paths = new LinkedList<WatchKeyMock>();
+        this.paths = new LinkedList<>();
         for (String path: paths) {
             this.paths.push(newWatchKeyMock(path));
         }
