@@ -7255,52 +7255,64 @@ var __eval__ = function(script, node){
     if (!script == ""){
         // don't assemble environment if no script...
         try{
-            eval(script);
+            return eval("function() {" + script + "};");
         }catch(e){
             console.log('error evaluating %s', e);
         }
     }
 };
 
-var HTMLEvents= function(){};
+var HTMLEvents = function(){};
 HTMLEvents.prototype = {
     onload: function(event){
-        __eval__(this.getAttribute('onload')||'', this);
+        this.onload = __eval__(this.getAttribute('onload')||'', this);
+        this.onload();
     },
     onunload: function(event){
-        __eval__(this.getAttribute('onunload')||'', this);
+        this.onunload = __eval__(this.getAttribute('onunload')||'', this);
+        this.onunload();
     },
     onabort: function(event){
-        __eval__(this.getAttribute('onabort')||'', this);
+        this.onabort = __eval__(this.getAttribute('onabort')||'', this);
+        this.onabort();
     },
     onerror: function(event){
-        __eval__(this.getAttribute('onerror')||'', this);
+        this.onerror = __eval__(this.getAttribute('onerror')||'', this);
+        this.onerror();
     },
     onselect: function(event){
-        __eval__(this.getAttribute('onselect')||'', this);
+        this.onselect = __eval__(this.getAttribute('onselect')||'', this);
+        this.onselect();
     },
     onchange: function(event){
-        __eval__(this.getAttribute('onchange')||'', this);
+        this.onchange = __eval__(this.getAttribute('onchange')||'', this);
+        this.onchange();
     },
     onsubmit: function(event){
-        if (__eval__(this.getAttribute('onsubmit')||'', this)) {
+        this.onsubmit = __eval__(this.getAttribute('onsubmit')||'', this);
+        if (this.onsubmit()) {
             this.submit();
         }
     },
     onreset: function(event){
-        __eval__(this.getAttribute('onreset')||'', this);
+        this.onreset = __eval__(this.getAttribute('onreset')||'', this);
+        this.onreset();
     },
     onfocus: function(event){
-        __eval__(this.getAttribute('onfocus')||'', this);
+        this.onerror = __eval__(this.getAttribute('onfocus')||'', this);
+        this.onerror();
     },
     onblur: function(event){
-        __eval__(this.getAttribute('onblur')||'', this);
+        this.onfocus = __eval__(this.getAttribute('onblur')||'', this);
+        this.onfocus();
     },
     onresize: function(event){
-        __eval__(this.getAttribute('onresize')||'', this);
+        this.onresize = __eval__(this.getAttribute('onresize')||'', this);
+        this.onresize();
     },
     onscroll: function(event){
-        __eval__(this.getAttribute('onscroll')||'', this);
+        this.onscroll = __eval__(this.getAttribute('onscroll')||'', this);
+        this.onscroll();
     }
 };
 
@@ -7408,13 +7420,16 @@ var __scroll__ = function(element){
 var KeyboardEvents= function(){};
 KeyboardEvents.prototype = {
     onkeydown: function(event){
-        __eval__(this.getAttribute('onkeydown')||'', this);
+        this.onkeydown = __eval__(this.getAttribute('onkeydown')||'', this);
+        this.onkeydown();
     },
     onkeypress: function(event){
-        __eval__(this.getAttribute('onkeypress')||'', this);
+        this.onkeypress = __eval__(this.getAttribute('onkeypress')||'', this);
+        this.onkeypress();
     },
     onkeyup: function(event){
-        __eval__(this.getAttribute('onkeyup')||'', this);
+        this.onkeydown = __eval__(this.getAttribute('onkeyup')||'', this);
+        this.onkeydown();
     }
 };
 
@@ -7461,25 +7476,32 @@ var  __keyup__ = function(element){
 var MouseEvents= function(){};
 MouseEvents.prototype = {
     onclick: function(event){
-        __eval__(this.getAttribute('onclick')||'', this);
+        this.onclick = __eval__(this.getAttribute('onclick')||'', this);
+        this.onclick();
     },
     ondblclick: function(event){
-        __eval__(this.getAttribute('ondblclick')||'', this);
+        this.ondblclick = __eval__(this.getAttribute('ondblclick')||'', this);
+        this.ondblclick();
     },
     onmousedown: function(event){
-        __eval__(this.getAttribute('onmousedown')||'', this);
+        this.onmousedown = __eval__(this.getAttribute('onmousedown')||'', this);
+        this.onmousedown();
     },
     onmousemove: function(event){
-        __eval__(this.getAttribute('onmousemove')||'', this);
+        this.onmousemove = __eval__(this.getAttribute('onmousemove')||'', this);
+        this.onmousemove();
     },
     onmouseout: function(event){
-        __eval__(this.getAttribute('onmouseout')||'', this);
+        this.onmouseout = __eval__(this.getAttribute('onmouseout')||'', this);
+        this.onmouseout();
     },
     onmouseover: function(event){
-        __eval__(this.getAttribute('onmouseover')||'', this);
+        this.onmouseover = __eval__(this.getAttribute('onmouseover')||'', this);
+        this.onmouseover();
     },
     onmouseup: function(event){
-        __eval__(this.getAttribute('onmouseup')||'', this);
+        this.onmouseup = __eval__(this.getAttribute('onmouseup')||'', this);
+        this.onmouseup();
     }
 };
 
@@ -8025,7 +8047,8 @@ var inputElements_status = {};
 
 var inputElements_onchange = {
     onchange: function(event){
-        __eval__(this.getAttribute('onchange')||'', this);
+        this.onchange = __eval__(this.getAttribute('onchange')||'', this);
+        this.onchange();
     }
 };
 
@@ -8383,10 +8406,12 @@ HTMLBodyElement = function(ownerDocument) {
 HTMLBodyElement.prototype = new HTMLElement();
 __extend__(HTMLBodyElement.prototype, {
     onload: function(event){
-        __eval__(this.getAttribute('onload')||'', this);
+        this.onload = __eval__(this.getAttribute('onload')||'', this);
+        this.onload();
     },
     onunload: function(event){
-        __eval__(this.getAttribute('onunload')||'', this);
+        this.onunload = __eval__(this.getAttribute('onunload')||'', this);
+        this.onunload();
     },
     toString: function() {
         return '[object HTMLBodyElement]';
@@ -9163,7 +9188,8 @@ __loadImage__ = function(node, value) {
 
 __extend__(HTMLImageElement.prototype, {
     onload: function(event){
-        __eval__(this.getAttribute('onload') || '', this);
+        this.onload = __eval__(this.getAttribute('onload')||'', this);
+        this.onload();
     }
 });
 
@@ -9518,7 +9544,8 @@ HTMLElement.registerSetAttribute('LINK', 'href', function(node, value) {
  */
 __extend__(HTMLLinkElement.prototype, {
     onload: function(event){
-        __eval__(this.getAttribute('onload')||'', this);
+        this.onload = __eval__(this.getAttribute('onload')||'', this);
+        this.onload();
     },
 });
 
