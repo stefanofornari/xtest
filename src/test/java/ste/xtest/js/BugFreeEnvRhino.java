@@ -22,7 +22,7 @@
 
 package ste.xtest.js;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.junit.Before;
 
@@ -34,7 +34,7 @@ import org.junit.Before;
  */
 public class BugFreeEnvRhino {
     
-    private JavaScriptTest test = null;
+    private BugFreeJavaScript test = null;
     
     @Before
     public void setUp() throws Exception {
@@ -49,11 +49,11 @@ public class BugFreeEnvRhino {
 
         test.exec("d = document.getElementById('0');");
 
-        assertThat(test.exec("d.getElementsByClassName('none').length;")).isEqualTo(0.0);
-        assertThat(test.exec("d.getElementsByClassName('c1').length;")).isEqualTo(1.0);
-        assertThat(test.exec("d.getElementsByClassName('c121b').length;")).isEqualTo(1.0);
-        assertThat(test.exec("d.getElementsByClassName('c11b').length;")).isEqualTo(2.0);
-        assertThat(test.exec("d.getElementsByClassName('c').length;")).isEqualTo(4.0);
+        then(test.exec("d.getElementsByClassName('none').length;")).isEqualTo(0.0);
+        then(test.exec("d.getElementsByClassName('c1').length;")).isEqualTo(1.0);
+        then(test.exec("d.getElementsByClassName('c121b').length;")).isEqualTo(1.0);
+        then(test.exec("d.getElementsByClassName('c11b').length;")).isEqualTo(2.0);
+        then(test.exec("d.getElementsByClassName('c').length;")).isEqualTo(4.0);
     }
 
     @Test
@@ -62,15 +62,15 @@ public class BugFreeEnvRhino {
 
         test.exec("var div = document.createElement('DIV');");
         test.exec("div.style.height = '10px';");
-        assertThat(test.exec("div.style.height")).isEqualTo("10px");
+        then(test.exec("div.style.height")).isEqualTo("10px");
         test.exec("div.style.height = '20px';");
-        assertThat(test.exec("div.style.height")).isEqualTo("20px");
+        then(test.exec("div.style.height")).isEqualTo("20px");
     }
     
     @Test
     public void debugOFF() throws Exception {
         test.exec("Envjs.debug('debug is OFF');");
-        assertThat(test.exec("__LOG__")).isEqualTo("");
+        then(test.exec("__LOG__")).isEqualTo("");
     }
     
     @Test
@@ -80,10 +80,9 @@ public class BugFreeEnvRhino {
         
         test.exec("Envjs.DEBUG = true;");
         test.exec("Envjs.debug('" + TEST1 + "');");
-        assertThat(test.exec("__LOG__")).isEqualTo("DEBUG: " + TEST1);
-        assertThat(test.exec("Envjs.debug('" + TEST2 + "', 'ON'); __LOG__"))
+        then(test.exec("__LOG__")).isEqualTo("DEBUG: " + TEST1);
+        then(test.exec("Envjs.debug('" + TEST2 + "', 'ON'); __LOG__"))
             .isEqualTo("DEBUG: " + TEST1);
-        
     }
 
 }
