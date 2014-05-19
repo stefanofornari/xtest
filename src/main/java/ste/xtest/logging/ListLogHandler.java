@@ -111,7 +111,7 @@ public class ListLogHandler extends Handler {
      */
     public List<String> getMessages() {
         List<String> messages = new ArrayList<>();
-
+        
         for (LogRecord r: records) {
             messages.add(r.getMessage());
         }
