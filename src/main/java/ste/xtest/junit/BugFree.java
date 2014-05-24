@@ -37,7 +37,7 @@ public class BugFree {
     @Rule
     public final TestRule watcherRule = new TestWatcher() {
         protected void starting(Description description) {
-            String name = description.getMethodName();
+          String name = description.getMethodName();
           System.out.printf(
               "\n%s\n%s\n", name, StringUtils.repeat("-", name.length())
           );

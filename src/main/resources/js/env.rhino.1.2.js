@@ -4006,6 +4006,7 @@ __extend__(Element.prototype, {
       return this.attributes._removeChild(itemIndex);
     },
     getAttributeNS : function(namespaceURI, localName) {
+        Envjs.debug('getAttributeNS %s %s', namespaceURI, localName);
         var ret = "";
         // delegate to NAmedNodeMap.getNamedItemNS
         var attr = this.attributes.getNamedItemNS(namespaceURI, localName);
@@ -4014,14 +4015,14 @@ __extend__(Element.prototype, {
         }
         return ret;  // if Attribute exists, return its value, otherwise return ""
     },
-    setAttributeNS : function(namespaceURI, qualifiedName, value) {
+    setAttributeNS : function(namespaceURI, localName, value) {
         // call NamedNodeMap.getNamedItem
-        Envjs.debug('setAttributeNS %s %s %s', namespaceURI, qualifiedName, value);
-        var attr = this.attributes.getNamedItem(namespaceURI, qualifiedName);
+        Envjs.debug('setAttributeNS %s %s %s', namespaceURI, localName, value);
+        var attr = this.attributes.getNamedItem(namespaceURI, localName);
 
         if (!attr) {  // if Attribute exists, use it
             // otherwise create it
-            attr = __ownerDocument__(this).createAttributeNS(namespaceURI, qualifiedName);
+            attr = __ownerDocument__(this).createAttributeNS(namespaceURI, localName);
         }
 
         value = '' + value;
@@ -4034,7 +4035,7 @@ __extend__(Element.prototype, {
             }
 
             // throw Exception if the Namespace is invalid
-            if (!__isValidNamespace__(this.ownerDocument, namespaceURI, qualifiedName, true)) {
+            if (!__isValidNamespace__(this.ownerDocument, namespaceURI, localName, true)) {
                 throw(new DOMException(DOMException.NAMESPACE_ERR));
             }
 
@@ -7252,13 +7253,11 @@ var __removeNamedMap__ = function(target, node) {
  */
 
 var __eval__ = function(script, node){
-    if (!script == ""){
-        // don't assemble environment if no script...
-        try{
-            return eval("function() {" + script + "};");
-        }catch(e){
-            console.log('error evaluating %s', e);
-        }
+    // don't assemble environment if no script...
+    try{
+        return eval("function() {" + script + "};");
+    } catch(e) {
+        console.log('error evaluating %s', e);
     }
 };
 
@@ -9266,7 +9265,7 @@ __extend__(HTMLInputElement.prototype, {
         // force to boolean value
         this._checked = (value) ? true : false;
     },
-
+    
     /**
      * 'defaultChecked' actually reflects if the 'checked' attribute
      * is present or not
@@ -9296,6 +9295,7 @@ __extend__(HTMLInputElement.prototype, {
     set value(newvalue) {
         this._value = newvalue;
     },
+    
     /**
      * Height is a string
      */
