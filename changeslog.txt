@@ -1,3 +1,7 @@
+20140601
+- new utility: PrivateAccess to access private fields and methods (only static fields for now)
+- released v1.5.0
+
 20140524
 - fixed an issue with event handling when events were declared in a fragment
   added to the DOM in a second moment
