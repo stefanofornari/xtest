@@ -34,27 +34,47 @@ public class BugFreePrivateAccess {
     
     @Test
     public void setAndGetStaticFieldOK() throws Exception {
-        PrivateAccess.setStaticField(PrivateAccessHelper.class, "StaticPrivateObject", null);
-        then(PrivateAccess.getStaticField(PrivateAccessHelper.class, "StaticPrivateObject")).isNull();
+        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "StaticPrivateObject", null);
+        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "StaticPrivateObject")).isNull();
         
         Object o = new Object();
-        PrivateAccess.setStaticField(PrivateAccessHelper.class, "StaticPrivateObject", o);
-        then(PrivateAccess.getStaticField(PrivateAccessHelper.class, "StaticPrivateObject")).isSameAs(o);
+        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "StaticPrivateObject", o);
+        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "StaticPrivateObject")).isSameAs(o);
         
         String s = "hello";
-        PrivateAccess.setStaticField(PrivateAccessHelper.class, "StaticPrivateString", s);
-        then(PrivateAccess.getStaticField(PrivateAccessHelper.class, "StaticPrivateString")).isSameAs(s);
+        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "StaticPrivateString", s);
+        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "StaticPrivateString")).isSameAs(s);
     }
     
     @Test
     public void setAndGetStaticFieldKOInvalidName() throws Exception {
         try {
-            PrivateAccess.setStaticField(PrivateAccessHelper.class, "NotExisting", null);
-            fail("not existing fields shall thwor an exception");
+            PrivateAccess.setStaticValue(PrivateAccessHelper.class, "NotExisting", null);
+            fail("not existing fields shall throw an exception");
         } catch (NoSuchFieldException x) {
             //
             // OK
             //
+        }
+    }
+    
+    @Test
+    public void setStaticFieldKONonStaticField() throws Exception {
+        try {
+            PrivateAccess.setStaticValue(PrivateAccessHelper.class, "InstancePrivateObject", null);
+            fail("not static fields shall throw an exception");
+        } catch (NoSuchFieldException x) {
+            then(x.getMessage()).contains("InstancePrivateObject").contains("not a static field");
+        }
+    }
+    
+    @Test
+    public void getStaticFieldKONonStaticField() throws Exception {
+        try {
+            PrivateAccess.getStaticValue(PrivateAccessHelper.class, "InstancePrivateObject");
+            fail("not static fields shall throw an exception");
+        } catch (NoSuchFieldException x) {
+            then(x.getMessage()).contains("InstancePrivateObject").contains("not a static field");
         }
     }
 }

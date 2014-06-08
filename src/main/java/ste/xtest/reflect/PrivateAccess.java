@@ -23,21 +23,32 @@
 package ste.xtest.reflect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  *
  * @author ste
  */
 public class PrivateAccess {
-    public static void setStaticField(final Class c, final String field, final Object value) 
+    public static void setStaticValue(final Class c, final String field, final Object value) 
     throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-        Field f = c.getDeclaredField(field); f.setAccessible(true);
-        f.set(null, value);
+        getStaticField(c, field).set(null, value);
+    }
+
+    public static Object getStaticValue(final Class c, final String field) 
+    throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        return getStaticField(c, field).get(null);
     }
     
-    public static Object getStaticField(final Class c, final String field) 
-    throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-        Field f = c.getDeclaredField(field); f.setAccessible(true);
-        return f.get(null);
+    private static Field getStaticField(final Class c, final String field) 
+    throws NoSuchFieldException {
+        Field f = c.getDeclaredField(field);
+        if (!Modifier.isStatic(f.getModifiers())) {
+            throw new NoSuchFieldException(field + " is not a static field");
+        }
+        f.setAccessible(true);
+        
+        return f;
     }
+    
 }
