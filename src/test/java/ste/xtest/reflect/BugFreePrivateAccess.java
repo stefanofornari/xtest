@@ -77,4 +77,49 @@ public class BugFreePrivateAccess {
             then(x.getMessage()).contains("InstancePrivateObject").contains("not a static field");
         }
     }
+    
+    @Test
+    public void getInstanceFieldKONullClass() throws Exception {
+        try {
+            PrivateAccess.getStaticValue(null, "StaticPrivateObject");
+            fail("null values shall be checked");
+        } catch (IllegalArgumentException x) {
+            then(x.getMessage()).contains("the class can not be null");
+        }
+    }
+    
+    @Test
+    public void getSetInstanceFieldOK() throws Exception {
+        PrivateAccessHelper h = new PrivateAccessHelper();
+        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", null);
+        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isNull();
+        
+        Object o = new Object();
+        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", o);
+        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isSameAs(o);
+        
+        String s = "hello";
+        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", s);
+        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isSameAs(s);
+    }
+    
+    @Test
+    public void getInstanceFieldKOStaticField() throws Exception {
+        try {
+            PrivateAccess.getInstanceValue(new PrivateAccessHelper(), "StaticPrivateObject");
+            fail("static fields shall throw an exception");
+        } catch (NoSuchFieldException x) {
+            then(x.getMessage()).contains("StaticPrivateObject").contains("a static field");
+        }
+    }
+    
+    @Test
+    public void getInstanceFieldKONullInstance() throws Exception {
+        try {
+            PrivateAccess.getInstanceValue(null, "InstancePrivateObject");
+            fail("null values shall be checked");
+        } catch (IllegalArgumentException x) {
+            then(x.getMessage()).contains("the instance can not be null");
+        }
+    }
 }

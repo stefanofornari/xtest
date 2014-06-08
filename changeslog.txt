@@ -1,4 +1,6 @@
 20140608
+- released v1.5.2
+- added set/getInstanceValue
 - renamed set/getStaticField into set/getStaticValue
 - improved PrivateAccess to throw an exception if set/getStaticValue() is invoked
   on non static fields

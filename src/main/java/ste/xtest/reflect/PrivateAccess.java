@@ -40,8 +40,24 @@ public class PrivateAccess {
         return getStaticField(c, field).get(null);
     }
     
+    public static void setInstanceValue(final Object o, final String field, final Object value) 
+    throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        getInstanceField(o, field).set(o, value);
+    }
+    
+    public static Object getInstanceValue(final Object o, final String field) 
+    throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        return getInstanceField(o, field).get(o);
+    }
+    
+    // --------------------------------------------------------- Private methods
+    
     private static Field getStaticField(final Class c, final String field) 
     throws NoSuchFieldException {
+        if (c == null) {
+            throw new IllegalArgumentException("the class can not be null");
+        }
+        
         Field f = c.getDeclaredField(field);
         if (!Modifier.isStatic(f.getModifiers())) {
             throw new NoSuchFieldException(field + " is not a static field");
@@ -50,5 +66,22 @@ public class PrivateAccess {
         
         return f;
     }
+    
+    private static Field getInstanceField(final Object instance, final String field) 
+    throws NoSuchFieldException {
+        if (instance == null) {
+            throw new IllegalArgumentException("the instance can not be null");
+        }
+        
+        Field f = instance.getClass().getDeclaredField(field);
+        if (Modifier.isStatic(f.getModifiers())) {
+            throw new NoSuchFieldException(field + " is a static field");
+        }
+        f.setAccessible(true);
+        
+        return f;
+    }
+    
+    
     
 }
