@@ -73,7 +73,19 @@ public class PrivateAccess {
             throw new IllegalArgumentException("the instance can not be null");
         }
         
-        Field f = instance.getClass().getDeclaredField(field);
+        Class c = instance.getClass();
+        
+        Field f = null;
+        try {
+            f = c.getDeclaredField(field);
+        } catch (NoSuchFieldException x) {
+            Class superClass = c.getSuperclass();
+            if (superClass == null) {
+                throw x;
+            }
+            f = superClass.getDeclaredField(field);
+        }
+        
         if (Modifier.isStatic(f.getModifiers())) {
             throw new NoSuchFieldException(field + " is a static field");
         }

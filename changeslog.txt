@@ -1,3 +1,7 @@
+20140720
+- released v 1.6.1
+- PrivateAccess.get/setInstanceField works also with fields in the super class
+
 20140710
 - released v 1.6.0
 - Added CodeInjector to add code at runtime to an existing class

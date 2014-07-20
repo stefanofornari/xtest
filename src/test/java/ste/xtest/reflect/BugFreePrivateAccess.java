@@ -122,4 +122,19 @@ public class BugFreePrivateAccess {
             then(x.getMessage()).contains("the instance can not be null");
         }
     }
+    
+    @Test
+    public void getInstanceFieldInParentclass() throws Exception {
+        PrivateAccessHelperSubclass h = new PrivateAccessHelperSubclass();
+        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isNull();
+        
+        String s = "hello world";
+        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", s);
+        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject"))
+            .isSameAs(s).isEqualTo("hello world");
+        
+        PrivateAccess.setInstanceValue(h, "InstancePrivateObjectSubclass", s);
+        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObjectSubclass"))
+            .isEqualTo("hello world");
+    }
 }
