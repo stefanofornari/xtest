@@ -1,0 +1,5 @@
+/*
+ * This script has an error @ line 5
+ */
+hello = "hello world";
+hello.prop = "this throws an error!";

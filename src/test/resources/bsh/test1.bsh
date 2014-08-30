@@ -1,0 +1,8 @@
+/*
+ * This script has an error @ line 6
+ */
+hello = "hello world";
+j = 10;
+for (i=0, i<=j, ++i) {
+  ++i;
+}
