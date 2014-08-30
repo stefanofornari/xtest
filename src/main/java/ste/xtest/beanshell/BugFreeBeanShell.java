@@ -23,6 +23,7 @@
 package ste.xtest.beanshell;
 
 import bsh.*;
+import java.io.IOException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -164,17 +165,31 @@ public abstract class BugFreeBeanShell extends BugFree {
      * execution. It update <code>bshThis</code>.
      *
      * @return the object result of the execution of the beanshell script
-     * @throws Exception in case of errors
+     * 
+     * @throws bsh.EvalError in case of parsing errors
+     * @throws java.io.IOException in case of errors reading the script provided
+     *         by <code>fielName</code> if not null
      *
      */
-    protected Object exec() throws Exception {
+    protected Object exec() throws EvalError, IOException {
         Object ret = null;
 
-        if (fileName != null) {
-            ret = beanshell.source(fileName);
+        try {
+            if (fileName != null) {
+                ret = beanshell.source(fileName);
+            }
+            bshThis = (bsh.This)beanshell.eval(";return this;");
+      } catch (EvalError x) {
+            
+            x.reThrow(
+                String.format(
+                    "%s:%d at '%s'\n",
+                    x.getErrorSourceFile(),
+                    x.getErrorLineNumber(),
+                    x.getErrorText()
+                )
+            );
         }
-
-        bshThis = (bsh.This)beanshell.eval(";return this;");
 
         return ret;
     }
@@ -187,7 +202,6 @@ public abstract class BugFreeBeanShell extends BugFree {
      * @param method the method to invoke
      * @param args the arguments of the method
      * @return the object returned by the invoked method
-     * @throws java.lang.Throwable if an error occurs
      */
     protected Object exec(String method, Object... args) throws Throwable {
         Object o = null;

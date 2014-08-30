@@ -21,8 +21,13 @@
  */
 package ste.xtest.beanshell;
 
+import bsh.EvalError;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -47,8 +52,73 @@ public class BugFreeBugFreeBeanShell {
         };
         test.setUp();
 
-        assertEquals(TEST_VAL1, test.getAsString(TEST_VAR1));
-        assertEquals(String.valueOf(TEST_VAL2), test.getAsString(TEST_VAR2));
-        assertNull(test.getAsString(TEST_VAR3));
+        then(test.getAsString(TEST_VAR1)).isEqualTo(TEST_VAL1);
+        then(test.getAsString(TEST_VAR2)).isEqualTo(String.valueOf(TEST_VAL2));
+        then(test.getAsString(TEST_VAR3)).isNull();
+    }
+    
+    @Test
+    public void throwIOErrorIfProvidedScriptDoesNotExist() throws Exception {
+        BugFreeBeanShell test = new BugFreeBeanShell() {
+            @Override
+            public void beanshellSetup() throws Exception {
+                setBshFileName("notexisting.bsh");
+            }
+        };
+        test.setUp();
+        
+        try {
+            test.exec();
+            fail("A FileNotFoundException shall be trown!");
+        } catch (IOException x) {
+            then(x).isInstanceOf(FileNotFoundException.class);
+        }
+    }
+    
+    @Test
+    public void throwParseExceptionIfScriptHasErrors() throws Exception {
+        BugFreeBeanShell test = new BugFreeBeanShell() {
+            @Override
+            public void beanshellSetup() throws Exception {
+                setBshFileName("src/test/resources/bsh/test1.bsh");
+            }
+        };
+        test.setUp();
+        
+        try {
+            test.exec();
+            fail("A EvalError shall be trown!");
+        } catch (Throwable x) {
+            then(x).isInstanceOf(EvalError.class);
+            then(((EvalError)x).getErrorLineNumber()).isEqualTo(6);
+        }
+    }
+    
+    @Test
+    public void addErrorInformation() throws Exception {
+        final String SCRIPT = "src/test/resources/bsh/test2.bsh";
+        
+        BugFreeBeanShell test = new BugFreeBeanShell() {
+            @Override
+            public void beanshellSetup() throws Exception {
+                setBshFileName(SCRIPT);
+            }
+        };
+        test.setUp();
+        
+        try {
+            test.exec();
+            fail("A EvalError shall be trown!");
+        } catch (EvalError x) {
+            then(x.getMessage())
+            .contains(
+                String.format(
+                    "%s:%d at '%s'", 
+                    x.getErrorSourceFile(), 
+                    x.getErrorLineNumber(),
+                    x.getErrorText()
+                )
+            );
+        }
     }
 }
