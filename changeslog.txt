@@ -1,3 +1,9 @@
+20140829
+- release v 1.6.2
+- better error handling of bsh scripts 
+- added ste.xtest.net.TestSocket
+- added ste.xtest.Constants with some useful sample constants
+
 20140720
 - released v 1.6.1
 - PrivateAccess.get/setInstanceField works also with fields in the super class
