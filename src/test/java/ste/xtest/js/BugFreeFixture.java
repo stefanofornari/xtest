@@ -35,7 +35,7 @@ public class BugFreeFixture {
 
     @Test
     public void loadFixture() throws Throwable {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         try {
             test.loadFixture(null);
