@@ -24,7 +24,6 @@ package ste.xtest.js;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-import org.junit.Before;
 
 /**
  *
@@ -38,7 +37,7 @@ public class BugFreeSprintf {
     //
     @Test
     public void simplePrintfs() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
         
         final String TESTF1 = "Hello %s!";
         final String TESTF2 = "%d %d %d";
