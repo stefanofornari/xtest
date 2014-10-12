@@ -80,7 +80,7 @@ import ste.xtest.junit.BugFree;
  *
  */
 public abstract class BugFreeJavaScript  extends BugFree {
-
+    
     //
     // TODO: extract common base class between JavaScriptTest and BeanShellTest
     //
@@ -89,7 +89,7 @@ public abstract class BugFreeJavaScript  extends BugFree {
      * The JavaScript scope scripts are executed into
      */
     protected Scriptable scope;
-
+    
     // ------------------------------------------------------------ Constructors
     /**
      * Creates a new JavaScripttest
@@ -102,81 +102,21 @@ public abstract class BugFreeJavaScript  extends BugFree {
         Context cx = Context.enter();
         scope = cx.initStandardObjects();
         cx.setOptimizationLevel(-1);
-
-        InputStream is = null;
-        try {
-            //
-            // xtest initialization
-            //
-            is = BugFreeJavaScript.class.getResourceAsStream("/js/xtest.init.js");
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.init.js", 1, null);
-            if (is == null) {
-                throw new FileNotFoundException("/js/xtest.init.js not found in classpath");
+        
+        //
+        // xtest initialization
+        //
+        loadResourceScripts(
+            cx, 
+            new String[] {
+                "/js/xtest.init.js",
+                "/js/env.rhino.1.2.js",
+                "/js/sprintf-0.0.7.min.js",
+                "/js/jquery-1.11.1.min.js",
+                "/js/jquery.mockjax.js",
+                "/js/xtest.setup.js"
             }
-            is.close(); is = null;
-
-            //
-            // Envjs loading and initialization
-            //
-            is = BugFreeJavaScript.class.getResourceAsStream("/js/env.rhino.1.2.js");
-            if (is == null) {
-                throw new FileNotFoundException("/js/env.rhino.1.2.js not found in classpath");
-            }
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/env.rhino.1.2.js", 1, null);
-            is.close(); is = null;
-
-            //
-            // printf.js loading and initialization
-            //
-            is = BugFreeJavaScript.class.getResourceAsStream("/js/sprintf-0.0.7.min.js");
-            if (is == null) {
-                throw new FileNotFoundException("/js/sprintf-0.0.7 not found in classpath");
-            }
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/sprintf-0.0.7", 1, null);
-            is.close(); is = null;
-
-            //
-            // jQuery loading and initialization
-            //
-            final String JQUERY = "/js/jquery-1.10.2.min.js";
-            is = BugFreeJavaScript.class.getResourceAsStream(JQUERY);
-            if (is == null) {
-                throw new FileNotFoundException(JQUERY);
-            }
-            cx.evaluateReader(scope, new InputStreamReader(is), JQUERY, 1, null);
-            is.close(); is = null;
-
-            //
-            // Mockjax loading and initialization
-            //
-            is = BugFreeJavaScript.class.getResourceAsStream("/js/jquery.mockjax.js");
-            if (is == null) {
-                throw new FileNotFoundException("/js/jquery.mockjax.min");
-            }
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/jquery.mockjax.js", 1, null);
-            is.close(); is = null;
-
-            //
-            // xtest setup
-            //
-            is = BugFreeJavaScript.class.getResourceAsStream("/js/xtest.setup.js");
-            cx.evaluateReader(scope, new InputStreamReader(is), "js/xtest.setup.js", 1, null);
-            if (is == null) {
-                throw new FileNotFoundException("/js/xtest.setup.js not found in classpath");
-            }
-            is.close(); is = null;
-
-        } catch (Exception x) {
-            throw new ScriptException("Error initializing the javascript engine: " + x.getMessage());
-        } finally {
-            Context.exit();
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (Exception x) {
-                }
-            };
-        }
+        );
     }
 
     // ---------------------------------------------------------- Public methods
@@ -260,6 +200,7 @@ public abstract class BugFreeJavaScript  extends BugFree {
     }
 
     // ------------------------------------------------------- Protected methods
+    
     /**
      * Exec the given function assuming it is defined in the current script
      * scope
@@ -275,7 +216,7 @@ public abstract class BugFreeJavaScript  extends BugFree {
         Object o = scope.get(name, scope);
         if (!(o instanceof Function)) {
             throw new IllegalArgumentException(name + " is undefined or not a function.");
-        }
+    }
 
         Function f = (Function)o;
         Context cx = Context.enter();
@@ -304,5 +245,33 @@ public abstract class BugFreeJavaScript  extends BugFree {
         Context.exit();
 
         return result;
+    }
+    
+    // --------------------------------------------------------- Private methods
+    
+    private void loadResourceScripts(final Context cx, final String[] scripts) 
+    throws ScriptException {
+        InputStream is = null;
+        try {
+            for (String script: scripts) {
+                is = BugFreeJavaScript.class.getResourceAsStream(script);
+                if (is == null) {
+                    throw new FileNotFoundException(script + " not found in classpath");
+                }
+                cx.evaluateReader(scope, new InputStreamReader(is), script, 1, null);
+                is.close();
+                is = null;
+            }
+        } catch (Exception x) {
+            throw new ScriptException("Error initializing the javascript engine: " + x.getMessage());
+        } finally {
+            Context.exit();
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception x) {
+                }
+            };
+        }
     }
 }
