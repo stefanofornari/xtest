@@ -24,9 +24,10 @@ package ste.xtest.js;
 
 import java.io.FileNotFoundException;
 import java.util.Random;
+import javax.script.ScriptException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import org.mozilla.javascript.RhinoException;
 
 import static ste.xtest.js.Constants.*;
 
@@ -40,9 +41,9 @@ public class BugFreeJavaScriptTest {
 
     @Test
     public void constructors() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
-        assertNotNull(test.scope);
+        then(test.engine).isNotNull();
     }
 
     /**
@@ -58,85 +59,81 @@ public class BugFreeJavaScriptTest {
      */
     @Test
     public void javaScriptSetup() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
-        assertNotNull(test.get("Envjs"));
-        assertNotNull(test.get("jQuery"));
+        then(test.get("Envjs")).isNotNull();
+        then(test.get("jQuery")).isNotNull();
     }
 
     @Test
     public void loadScriptAndGet() throws Exception {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         try{
             test.loadScript(null);
             fail("check for null parameter!");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().contains("script"));
+            then(x).hasMessageContaining("script");
         }
 
         try {
             test.loadScript("notexisting.js");
         } catch (FileNotFoundException x) {
-            assertTrue(x.getMessage().contains("notexisting"));
+            then(x).hasMessageContaining("notexisting");
         }
 
         test.loadScript(TEST_SCRIPT_1);
-        assertEquals("true", test.get("loaded"));
-        assertNull(test.get("nothing"));
+        then(test.get("loaded")).isEqualTo("true");
+        then(test.get("nothing")).isNull();
 
         try {
             test.get(null);
             fail("missing chek for null parameters!");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().contains("name"));
+            then(x).hasMessageContaining("name");
         }
     }
 
     @Test
     public void callFunction() throws Throwable {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         test.loadScript(TEST_SCRIPT_1);
         try {
             test.call("notExistingFunction");
             fail("missing not found function check!");
-        } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().contains("notExistingFunction"));
+        } catch (NoSuchMethodException x) {
+            then(x).hasMessage("No such function notExistingFunction");
         }
-        assertEquals("none", test.call("noParameters"));
+        then(test.call("noParameters")).isEqualTo("none");
         Random r = new Random();
         String p1 = String.valueOf(r.nextInt());
-        assertEquals("p1:"+p1, test.call("oneParameter", p1));
+        then(test.call("oneParameter", p1)).isEqualTo("p1:"+p1);
 
         String p2 = String.valueOf(r.nextInt());
-        assertEquals("p1:"+p1+ " p2:"+p2, test.call("twoParameters", p1, p2));
-
+        then(test.call("twoParameters", p1, p2)).isEqualTo("p1:" + p1 + " p2:" + p2);
     }
 
     @Test
     public void execScript() throws Throwable {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         try {
             test.exec(null);
             fail("missing not null check!");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().contains("script"));
+            then(x).hasMessageContaining("script");
         }
 
         final String s = "hello world";
-        assertEquals(s, test.exec(String.format("ret = '%s';", s)));
+        then(test.exec(String.format("ret = '%s';", s))).isEqualTo(s);
 
         try {
             test.exec("invalid script;");
             fail("syntax error not captured");
-        } catch (RhinoException x) {
-            //
-            // This is ok!
-            //
+        } catch (ScriptException x) {
+            then(x).hasMessageContaining("Expected ; but found script");
         }
-
     }
 
 }
