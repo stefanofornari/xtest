@@ -34,7 +34,7 @@ public class BugFreeMockjax {
 
     @Test
     public void loadMockjax() throws Throwable {
-        JavaScriptTest test = new JavaScriptTest(){};
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         test.loadScript(TEST_SCRIPT_2);
 
