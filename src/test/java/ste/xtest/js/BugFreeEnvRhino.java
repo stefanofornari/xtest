@@ -38,7 +38,7 @@ public class BugFreeEnvRhino {
     
     @Before
     public void setUp() throws Exception {
-        test = new JavaScriptTest(){};
+        test = new BugFreeJavaScript(){};
         
         test.exec("var __LOG__ = ''; Envjs.log = function(message) {__LOG__ = message; };");
     }
@@ -77,6 +77,8 @@ public class BugFreeEnvRhino {
     public void debugON() throws Exception {
         final String TEST1 = "debug is ON";
         final String TEST2 = "debug is %s";
+        
+        //test.exec("var __LOG__ = ''; Envjs.log = function(message) {__LOG__ = message; };");
         
         test.exec("Envjs.DEBUG = true;");
         test.exec("Envjs.debug('" + TEST1 + "');");
