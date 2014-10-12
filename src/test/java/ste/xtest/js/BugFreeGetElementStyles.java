@@ -32,11 +32,11 @@ import org.junit.Test;
  */
 public class BugFreeGetElementStyles {
     
-    private JavaScriptTest test = null;
+    private BugFreeJavaScript test = null;
     
     @Before
     public void setUp() throws Throwable {
-        test = new JavaScriptTest(){};
+        test = new BugFreeJavaScript(){};
         
         test.exec("window.location='src/test/resources/html/getstyles.html';");
     }
