@@ -40,7 +40,7 @@ Envjs.appCodeName  = "Envjs";
 //eg "Gecko/20070309 Firefox/2.0.0.3"
 Envjs.appName      = "Resig/20070309 PilotFish/1.2.13";
 
-Envjs.version = "1.6";//?
+Envjs.version = "1.2.13";
 Envjs.revision = '';
 /*
  * Envjs core-env.1.2.13
@@ -1497,7 +1497,8 @@ Envjs.deleteFile = function(url){
  * @param {Object} data
  */
 Envjs.connection = function(xhr, responseHandler, data){
-    var url = java.net.URL(xhr.url),
+    var URL = Java.type("java.net.URL");
+    var url = new URL(xhr.url),
         connection,
         header,
         outstream,
