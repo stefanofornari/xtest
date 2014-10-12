@@ -21,7 +21,7 @@
  */
 package ste.xtest.js;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,17 +43,17 @@ public class BugFreeGetElementStyles {
 
     @Test
     public void stylesFromElement() throws Throwable {
-        assertThat(test.exec("document.getElementById('testdiv').style.display;")).isEqualTo("none");
-        assertThat(test.exec("document.getElementById('testdiv').style.position;")).isEqualTo("absolute");
-        assertThat(test.exec("document.getElementById('testdiv').style.top;")).isEqualTo("0px");
-        assertThat(test.exec("document.getElementById('testdiv').style.left;")).isEqualTo("0px");
+        then(test.exec("document.getElementById('testdiv').style.display;")).isEqualTo("none");
+        then(test.exec("document.getElementById('testdiv').style.position;")).isEqualTo("absolute");
+        then(test.exec("document.getElementById('testdiv').style.top;")).isEqualTo("0px");
+        then(test.exec("document.getElementById('testdiv').style.left;")).isEqualTo("0px");
     }
     
     @Test
     public void setStylesProgrammatically() throws Throwable {
         test.exec("document.getElementById('testdiv').style.display='block'");
         
-        assertThat(test.exec("document.getElementById('testdiv').style.display;")).isEqualTo("block");
+        then(test.exec("document.getElementById('testdiv').style.display;")).isEqualTo("block");
     }
 
 }
