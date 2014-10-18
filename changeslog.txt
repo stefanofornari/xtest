@@ -1,3 +1,11 @@
+20141018
+- first implementation of querySelector
+
+20141011
+- removed deprecated ste.xtest.js JavaScriptTest
+- upgraded jquery.mockjax to v1.5.3
+- upgraded jquery to v1.11.1
+
 20140829
 - release v 1.6.2
 - better error handling of bsh scripts 

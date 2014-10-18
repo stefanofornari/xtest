@@ -24,10 +24,10 @@ package ste.xtest.js;
 
 import java.io.FileNotFoundException;
 import java.util.Random;
-import javax.script.ScriptException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import org.mozilla.javascript.EvaluatorException;
 
 import static ste.xtest.js.Constants.*;
 
@@ -43,7 +43,7 @@ public class BugFreeJavaScriptTest {
     public void constructors() throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
-        then(test.engine).isNotNull();
+        then(test.scope).isNotNull();
     }
 
     /**
@@ -102,8 +102,8 @@ public class BugFreeJavaScriptTest {
         try {
             test.call("notExistingFunction");
             fail("missing not found function check!");
-        } catch (NoSuchMethodException x) {
-            then(x).hasMessage("No such function notExistingFunction");
+        } catch (IllegalArgumentException x) {
+            then(x).hasMessageContaining("notExistingFunction");
         }
         then(test.call("noParameters")).isEqualTo("none");
         Random r = new Random();
@@ -131,8 +131,9 @@ public class BugFreeJavaScriptTest {
         try {
             test.exec("invalid script;");
             fail("syntax error not captured");
-        } catch (ScriptException x) {
-            then(x).hasMessageContaining("Expected ; but found script");
+        } catch (EvaluatorException x) {
+            System.out.println(x);
+            then(x).hasMessageContaining("missing ; before statement");
         }
     }
 

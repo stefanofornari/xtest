@@ -1497,8 +1497,7 @@ Envjs.deleteFile = function(url){
  * @param {Object} data
  */
 Envjs.connection = function(xhr, responseHandler, data){
-    var URL = Java.type("java.net.URL");
-    var url = new URL(xhr.url),
+    var url = new java.net.URL(xhr.url),
         connection,
         header,
         outstream,
@@ -6870,8 +6869,10 @@ __extend__(HTMLDocument.prototype, {
         //no head?  ugh bad news html.. I guess we'll force the issue?
         return element.appendChild(this.createElement('body'));
     },
-    set body(){console.log('set body');},
-    get cookie(){
+    set body(){
+        Envjs.debug('set body');
+    },
+    get cookie() {
         return Envjs.getCookies(this.location+'');
     },
     set cookie(cookie){
@@ -6980,6 +6981,25 @@ __extend__(HTMLDocument.prototype, {
         }
         return retNodes;
     },
+    /**
+     * document.querySelector
+     * 
+     * NOTE: this is a partial implementation to allow some basic functionality
+     * 
+     * Mozilla MDC:
+     * https://developer.mozilla.org/en-US/docs/Web/API/document.querySelector
+     * 
+     * W3C:
+     * http://www.w3.org/TR/selectors-api/
+     * 
+     */
+    querySelector : function(selectors) {
+        Envjs.debug('querySelector ' + selectors);
+        ret = $(selectors);
+        
+        return (ret.length == 0) ? null : ret[0];
+    },
+    
     toString: function(){
         return "[object HTMLDocument]";
     },
@@ -10994,7 +11014,7 @@ var __toDashed__ = function(camelCaseName) {
 CSS2Properties = function(element){
     if (Envjs.DEBUG) {
         if (typeof __cssproperties__ === 'undefined') {
-            Envjs.debug('CSS2Properties %s', element.getAttribute('style'));
+            Envjs.debug('CSS2Properties %s', (element.getAttribute) ? element.getAttribute('style') : "<no style>");
         } else {
             Envjs.debug('CSS2Properties <%d>', __cssproperties__++);
         }
@@ -11003,7 +11023,9 @@ CSS2Properties = function(element){
     this.styleIndex = __supportedStyles__;//non-standard
     this.type = element.tagName;//non-standard
     __setArray__(this, []);
-    __cssTextToStyles__(this, element.getAttribute('style') || '');
+    if (element.getAttribute) {
+        __cssTextToStyles__(this, element.getAttribute('style') || '');
+    }
 };
 __extend__(CSS2Properties.prototype, {
     get cssText() {

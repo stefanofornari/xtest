@@ -1,12 +1,11 @@
+var ret = {};
+
 $.mockjax({
   url: '/xtest/mock1',
   responseText: {
     name: 'ste'
   }
 });
-
-
-var ret;
 
 $.ajax({
     url: '/xtest/mock1',
