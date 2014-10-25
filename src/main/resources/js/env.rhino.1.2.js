@@ -885,12 +885,6 @@ urlparse.urlnormalize = function(url)
 {
     var parts = urlparse.urlsplit(url);
     switch (parts.scheme) {
-    case 'file':
-        // files can't have query strings
-        //  and we don't bother with fragments
-        parts.query = '';
-        parts.fragment = '';
-        break;
     case 'http':
     case 'https':
         // remove default port
@@ -1126,9 +1120,10 @@ Envjs.uri = function(path, base) {
     if (!base) {
         base = 'file://' +  Envjs.getcwd() + '/';
     }
+    
     // handles all cases if path is abosulte or relative to base
     // 3rd arg is "false" --> remove fragments
-    var newurl = urlparse.urlnormalize(urlparse.urljoin(base, path, false));
+    var newurl = urlparse.urlnormalize(urlparse.urljoin(base, path, true));
 
     return newurl;
 };
@@ -6872,7 +6867,7 @@ __extend__(HTMLDocument.prototype, {
     set body(){
         Envjs.debug('set body');
     },
-    get cookie() {
+    get cookie(){
         return Envjs.getCookies(this.location+'');
     },
     set cookie(cookie){
@@ -13103,6 +13098,10 @@ Location = function(url, doc, history) {
             // update closure upvars
             $url = url;
             parts = Envjs.urlsplit($url);
+            var urlToLoad = url;
+            if (parts.scheme === "file") {
+                urlToLoad = parts.scheme + "://" + parts.path;
+            }
 
             //we can only assign if this Location is associated with a document
             if ($document) {
@@ -13110,14 +13109,14 @@ Location = function(url, doc, history) {
                 xhr = new XMLHttpRequest();
 
                 // TODO: make async flag a Envjs paramter
-                xhr.open('GET', url, false);//$document.async);
+                xhr.open('GET', urlToLoad, false);//$document.async);
 
                 // TODO: is there a better way to test if a node is an HTMLDocument?
                 if ($document.toString() === '[object HTMLDocument]') {
                     //tell the xhr to not parse the document as XML
                     Envjs.debug('loading html document');
                     xhr.onreadystatechange = function() {
-                        Envjs.debug('readyState %s', xhr.readyState);
+                        Envjs.debug('readyState %s, status: %s', xhr.readyState, xhr.statusText);
                         if (xhr.readyState === 4) {
                             $document.baseURI = new Location(url, $document);
                             Envjs.debug('new document baseURI %s', $document.baseURI);
@@ -13976,7 +13975,6 @@ Window = function(scope, parent, opener){
         },
         set location(uri){
             uri = Envjs.uri(uri);
-            //new Window(this, this.parent, this.opener);
             if($location.href == uri){
                 $location.reload();
             }else if($location.href == 'about:blank'){
