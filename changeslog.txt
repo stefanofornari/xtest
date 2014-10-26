@@ -1,6 +1,7 @@
-20141025
-- released v 1.6.3
+20141026
+- released v 1.7.0
 - Fixed issue #2 - file:// scheme does not handle query string
+- added JSON fluent assertions
 
 20141018
 - first implementation of querySelector
