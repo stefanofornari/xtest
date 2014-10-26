@@ -41,7 +41,7 @@ public class BugFreeDocumentLocation {
         final String TEST_URL = TEST_HREF + TEST_SEARCH;
 
         test.exec(
-            "Envjs.DEBUG=true;window.location='" + TEST_URL + "';"
+            "window.location='" + TEST_URL + "';"
         );
 
         then(test.exec("document.URL.href;"))
