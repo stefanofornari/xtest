@@ -1,3 +1,7 @@
+20141206
+- improved error handling in BeanShell specs
+- released v1.7.1
+
 20141026
 - released v 1.7.0
 - Fixed issue #2 - file:// scheme does not handle query string

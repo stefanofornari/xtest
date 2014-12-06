@@ -21,12 +21,10 @@
  */
 package ste.xtest.beanshell;
 
-import bsh.EvalError;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -87,10 +85,12 @@ public class BugFreeBugFreeBeanShell {
         
         try {
             test.exec();
-            fail("A EvalError shall be trown!");
+            fail("A ScriptError shall be trown!");
         } catch (Throwable x) {
-            then(x).isInstanceOf(EvalError.class);
-            then(((EvalError)x).getErrorLineNumber()).isEqualTo(6);
+            then(x).isInstanceOf(ScriptException.class);
+            then(((ScriptException)x).getErrorLineNumber()).isEqualTo(6);
+            then(((ScriptException)x).getErrorSourceFile()).isEqualTo("src/test/resources/bsh/test1.bsh");
+            then(((ScriptException)x).getErrorText()).isEqualTo(")");
         }
     }
     
@@ -109,16 +109,31 @@ public class BugFreeBugFreeBeanShell {
         try {
             test.exec();
             fail("A EvalError shall be trown!");
-        } catch (EvalError x) {
+        } catch (ScriptException x) {
             then(x.getMessage())
             .contains(
                 String.format(
-                    "%s:%d at '%s'", 
-                    x.getErrorSourceFile(), 
-                    x.getErrorLineNumber(),
-                    x.getErrorText()
+                    "%s:%d at '%s'", "src/test/resources/bsh/test2.bsh", 5, "hello .prop "
                 )
             );
+        }
+    }
+    
+    @Test
+    public void ifTargetExceptionSetCause() throws Exception {
+        BugFreeBeanShell test = new BugFreeBeanShell() {
+            @Override
+            public void beanshellSetup() throws Exception {
+                setBshFileName("src/test/resources/bsh/test3.bsh");
+            }
+        };
+        test.setUp();
+        
+        try {
+            test.exec();
+            fail("A EvalError shall be trown!");
+        } catch (ScriptException x) {
+            then(x.getCause()).isNotNull().isInstanceOf(NullPointerException.class);
         }
     }
 }

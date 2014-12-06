@@ -1,0 +1,4 @@
+/*
+ * This script throws a NullPointerException
+ */
+s = new String(null);

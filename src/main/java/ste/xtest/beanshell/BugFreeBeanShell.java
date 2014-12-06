@@ -19,7 +19,6 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-
 package ste.xtest.beanshell;
 
 import bsh.*;
@@ -30,25 +29,26 @@ import org.junit.Before;
 import ste.xtest.junit.BugFree;
 
 /**
- * Base class for junit test cases to use testing BugFreeBeanShell scripts. It provides
- * a simple framework to work with beanshell.
+ * Base class for junit test cases to use testing BugFreeBeanShell scripts. It
+ * provides a simple framework to work with beanshell.
  * <p/>
- * It provides two useful methods to invoke a method defined in a beanshell file:
+ * It provides two useful methods to invoke a method defined in a beanshell
+ * file:
  * <ul>
- * <li><code>String exec(String method, String... args)</code>: to use if the invoked method returns a String and
- * has just String parameters</li>
- * <li><code>Object exec(String method, Object... args)</code>: generic version of the previous one. It can be
- * used to invoke any method</li>
+ * <li><code>String exec(String method, String... args)</code>: to use if the
+ * invoked method returns a String and has just String parameters</li>
+ * <li><code>Object exec(String method, Object... args)</code>: generic version
+ * of the previous one. It can be used to invoke any method</li>
  * </ul>
  * <p/>
  * Below a simple example of usage to test method
- * <code>replaceString(String arg1, String arg2, String arg3)</code> defined
- * in <code>replace.beanshell</code> script file.
+ * <code>replaceString(String arg1, String arg2, String arg3)</code> defined in
+ * <code>replace.beanshell</code> script file.
  * <blockquote><pre>
- public class ReplaceTest extends BugFreeBeanShell {
-
-     public ReplaceTest() {
-         fileName =  "<SOMEWHERE>/replace.beanshell"
+ * public class ReplaceTest extends BugFreeBeanShell {
+ *
+ * public ReplaceTest() {
+ * fileName =  "<SOMEWHERE>/replace.beanshell"
  *     }
  *
  *     @Test
@@ -73,8 +73,9 @@ import ste.xtest.junit.BugFree;
 public abstract class BugFreeBeanShell extends BugFree {
 
     // -------------------------------------------------------------- Properties
-
-    /** The beanshell file to test */
+    /**
+     * The beanshell file to test
+     */
     private String fileName;
 
     public String getBshFileName() {
@@ -85,7 +86,9 @@ public abstract class BugFreeBeanShell extends BugFree {
         this.fileName = bshFileName;
     }
 
-    /** a directory where to find commands **/
+    /**
+     * a directory where to find commands *
+     */
     private String commandsDirectory;
 
     /**
@@ -103,14 +106,12 @@ public abstract class BugFreeBeanShell extends BugFree {
     }
 
     // ---------------------------------------------------------- Protected data
-
     protected Interpreter beanshell = null;
 
     // ------------------------------------------------------------ Private data
     private bsh.This bshThis = null;
 
     // ---------------------------------------------------------- Public methods
-
     public BugFreeBeanShell() {
         fileName = null;
         commandsDirectory = null;
@@ -138,7 +139,7 @@ public abstract class BugFreeBeanShell extends BugFree {
      *
      * @param var the variable to return
      *
-     * @return  the value of the given variable as string
+     * @return the value of the given variable as string
      *
      * @throws EvalError if beanshell cannot return the variable
      */
@@ -147,9 +148,7 @@ public abstract class BugFreeBeanShell extends BugFree {
         return (o != null) ? String.valueOf(o) : null;
     }
 
-
     // ------------------------------------------------------- Protected methods
-
     /**
      * Allows an implementation to set up the interpreter right before the
      * script is executed.
@@ -158,46 +157,41 @@ public abstract class BugFreeBeanShell extends BugFree {
     //
     // TODO: use normal @Before???
     //
-    protected void beanshellSetup() throws Exception { }
+    protected void beanshellSetup() throws Exception {
+    }
 
     /**
      * Sources the beanshell script and returns the object result of the
      * execution. It update <code>bshThis</code>.
      *
      * @return the object result of the execution of the beanshell script
-     * 
+     *
      * @throws bsh.EvalError in case of parsing errors
      * @throws java.io.IOException in case of errors reading the script provided
-     *         by <code>fielName</code> if not null
+     * by <code>fielName</code> if not null
      *
      */
-    protected Object exec() throws EvalError, IOException {
+    protected Object exec() throws ScriptException, IOException {
         Object ret = null;
 
         try {
             if (fileName != null) {
                 ret = beanshell.source(fileName);
             }
-            bshThis = (bsh.This)beanshell.eval(";return this;");
-      } catch (EvalError x) {
-            
-            x.reThrow(
-                String.format(
-                    "%s:%d at '%s'\n",
-                    x.getErrorSourceFile(),
-                    x.getErrorLineNumber(),
-                    x.getErrorText()
-                )
-            );
+            bshThis = (bsh.This) beanshell.eval(";return this;");
+        } catch (TargetError x) {
+            throw new ScriptException(x);
+        } catch (EvalError x) {
+            throw new ScriptException(x);
         }
 
         return ret;
     }
 
     /**
-     * Exec the given method calling it on the configured beanshell file.
-     * This version is useful for methods that returns an object and that have
-     * not defined arguments.
+     * Exec the given method calling it on the configured beanshell file. This
+     * version is useful for methods that returns an object and that have not
+     * defined arguments.
      *
      * @param method the method to invoke
      * @param args the arguments of the method
@@ -209,7 +203,7 @@ public abstract class BugFreeBeanShell extends BugFree {
         try {
             o = bshThis.invokeMethod(method, args);
         } catch (TargetError e) {
-            throw e.getTarget();
+            throw new ScriptException(e);
         }
 
         if (o == null) {
@@ -219,27 +213,27 @@ public abstract class BugFreeBeanShell extends BugFree {
             return null;
         }
         if (o instanceof Primitive) {
-            return ((Primitive)o).getValue();
+            return ((Primitive) o).getValue();
         }
         return o;
     }
 
-
     /**
-     * Exec the given method calling it on the configured beanshell file.
-     * This version is useful for methods that don't return an object and that have
+     * Exec the given method calling it on the configured beanshell file. This
+     * version is useful for methods that don't return an object and that have
      * not defined arguments.
      *
      * @param method
      * @param args
      * @throws Throwable
      */
-    protected void execWithoutReturn(String method, Object... args) throws Throwable
-    {
+    protected void execWithoutReturn(String method, Object... args) throws Throwable {
         try {
             bshThis.invokeMethod(method, args);
         } catch (TargetError e) {
             throw e.getTarget();
         }
     }
+
+    // ------------------------------------------------------ TargetErrorWrapper
 }
