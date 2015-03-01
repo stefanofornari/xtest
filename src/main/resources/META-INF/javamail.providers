@@ -1,0 +1,1 @@
+protocol=file; type=transport; class=ste.xtest.mail.FileTransport; vendor=ste;
