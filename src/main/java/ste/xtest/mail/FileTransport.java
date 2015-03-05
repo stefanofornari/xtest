@@ -22,10 +22,8 @@
 package ste.xtest.mail;
 
 import javax.mail.*;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.UUID;
 
 /**
  *
@@ -33,10 +31,13 @@ import java.util.UUID;
  */
 public class FileTransport extends Transport {
     
+    private PasswordAuthentication auth;
+    
     public static final String MAIL_FILE_PATH = "mail.file.path";
 
     public FileTransport(Session session, URLName urlname) {
         super(session, urlname);
+        auth = session.requestPasswordAuthentication(null, 0, "file:", "", "");
     }
 
     @Override
@@ -50,5 +51,13 @@ public class FileTransport extends Transport {
                 String.format("failed to write %s: %s", path, x.getMessage()), x
             );
         }
+    }
+    
+    public String getUsername() {
+        return (auth != null) ? auth.getUserName() : null;
+    }
+    
+    public String getPassword() {
+        return (auth != null) ? auth.getPassword() : null;
     }
 }

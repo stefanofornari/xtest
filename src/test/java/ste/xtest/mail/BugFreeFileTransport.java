@@ -29,6 +29,7 @@ import javax.activation.FileDataSource;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -162,4 +163,67 @@ public class BugFreeFileTransport {
         }
     }
     
+    @Test
+    public void get_used_credentials() throws Exception {
+        final String TEST_USERNAME1 = "username1";
+        final String TEST_PASSWORD1 = "1234567890";
+        final String TEST_USERNAME2 = "username2";
+        final String TEST_PASSWORD2 = "0987654321";
+        
+        config.setProperty("mail.smtp.auth", "true");
+        
+        Session session = Session.getInstance(config, new javax.mail.Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(TEST_USERNAME1, TEST_PASSWORD1);
+            }
+        });
+                
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("from@domain.com"));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress("to@domain.com"));
+        message.setSubject("the subject");
+        message.setText("hello world");
+
+        FileTransport t = (FileTransport)session.getTransport();
+        t.sendMessage(message, message.getAllRecipients());
+        
+        then(new File(TMP.getRoot(), "message")).exists();
+        then(t.getUsername()).isEqualTo(TEST_USERNAME1);
+        then(t.getPassword()).isEqualTo(TEST_PASSWORD1);
+        
+        session = Session.getInstance(config, new javax.mail.Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(TEST_USERNAME2, TEST_PASSWORD2);
+            }
+        });
+        
+        t = (FileTransport)session.getTransport();
+        t.sendMessage(message, message.getAllRecipients());
+        
+        then(new File(TMP.getRoot(), "message")).exists();
+        then(t.getUsername()).isEqualTo(TEST_USERNAME2);
+        then(t.getPassword()).isEqualTo(TEST_PASSWORD2);
+    }
+    
+    @Test
+    public void get_null_credentials_if_not_used() throws Exception {
+        config.setProperty("mail.smtp.auth", "true");
+        
+        Session session = Session.getInstance(config);
+                
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("from@domain.com"));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress("to@domain.com"));
+        message.setSubject("the subject");
+        message.setText("hello world");
+
+        FileTransport t = (FileTransport)session.getTransport();
+        t.sendMessage(message, message.getAllRecipients());
+        
+        then(new File(TMP.getRoot(), "message")).exists();
+        then(t.getUsername()).isNull();
+        then(t.getPassword()).isNull();
+    }
 }
