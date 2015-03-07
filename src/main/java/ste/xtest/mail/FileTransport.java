@@ -68,14 +68,15 @@ public class FileTransport extends Transport {
     }
     
     @Override
-    protected boolean protocolConnect(String host, int port, String user,
-				String password) throws MessagingException {
+    protected boolean protocolConnect(
+        final String host, final int port, 
+        final String givenUser,
+        final String givenPassword
+    ) throws MessagingException {
         if (Boolean.valueOf(session.getProperty("mail.smtp.auth"))) {
-            if (user == null) {
-                user = "";
-            }
-            return (password != null) ? password.equals(session.getProperty("mail.file.allowed."+ user))
-                                      : (session.getProperty("mail.file.allowed."+ user) == null);
+            String allowedPassword = getAllowedPassword(givenUser);
+            return (givenPassword != null) ? givenPassword.equals(allowedPassword)
+                                      : (allowedPassword == null);
         }
 	return true;
     }
@@ -87,4 +88,16 @@ public class FileTransport extends Transport {
     public String getPassword() {
         return (auth != null) ? auth.getPassword() : null;
     }
+    
+    // ---------------------------------------------------------- private methos
+    
+    private String getAllowedPassword(final String username) {
+        String password = session.getProperty("mail.file.allowed."+ username);
+        if (password == null) {
+            password = System.getProperty("mail.file.allowed."+ username);
+        }
+        
+        return password;
+    }
+    
 }

@@ -68,7 +68,11 @@ import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
  * 
  * session.getTransport().sendMessage(message, message.getAllRecipients());
  * 
- * The property mail.file.path can also be set a system property.
+ * FileTransport checks also allowed credentials with the properties 
+ * mail.file.allowed.[user]=[password] (and mail.smtp.auth is true)
+ * 
+ * The properties mail.file.path, mail.file.allowed.[user] can also be set a 
+ * system properties.
  * 
  * </code>
  * 
@@ -82,7 +86,11 @@ public class BugFreeFileTransport {
     
     @Rule
     public final ClearSystemProperties CLEAR_FILE_PATH = 
-        new ClearSystemProperties(FileTransport.MAIL_FILE_PATH);
+        new ClearSystemProperties(
+            FileTransport.MAIL_FILE_PATH, 
+            "mail.file.allowed.user1",
+            "mail.file.allowed.user2"
+        );
     
     @Before
     public void setUp() {
@@ -289,17 +297,28 @@ public class BugFreeFileTransport {
     }
     
     @Test
-    public void connect_if_credentials_are_ok() throws Exception {
-        config.setProperty("mail.file.allowed.user1", "thepassword");
+    public void connect_if_credentials_in_config_are_ok() throws Exception {
         config.setProperty("mail.smtp.auth", "true");
+        config.setProperty("mail.file.allowed.user1", "thepassword");
+        
         
         Session session = Session.getInstance(config);
         
         FileTransport t = (FileTransport)session.getTransport();
         t.connect("nowhere.com", 25, "user1", "thepassword");
         then(t.isConnected()).isTrue();
+    }
+    
+    @Test
+    public void connect_if_credentials_in_system_are_ok() throws Exception {
+        config.setProperty("mail.smtp.auth", "true");
+        System.setProperty("mail.file.allowed.user1", "thepassword");
         
+        Session session = Session.getInstance(config);
         
+        FileTransport t = (FileTransport)session.getTransport();
+        t.connect("nowhere.com", 25, "user1", "thepassword");
+        then(t.isConnected()).isTrue();
     }
     
     @Test
