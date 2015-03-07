@@ -21,6 +21,7 @@
  */
 package ste.xtest.mail;
 
+import com.sun.mail.iap.ConnectionException;
 import javax.mail.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class FileTransport extends Transport {
     private PasswordAuthentication auth;
     
     public static final String MAIL_FILE_PATH = "mail.file.path";
+    public static final String MAIL_FILE_REQUIRE_TLS = "mail.file.require.tls";
 
     public FileTransport(Session session, URLName urlname) {
         super(session, urlname);
@@ -43,12 +45,10 @@ public class FileTransport extends Transport {
 
     @Override
     public void sendMessage(Message message, Address[] addresses) throws MessagingException {
-        String path = session.getProperty(MAIL_FILE_PATH);
+        String path = getProperty(MAIL_FILE_PATH);
         
-        if (StringUtils.isEmpty(path)) {
-            path = System.getProperty(MAIL_FILE_PATH);
-        }
-        
+        protocolConnect(null, -1, (auth != null) ? auth.getUserName() : null, (auth != null) ? auth.getPassword() : null);
+                
         //
         // if path is still missing, let's give up
         //
@@ -73,6 +73,11 @@ public class FileTransport extends Transport {
         final String givenUser,
         final String givenPassword
     ) throws MessagingException {
+        if (Boolean.valueOf(getProperty(MAIL_FILE_REQUIRE_TLS))) {
+            if (!Boolean.valueOf(session.getProperty("mail.smtp.starttls.enable"))) {
+                throw new MessagingException("invalid connection request (starttls not enabled), check mail.smtp.starttls.enable");
+            }
+        }
         if (Boolean.valueOf(session.getProperty("mail.smtp.auth"))) {
             String allowedPassword = getAllowedPassword(givenUser);
             return (givenPassword != null) ? givenPassword.equals(allowedPassword)
@@ -89,15 +94,33 @@ public class FileTransport extends Transport {
         return (auth != null) ? auth.getPassword() : null;
     }
     
+    /**
+     * Returns the property value of the provided property; the property can be
+     * set as system property or session configuration property. The latter 
+     * overrides the former.
+     * 
+     * @param name the parameter value - NOT BLANK
+     * 
+     * @return he property value of the provided property
+     */
+    public String getProperty(final String name) {
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("name can not be empty");
+        }
+        
+        String value = session.getProperty(name);
+        
+        if (value == null) {
+            value = System.getProperty(name);
+        }
+        
+        return value;
+    }
+    
     // ---------------------------------------------------------- private methos
     
     private String getAllowedPassword(final String username) {
-        String password = session.getProperty("mail.file.allowed."+ username);
-        if (password == null) {
-            password = System.getProperty("mail.file.allowed."+ username);
-        }
-        
-        return password;
+        return getProperty("mail.file.allowed."+ username);
     }
     
 }

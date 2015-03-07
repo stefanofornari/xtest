@@ -21,6 +21,7 @@
  */
 package ste.xtest.mail;
 
+import com.sun.mail.iap.ConnectionException;
 import java.io.File;
 import java.util.Properties;
 import javax.activation.DataHandler;
@@ -44,7 +45,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ClearSystemProperties;
 import org.junit.rules.TemporaryFolder;
+import static ste.xtest.Constants.BLANKS;
 import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
+import static ste.xtest.mail.FileTransport.MAIL_FILE_REQUIRE_TLS;
 
 /**
  * java mail transport that saves the message to a given file instead of
@@ -71,6 +74,9 @@ import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
  * FileTransport checks also allowed credentials with the properties 
  * mail.file.allowed.[user]=[password] (and mail.smtp.auth is true)
  * 
+ * If TSL shall be forced, set the config or system property mail.file.force_tsl
+ * to true.
+ * 
  * The properties mail.file.path, mail.file.allowed.[user] can also be set a 
  * system properties.
  * 
@@ -87,7 +93,8 @@ public class BugFreeFileTransport {
     @Rule
     public final ClearSystemProperties CLEAR_FILE_PATH = 
         new ClearSystemProperties(
-            FileTransport.MAIL_FILE_PATH, 
+            MAIL_FILE_PATH, 
+            MAIL_FILE_REQUIRE_TLS,
             "mail.file.allowed.user1",
             "mail.file.allowed.user2"
         );
@@ -110,7 +117,7 @@ public class BugFreeFileTransport {
     }
     
     @Test
-    public void missing_path_throws_an_error() {
+    public void missing_path_throws_an_error() throws Exception {
         config.remove(FileTransport.MAIL_FILE_PATH);
         try {
             sendSimpleMessage();
@@ -122,7 +129,7 @@ public class BugFreeFileTransport {
     }
     
     @Test
-    public void invalid_path_throws_an_error() {
+    public void invalid_path_throws_an_error() throws Exception {
         //
         // it's a directory, it is not writeble as file...
         //
@@ -299,20 +306,7 @@ public class BugFreeFileTransport {
     @Test
     public void connect_if_credentials_in_config_are_ok() throws Exception {
         config.setProperty("mail.smtp.auth", "true");
-        config.setProperty("mail.file.allowed.user1", "thepassword");
-        
-        
-        Session session = Session.getInstance(config);
-        
-        FileTransport t = (FileTransport)session.getTransport();
-        t.connect("nowhere.com", 25, "user1", "thepassword");
-        then(t.isConnected()).isTrue();
-    }
-    
-    @Test
-    public void connect_if_credentials_in_system_are_ok() throws Exception {
-        config.setProperty("mail.smtp.auth", "true");
-        System.setProperty("mail.file.allowed.user1", "thepassword");
+        System.setProperty("mail.file.allowed.user1", "thepassword"); // just to use both
         
         Session session = Session.getInstance(config);
         
@@ -371,9 +365,75 @@ public class BugFreeFileTransport {
         then(new File(TMP.getRoot(), "message")).exists();
     }
     
+    @Test
+    public void simulate_connection_error_if_tsl_is_required() throws Exception {
+        System.setProperty(FileTransport.MAIL_FILE_REQUIRE_TLS, "true");
+        config.setProperty(FileTransport.MAIL_FILE_REQUIRE_TLS, "true");
+        try{
+            sendSimpleMessage();
+            fail("not tsl error raised");
+        } catch (MessagingException x) {
+            then(x).hasMessageContaining("invalid connection request");
+        }
+    }
+    
+    @Test
+    public void configuration_from_local_or_system() throws Exception {
+        config.remove(MAIL_FILE_PATH);
+        config.remove(MAIL_FILE_REQUIRE_TLS);
+        
+        //
+        // system property $MAIL_FILE_PATH set in setUp()
+        //
+        System.setProperty(MAIL_FILE_PATH, "path_from_system");
+        
+        Session s = Session.getInstance(config);
+        FileTransport t = (FileTransport)s.getTransport();
+        then(t.getProperty(MAIL_FILE_PATH)).isEqualTo("path_from_system");
+        
+        //
+        // local property overrides system property
+        //
+        config.setProperty(MAIL_FILE_PATH, "path_from_local");
+        s = Session.getInstance(config);
+        t = (FileTransport)s.getTransport();
+        then(t.getProperty(MAIL_FILE_PATH)).isEqualTo("path_from_local");
+        
+        //
+        // system property $MAIL_FILE_REQUIRE_TLS set in setUp()
+        //
+        System.setProperty(MAIL_FILE_REQUIRE_TLS, "tls_from_system");
+        
+        s = Session.getInstance(config);
+        t = (FileTransport)s.getTransport();
+        then(t.getProperty(MAIL_FILE_REQUIRE_TLS)).isEqualTo("tls_from_system");
+        
+        //
+        // local property overrides system property
+        //
+        config.setProperty(MAIL_FILE_REQUIRE_TLS, "tls_from_local");
+        s = Session.getInstance(config);
+        t = (FileTransport)s.getTransport();
+        then(t.getProperty(MAIL_FILE_REQUIRE_TLS)).isEqualTo("tls_from_local");
+    }
+    
+    @Test
+    public void get_property_with_empty_parameter() throws Exception {
+        FileTransport t = (FileTransport)Session.getInstance(config).getTransport();
+
+        for (String BLANK: BLANKS) {
+            try {
+                t.getProperty(BLANK);
+                fail("missing illegal parameter check for [" + BLANK + "]");
+            } catch (IllegalArgumentException x) {
+                then(x).hasMessage("name can not be empty");
+            }
+        }
+    }
+    
     // ----------------------------------------------------------------- private
     
-    private void sendSimpleMessage() throws MessagingException {
+    private void sendSimpleMessage() throws Exception {
         Session session = Session.getInstance(config);
                 
         MimeMessage message = new MimeMessage(session);
