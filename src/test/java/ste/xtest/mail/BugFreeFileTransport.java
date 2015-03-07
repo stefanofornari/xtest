@@ -26,6 +26,7 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.mail.AuthenticationFailedException;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -226,4 +227,90 @@ public class BugFreeFileTransport {
         then(t.getUsername()).isNull();
         then(t.getPassword()).isNull();
     }
+    
+    @Test
+    public void throw_AuthenticationFailedException_if_wrong_credentials() throws Exception {
+        config.setProperty("mail.file.allowed.user1", "thepassword");
+        config.setProperty("mail.smtp.auth", "true");
+        
+        Session session = Session.getInstance(config);
+        
+        FileTransport t = (FileTransport)session.getTransport();
+        
+        try {
+            t.connect("nowhere.com", 25, "user1", "wrongpassword");
+            fail("missing credentials check");
+        } catch (AuthenticationFailedException x) {
+            //
+            // this is ok!
+            //
+        }
+        
+        config.setProperty("mail.file.allowed.user2", "thepassword2");
+        
+        session = Session.getInstance(config);
+        
+        t = (FileTransport)session.getTransport();
+        
+        try {
+            t.connect("nowhere.com", 25, "user2", "wrongpassword2");
+            fail("missing credentials check");
+        } catch (AuthenticationFailedException x) {
+            //
+            // this is ok!
+            //
+        }
+    }
+    
+    @Test
+    public void connect_if_credentials_are_ok() throws Exception {
+        config.setProperty("mail.file.allowed.user1", "thepassword");
+        config.setProperty("mail.smtp.auth", "true");
+        
+        Session session = Session.getInstance(config);
+        
+        FileTransport t = (FileTransport)session.getTransport();
+        t.connect("nowhere.com", 25, "user1", "thepassword");
+        then(t.isConnected()).isTrue();
+        
+        
+    }
+    
+    @Test
+    public void do_not_check_credentials_if_mail_smtp_auth_is_false() throws Exception {
+        config.setProperty("mail.file.allowed.user1", "thepassword");
+        config.setProperty("mail.smtp.auth", "false");
+        config.setProperty("mail.smtp.host", "nowhere.com");
+        config.setProperty("mail.smtp.port", "25");
+        config.setProperty("mail.smtp.user", "user1");
+        config.setProperty("mail.smtp.password", "wrongpassword");
+        
+        Session session = Session.getInstance(config);
+        
+        FileTransport t = (FileTransport)session.getTransport();
+        t.connect("nowhere.com", 25, "user1", "wrongpassword");
+        then(t.isConnected()).isTrue();
+        
+        //
+        // missing mail.smtp.auth
+        //
+        config.remove("mail.smtp.auth");
+        
+        session = Session.getInstance(config);
+        
+        t = (FileTransport)session.getTransport();
+        t.connect("nowhere.com", 25, "user1", "wrongpassword");
+        then(t.isConnected()).isTrue();
+        
+        //
+        // mail.smtp.auth not null
+        //
+        config.setProperty("mail.smtp.auth", "xxxx");
+        session = Session.getInstance(config);
+        
+        t = (FileTransport)session.getTransport();
+        t.connect("nowhere.com", 25, "user1", "wrongpassword");
+        then(t.isConnected()).isTrue();
+    }
+            
 }

@@ -53,6 +53,19 @@ public class FileTransport extends Transport {
         }
     }
     
+    @Override
+    protected boolean protocolConnect(String host, int port, String user,
+				String password) throws MessagingException {
+        if (Boolean.valueOf(session.getProperty("mail.smtp.auth"))) {
+            if (user == null) {
+                user = "";
+            }
+            return (password != null) ? password.equals(session.getProperty("mail.file.allowed."+ user))
+                                      : (session.getProperty("mail.file.allowed."+ user) == null);
+        }
+	return true;
+    }
+    
     public String getUsername() {
         return (auth != null) ? auth.getUserName() : null;
     }
