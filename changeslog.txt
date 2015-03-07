@@ -1,3 +1,6 @@
+20150207
+- added a transport for javax.mail to save mail into a file
+
 20141206
 - improved error handling in BeanShell specs
 - released v1.7.1
