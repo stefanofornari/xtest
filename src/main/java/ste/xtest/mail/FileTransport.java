@@ -24,6 +24,7 @@ package ste.xtest.mail;
 import javax.mail.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -44,11 +45,24 @@ public class FileTransport extends Transport {
     public void sendMessage(Message message, Address[] addresses) throws MessagingException {
         String path = session.getProperty(MAIL_FILE_PATH);
         
+        if (StringUtils.isEmpty(path)) {
+            path = System.getProperty(MAIL_FILE_PATH);
+        }
+        
+        //
+        // if path is still missing, let's give up
+        //
+        if (StringUtils.isEmpty(path)) {
+            throw new MessagingException(
+                String.format("missing message path; make sure %s is set in either teh session or System properties", MAIL_FILE_PATH)
+            );
+        }
+        
         try (FileOutputStream out = new FileOutputStream(path)) {
             message.writeTo(out);
         } catch (IOException x) {
             throw new MessagingException(
-                String.format("failed to write %s: %s", path, x.getMessage()), x
+                String.format("failed to write %s: %s", path, x.getMessage().toLowerCase()), x
             );
         }
     }

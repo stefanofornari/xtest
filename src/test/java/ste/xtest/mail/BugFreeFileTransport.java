@@ -42,6 +42,7 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ClearSystemProperties;
 import org.junit.rules.TemporaryFolder;
 import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
 
@@ -57,7 +58,7 @@ import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
  * props.put("mail.from", "test@example.com");
  * props.put("mail.senderName", "Test Sender"); 
  * props.put("mail.debug", true);
- * props.put("mail.file.dir", "messages");
+ * props.put("mail.file.path", "messages");
  * 
  * Session session = Session.getInstance(props);
  * MimeMessage message = new MimeMessage(session);
@@ -66,20 +67,22 @@ import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
  * message.setText("Body");
  * 
  * session.getTransport().sendMessage(message, message.getAllRecipients());
+ * 
+ * The property mail.file.path can also be set a system property.
+ * 
  * </code>
  * 
  */
 public class BugFreeFileTransport {
     
-    //
-    // TODO: handle missing filepath
-    // TODO: handle errors in filepath
-    //
-    
     private final Properties config = new Properties();
     
     @Rule
     public final TemporaryFolder TMP = new TemporaryFolder();
+    
+    @Rule
+    public final ClearSystemProperties CLEAR_FILE_PATH = 
+        new ClearSystemProperties(FileTransport.MAIL_FILE_PATH);
     
     @Before
     public void setUp() {
@@ -89,15 +92,7 @@ public class BugFreeFileTransport {
     
     @Test
     public void send_simple_message() throws Exception {
-        Session session = Session.getInstance(config);
-                
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("from@domain.com"));
-        message.addRecipient(Message.RecipientType.TO, new InternetAddress("to@domain.com"));
-        message.setSubject("the subject");
-        message.setText("hello world");
-
-        session.getTransport().sendMessage(message, message.getAllRecipients());
+        sendSimpleMessage();
         
         then(FileUtils.readFileToString(new File(TMP.getRoot(), "message")))
             .contains("From: from@domain.com\r")
@@ -106,6 +101,62 @@ public class BugFreeFileTransport {
             .endsWith("hello world");
     }
     
+    @Test
+    public void missing_path_throws_an_error() {
+        config.remove(FileTransport.MAIL_FILE_PATH);
+        try {
+            sendSimpleMessage();
+            fail("missing check for invalid path");
+        } catch (MessagingException x) {
+            then(x).hasMessageContaining("missing message path")
+                   .hasMessageContaining(MAIL_FILE_PATH);
+        }
+    }
+    
+    @Test
+    public void invalid_path_throws_an_error() {
+        //
+        // it's a directory, it is not writeble as file...
+        //
+        config.put(MAIL_FILE_PATH, TMP.getRoot().getAbsolutePath());
+        try {
+            sendSimpleMessage();
+            fail("a directory shall not be writable");
+        } catch (MessagingException x) {
+            then(x)
+                .hasMessageContaining(TMP.getRoot().getAbsolutePath())
+                .hasMessageContaining("failed to write");
+                    
+        }
+        
+        //
+        // not enough permission
+        //
+        config.setProperty(FileTransport.MAIL_FILE_PATH, "/none");
+        try {
+            sendSimpleMessage();
+            fail("missing check for invalid path");
+        } catch (MessagingException x) {
+            then(x).hasMessageContaining("/none")
+                   .hasMessageContaining("permission denied");
+        }
+        
+        //
+        // invalid directory
+        //
+        config.setProperty(
+            FileTransport.MAIL_FILE_PATH, 
+            TMP.getRoot().getAbsolutePath() +  "/one/two"
+        );
+        try {
+            sendSimpleMessage();
+            fail("missing check for invalid path");
+        } catch (MessagingException x) {
+            then(x).hasMessageContaining(config.getProperty(MAIL_FILE_PATH))
+                   .hasMessageContaining("no such file or directory");
+        }
+    }
+
     @Test
     public void send_multipart_message() throws Exception {
         Session session = Session.getInstance(config);
@@ -138,32 +189,7 @@ public class BugFreeFileTransport {
             .contains("hello world")
             .contains("Content-ID: <image>");           
     }
-    
-    @Test
-    public void invalid_path_results_in_error() throws Exception {
-        //
-        // it's a directory, it is not writeble as file...
-        //
-        config.put(MAIL_FILE_PATH, TMP.getRoot().getAbsolutePath());
         
-        Session session = Session.getInstance(config);
-        MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("from@domain.com"));
-        message.addRecipient(Message.RecipientType.TO, new InternetAddress("to@domain.com"));
-        message.setSubject("the subject");
-        message.setText("hello world");
-
-        try {
-            session.getTransport().sendMessage(message, message.getAllRecipients());
-            fail("a directory shall not be writable");
-        } catch (MessagingException x) {
-            then(x)
-                .hasMessageContaining(TMP.getRoot().getAbsolutePath())
-                .hasMessageContaining("failed to write");
-                    
-        }
-    }
-    
     @Test
     public void get_used_credentials() throws Exception {
         final String TEST_USERNAME1 = "username1";
@@ -311,6 +337,33 @@ public class BugFreeFileTransport {
         t = (FileTransport)session.getTransport();
         t.connect("nowhere.com", 25, "user1", "wrongpassword");
         then(t.isConnected()).isTrue();
+    }
+    
+    @Test
+    public void set_path_as_system_property() throws Exception {
+        System.setProperty(
+            FileTransport.MAIL_FILE_PATH, 
+            TMP.getRoot().getAbsolutePath() + "/message"
+        );
+        config.remove(FileTransport.MAIL_FILE_PATH);
+        
+        sendSimpleMessage();
+        
+        then(new File(TMP.getRoot(), "message")).exists();
+    }
+    
+    // ----------------------------------------------------------------- private
+    
+    private void sendSimpleMessage() throws MessagingException {
+        Session session = Session.getInstance(config);
+                
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("from@domain.com"));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress("to@domain.com"));
+        message.setSubject("the subject");
+        message.setText("hello world");
+        
+        session.getTransport().sendMessage(message, message.getAllRecipients());
     }
             
 }
