@@ -47,7 +47,7 @@ import org.junit.contrib.java.lang.system.ClearSystemProperties;
 import org.junit.rules.TemporaryFolder;
 import static ste.xtest.Constants.BLANKS;
 import static ste.xtest.mail.FileTransport.MAIL_FILE_PATH;
-import static ste.xtest.mail.FileTransport.MAIL_FILE_REQUIRE_TLS;
+import static ste.xtest.mail.FileTransport.MAIL_FILE_REQUIRE_SSL;
 
 /**
  * java mail transport that saves the message to a given file instead of
@@ -94,7 +94,7 @@ public class BugFreeFileTransport {
     public final ClearSystemProperties CLEAR_FILE_PATH = 
         new ClearSystemProperties(
             MAIL_FILE_PATH, 
-            MAIL_FILE_REQUIRE_TLS,
+            MAIL_FILE_REQUIRE_SSL,
             "mail.file.allowed.user1",
             "mail.file.allowed.user2"
         );
@@ -367,8 +367,8 @@ public class BugFreeFileTransport {
     
     @Test
     public void simulate_connection_error_if_tsl_is_required() throws Exception {
-        System.setProperty(FileTransport.MAIL_FILE_REQUIRE_TLS, "true");
-        config.setProperty(FileTransport.MAIL_FILE_REQUIRE_TLS, "true");
+        System.setProperty(FileTransport.MAIL_FILE_REQUIRE_SSL, "true");
+        config.setProperty(FileTransport.MAIL_FILE_REQUIRE_SSL, "true");
         try{
             sendSimpleMessage();
             fail("not tsl error raised");
@@ -380,7 +380,7 @@ public class BugFreeFileTransport {
     @Test
     public void configuration_from_local_or_system() throws Exception {
         config.remove(MAIL_FILE_PATH);
-        config.remove(MAIL_FILE_REQUIRE_TLS);
+        config.remove(MAIL_FILE_REQUIRE_SSL);
         
         //
         // system property $MAIL_FILE_PATH set in setUp()
@@ -402,19 +402,19 @@ public class BugFreeFileTransport {
         //
         // system property $MAIL_FILE_REQUIRE_TLS set in setUp()
         //
-        System.setProperty(MAIL_FILE_REQUIRE_TLS, "tls_from_system");
+        System.setProperty(MAIL_FILE_REQUIRE_SSL, "tls_from_system");
         
         s = Session.getInstance(config);
         t = (FileTransport)s.getTransport();
-        then(t.getProperty(MAIL_FILE_REQUIRE_TLS)).isEqualTo("tls_from_system");
+        then(t.getProperty(MAIL_FILE_REQUIRE_SSL)).isEqualTo("tls_from_system");
         
         //
         // local property overrides system property
         //
-        config.setProperty(MAIL_FILE_REQUIRE_TLS, "tls_from_local");
+        config.setProperty(MAIL_FILE_REQUIRE_SSL, "tls_from_local");
         s = Session.getInstance(config);
         t = (FileTransport)s.getTransport();
-        then(t.getProperty(MAIL_FILE_REQUIRE_TLS)).isEqualTo("tls_from_local");
+        then(t.getProperty(MAIL_FILE_REQUIRE_SSL)).isEqualTo("tls_from_local");
     }
     
     @Test

@@ -36,7 +36,7 @@ public class FileTransport extends Transport {
     private PasswordAuthentication auth;
     
     public static final String MAIL_FILE_PATH = "mail.file.path";
-    public static final String MAIL_FILE_REQUIRE_TLS = "mail.file.require.tls";
+    public static final String MAIL_FILE_REQUIRE_SSL = "mail.file.require.ssl";
 
     public FileTransport(Session session, URLName urlname) {
         super(session, urlname);
@@ -73,9 +73,9 @@ public class FileTransport extends Transport {
         final String givenUser,
         final String givenPassword
     ) throws MessagingException {
-        if (Boolean.valueOf(getProperty(MAIL_FILE_REQUIRE_TLS))) {
-            if (!Boolean.valueOf(session.getProperty("mail.smtp.starttls.enable"))) {
-                throw new MessagingException("invalid connection request (starttls not enabled), check mail.smtp.starttls.enable");
+        if (Boolean.valueOf(getProperty(MAIL_FILE_REQUIRE_SSL))) {
+            if (!Boolean.valueOf(session.getProperty("mail.smtp.ssl.enable"))) {
+                throw new MessagingException("invalid connection request (ssl not enabled), check mail.smtp.ssl.enable");
             }
         }
         if (Boolean.valueOf(session.getProperty("mail.smtp.auth"))) {
