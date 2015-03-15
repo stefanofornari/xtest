@@ -21,7 +21,6 @@
  */
 package ste.xtest.mail;
 
-import com.sun.mail.iap.ConnectionException;
 import java.io.File;
 import java.util.Properties;
 import javax.activation.DataHandler;
