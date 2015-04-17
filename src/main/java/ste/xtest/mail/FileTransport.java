@@ -21,7 +21,6 @@
  */
 package ste.xtest.mail;
 
-import com.sun.mail.iap.ConnectionException;
 import javax.mail.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
