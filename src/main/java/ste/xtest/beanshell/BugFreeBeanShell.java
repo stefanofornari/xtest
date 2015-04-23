@@ -165,8 +165,8 @@ public abstract class BugFreeBeanShell extends BugFree {
      * execution. It update <code>bshThis</code>.
      *
      * @return the object result of the execution of the beanshell script
+     * @throws ste.xtest.beanshell.ScriptException
      *
-     * @throws bsh.EvalError in case of parsing errors
      * @throws java.io.IOException in case of errors reading the script provided
      * by <code>fielName</code> if not null
      *

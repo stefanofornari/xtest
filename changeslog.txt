@@ -1,3 +1,7 @@
+20150422
+- added FixedClock to implement a Clock that returns the same Instant at each
+  invocation
+
 20150207
 - released v1.8.0
 
