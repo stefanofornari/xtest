@@ -21,11 +21,18 @@
  */
 package ste.xtest.json.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.HashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.AbstractAssert;
+import static org.assertj.core.api.Assertions.entry;
+import org.assertj.core.data.MapEntry;
 import org.assertj.core.error.BasicErrorMessageFactory;
 import static org.assertj.core.error.ShouldHaveSize.shouldHaveSize;
 import org.assertj.core.internal.Failures;
+import org.assertj.core.internal.Maps;
+import static org.assertj.core.util.Arrays.array;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -36,6 +43,8 @@ import static ste.xtest.json.error.ShouldContain.shouldContain;
  * @author ste
  */
 public class JSONObjectAssert extends AbstractAssert<JSONObjectAssert, JSONObject> {
+    
+    Maps maps = Maps.instance();
 
     protected JSONObjectAssert(final JSONObject o) {
         super(o, JSONObjectAssert.class);
@@ -168,6 +177,114 @@ public class JSONObjectAssert extends AbstractAssert<JSONObjectAssert, JSONObjec
         }
         return this;
     }
+    
+    /**
+    * Verifies that the actual map contains only the given entries and nothing else, in any order.
+    * 
+    * <p>
+    * Examples :
+    * 
+    * <pre><code class='java'>
+    * JSONObject ringBearers = ... // init with a JSON object
+    * 
+    * // assertion will pass
+    * then(ringBearers).containsOnly(entry(oneRing, frodo), entry(nenya, galadriel), entry(narya, gandalf), entry(vilya, elrond));
+    * 
+    * // assertion will fail
+    * then(ringBearers).containsOnly(entry(oneRing, frodo), entry(nenya, galadriel));
+    *  </code></pre>
+    * 
+    * @param entries the entries that should be in the actual map.
+    * 
+    * @return the assert object
+    * 
+    * @throws AssertionError if the actual map is {@code null}.
+    * @throws NullPointerException if the given argument is {@code null}.
+    * @throws AssertionError if the actual map does not contain the given entries, i.e. the actual map contains some or
+    *           none of the given entries, or the actual map contains more entries than the given ones.
+    */
+    public JSONObjectAssert containsOnly(@SuppressWarnings("unchecked") MapEntry... entries) {
+        try {
+            HashMap map = new ObjectMapper().readValue(actual.toString(), HashMap.class);
+            maps.assertContainsOnly(info, map, entries);
+            return myself;
+        } catch (IOException x) {
+                throw Failures.instance().failure(
+                    info, 
+                    new BasicErrorMessageFactory("Exception in contains: %s", x.getMessage())
+                );
+            }
+    }
+    
+    
+    /**
+     * Verifies that the actual map contains the given entry
+     * 
+     *<p>
+     * Examples :
+     *  
+     * <pre><code class='java'>
+     * JSONObject ringBearers = ... // init with a JSON object
+     * 
+     * // assertion will pass
+     *  then(ringBearers).containsEntry(entry(oneRing, frodo));
+     *  
+     * // assertion will fail
+     * then(ringBearers).containsEntry(entry(oneRing, galadriel));
+     *  </code></pre>
+     * 
+     * @param entry the entry that should be in the actual map.
+     * 
+     * @return the assert object
+     * 
+     * @throws AssertionError if the actual map is {@code null}.
+     * @throws NullPointerException if the given argument is {@code null}.
+     * @throws AssertionError if the actual map does not contain the given entries, i.e. the actual map contains some or
+     *           none of the given entries, or the actual map contains more entries than the given ones.
+     */
+    public JSONObjectAssert containsEntry(MapEntry entry) {
+        try {
+            HashMap map = new ObjectMapper().readValue(actual.toString(), HashMap.class);
+            maps.assertContains(info, map, array(entry));
+            return myself;
+        } catch (IOException x) {
+                throw Failures.instance().failure(
+                    info, 
+                    new BasicErrorMessageFactory("Exception in contains: %s", x.getMessage())
+                );
+            }
+    }
+    
+    /**
+     * Verifies that the actual map contains the given key-value pair
+     * 
+     * <p>
+     * Examples :
+     * 
+     * <pre><code class='java'>
+     * JSONObject ringBearers = ... // init with a JSON object
+     * 
+     * // assertion will pass
+     * then(ringBearers).containsEntry(oneRing, frodo);
+     * 
+     * // assertion will fail
+     * then(ringBearers).containsEntry(oneRing, gadriel);
+     *  </code></pre>
+     * 
+     * @param key
+     * @param value
+     * 
+     * @return the assert object
+     * 
+     * @throws AssertionError if the actual map is {@code null}.
+     * @throws NullPointerException if the given argument is {@code null}.
+     * @throws AssertionError if the actual map does not contain the given entries, i.e. the actual map contains some or
+     *           none of the given entries, or the actual map contains more entries than the given ones.
+     */
+    public JSONObjectAssert containsEntry(String key, Object value) {
+        return containsEntry(entry(key, value));
+    }
+    
     
     // --------------------------------------------------------- private methods
     
