@@ -1,11 +1,3 @@
-20150715
-- released 1.9.2
-
-20150714
-- improved the way the api manages files. if the api's variable is a java.io.File,
-  an FileEntity is set in the response so that the file can directly handled
-  by the entity
-
 20150517
 - released v1.9.1
 
