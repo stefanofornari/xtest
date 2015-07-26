@@ -24,10 +24,11 @@ package ste.xtest.logging;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import org.junit.BeforeClass;
-import org.junit.Rule;
+
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.Fail.fail;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * TODO: hide access to records
@@ -44,17 +45,17 @@ public class BugFreeListLogHandler {
     public void constructorsAndInitialization() {
         ListLogHandler h = new ListLogHandler();
 
-        assertEquals(0, h.getRecords().size());
+        then(h.getRecords()).isEmpty();
     }
 
     @Test
     public void addLogRecords() {
         ListLogHandler h = new ListLogHandler();
         List<LogRecord> records = h.getRecords();
-        assertEquals(0, records.size());
-        h.publish(LOG1); assertSame(LOG1, records.get(0));
-        h.publish(LOG2); assertSame(LOG2, records.get(1));
-        h.publish(LOG3); assertSame(LOG3, records.get(2));
+        then(records).isEmpty();
+        h.publish(LOG1); then(records.get(0)).isSameAs(LOG1);
+        h.publish(LOG2); then(records.get(1)).isSameAs(LOG2);
+        h.publish(LOG3); then(records.get(2)).isSameAs(LOG3);
     }
 
     @Test
@@ -65,8 +66,7 @@ public class BugFreeListLogHandler {
             h.publish(null);
             fail("missing null value check");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().indexOf("record") >=0 );
-            assertTrue(x.getMessage().indexOf("cannot be null") >=0 );
+            then(x).hasMessageContaining("record").hasMessageContaining("cannot be null");
         }
     }
 
@@ -78,29 +78,29 @@ public class BugFreeListLogHandler {
             h.getMessage(-1);
             fail("missing invalid index value check");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().indexOf("index cannot be < 0 or >") >=0 );
+            then(x).hasMessageContaining("index cannot be < 0 or >");
         }
 
         try {
             h.getMessage(0);
             fail("missing invalid index value check");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().indexOf("index cannot be < 0 or >") >=0 );
+            then(x).hasMessageContaining("index cannot be < 0 or >");
         }
 
         h.publish(LOG1);
         h.publish(LOG2);
         h.publish(LOG3);
 
-        assertEquals(LOG1.getMessage(), h.getMessage(0));
-        assertEquals(LOG2.getMessage(), h.getMessage(1));
-        assertEquals(LOG3.getMessage(), h.getMessage(2));
+        then(h.getMessages()).containsSequence(
+            LOG1.getMessage(), LOG2.getMessage(), LOG3.getMessage()
+        );
 
         try {
             h.getMessage(3);
             fail("missing invalid index value check");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().indexOf("index cannot be < 0 or >") >=0 );
+            then(x).hasMessageContaining("index cannot be < 0 or >");
         }
     }
 
@@ -108,10 +108,10 @@ public class BugFreeListLogHandler {
     public void size() {
          ListLogHandler h = new ListLogHandler();
 
-         assertEquals(0, h.size());
-         h.publish(LOG1); assertEquals(1, h.size());
-         h.publish(LOG2); assertEquals(2, h.size());
-         h.publish(LOG3); assertEquals(3, h.size());
+         then(h.size()).isZero();
+         h.publish(LOG1); then(h.size()).isEqualTo(1);
+         h.publish(LOG2); then(h.size()).isEqualTo(2);
+         h.publish(LOG3); then(h.size()).isEqualTo(3);
     }
 
     @Test
@@ -119,32 +119,26 @@ public class BugFreeListLogHandler {
         ListLogHandler h = new ListLogHandler();
 
         List<String> messages = h.getMessages();
-        assertNotNull(messages);
-        assertEquals(0, messages.size());
+        then(messages).isNotNull();
+        then(messages).isEmpty();
 
-        h.publish(LOG1);
-        messages = h.getMessages();
-        assertEquals(LOG1.getMessage(), messages.get(0));
+        h.publish(LOG1); messages = h.getMessages();
+        then(messages).containsSequence(LOG1.getMessage());
 
-        h.publish(LOG2);
-        messages = h.getMessages();
-        assertEquals(LOG1.getMessage(), messages.get(0));
-        assertEquals(LOG2.getMessage(), messages.get(1));
+        h.publish(LOG2);messages = h.getMessages();
+        then(messages).containsSequence(LOG1.getMessage(), LOG2.getMessage());
 
-        h.publish(LOG3);
-        messages = h.getMessages();
-        assertEquals(LOG1.getMessage(), messages.get(0));
-        assertEquals(LOG2.getMessage(), messages.get(1));
-        assertEquals(LOG3.getMessage(), messages.get(2));
+        h.publish(LOG3); messages = h.getMessages();
+        then(messages).containsSequence(LOG1.getMessage(), LOG2.getMessage(), LOG3.getMessage());
     }
 
     @Test
     public void flush() {
         ListLogHandler h = new ListLogHandler();
 
-       h.flush(); assertEquals(0, h.size());
+       h.flush(); then(h.size()).isZero();
        h.publish(LOG1); h.publish(LOG2); h.publish(LOG3);
-       h.flush(); assertEquals(0, h.size());
+       h.flush(); then(h.size()).isZero();
     }
 
 }
