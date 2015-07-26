@@ -42,14 +42,14 @@ public class BugFreeListLogHandler {
                                    LOG3 = new LogRecord(Level.FINE, "third");
 
     @Test
-    public void constructorsAndInitialization() {
+    public void construction_and_anitialization() {
         ListLogHandler h = new ListLogHandler();
 
         then(h.getRecords()).isEmpty();
     }
 
     @Test
-    public void addLogRecords() {
+    public void add_records() {
         ListLogHandler h = new ListLogHandler();
         List<LogRecord> records = h.getRecords();
         then(records).isEmpty();
@@ -59,7 +59,7 @@ public class BugFreeListLogHandler {
     }
 
     @Test
-    public void publishArgument() {
+    public void publish_argument() {
         ListLogHandler h = new ListLogHandler();
 
         try {
@@ -71,7 +71,7 @@ public class BugFreeListLogHandler {
     }
 
     @Test
-    public void getMessage() {
+    public void get_message() {
         ListLogHandler h = new ListLogHandler();
 
         try {
@@ -115,7 +115,7 @@ public class BugFreeListLogHandler {
     }
 
     @Test
-    public void getMessages() {
+    public void get_messages() {
         ListLogHandler h = new ListLogHandler();
 
         List<String> messages = h.getMessages();
