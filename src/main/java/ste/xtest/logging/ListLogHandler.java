@@ -46,7 +46,7 @@ public class ListLogHandler extends Handler {
      *
      * @return the registered records
      */
-    public List<LogRecord> getRecords() {
+    public synchronized List<LogRecord> getRecords() {
         return records;
     }
 
@@ -58,15 +58,17 @@ public class ListLogHandler extends Handler {
      * @throws IllegalArgumentException if record is null
      */
     @Override
-    public void publish(LogRecord record) throws IllegalArgumentException {
+    public synchronized void publish(LogRecord record) throws IllegalArgumentException {
         if (record == null) {
             throw new IllegalArgumentException("record cannot be null");
         }
-        records.add(record);
+        if (isLoggable(record)) {
+            records.add(record);
+        }
     }
 
     @Override
-    public void flush() {
+    public synchronized void flush() {
         records.clear();
     }
 
@@ -86,7 +88,7 @@ public class ListLogHandler extends Handler {
      *
      * @throws IllegalArgumentException if index is out of the valid range
      */
-    public String getMessage(int index) throws IllegalArgumentException {
+    public synchronized String getMessage(int index) throws IllegalArgumentException {
         if ((index < 0) || (index >= records.size())) {
             throw new IllegalArgumentException(
                 String.format("index cannot be < 0 or > %d (it was %d)", records.size(), index)
@@ -100,7 +102,7 @@ public class ListLogHandler extends Handler {
      *
      * @return number of records logged
      */
-    public int size() {
+    public synchronized int size() {
         return records.size();
     }
 
@@ -109,7 +111,7 @@ public class ListLogHandler extends Handler {
      *
      * @return the record messages as a List<String>
      */
-    public List<String> getMessages() {
+    public synchronized List<String> getMessages() {
         List<String> messages = new ArrayList<>();
         
         for (LogRecord r: records) {
@@ -118,5 +120,4 @@ public class ListLogHandler extends Handler {
 
         return messages;
     }
-
 }

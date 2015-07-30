@@ -1,3 +1,8 @@
+20150726
+- added first fluent assertions for logging
+- fixed a bug in ListLogHandler.publish() so that messages are storedonly if 
+  loggable; note that this change may break something
+
 20150517
 - released v1.9.1
 

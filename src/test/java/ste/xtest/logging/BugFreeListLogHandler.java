@@ -131,14 +131,44 @@ public class BugFreeListLogHandler {
         h.publish(LOG3); messages = h.getMessages();
         then(messages).containsSequence(LOG1.getMessage(), LOG2.getMessage(), LOG3.getMessage());
     }
-
+    
     @Test
     public void flush() {
-        ListLogHandler h = new ListLogHandler();
+       ListLogHandler h = new ListLogHandler();
 
        h.flush(); then(h.size()).isZero();
        h.publish(LOG1); h.publish(LOG2); h.publish(LOG3);
        h.flush(); then(h.size()).isZero();
+    }
+    
+    @Test
+    /**
+     * records shall be discarded if the logger level is lesser then the 
+     * record level.
+     */
+    public void add_records_only_accordingly_to_log_level() {
+        ListLogHandler h = new ListLogHandler();
+        h.setLevel(Level.INFO);
+        
+        h.publish(LOG1); then(h.size()).isEqualTo(1);
+        h.publish(LOG3); then(h.size()).isEqualTo(1); // not logged
+        h.publish(LOG2); then(h.size()).isEqualTo(2);
+        
+        h.flush(); h.setLevel(Level.ALL);
+        h.publish(LOG1); then(h.size()).isEqualTo(1);
+        h.publish(LOG3); then(h.size()).isEqualTo(2);
+        h.publish(LOG2); then(h.size()).isEqualTo(3);
+        
+        h.flush(); h.setLevel(Level.OFF);
+        h.publish(LOG1); then(h.size()).isZero();
+        h.publish(LOG3); then(h.size()).isZero();
+        h.publish(LOG2); then(h.size()).isZero();
+        
+        h.flush(); h.setLevel(Level.SEVERE);
+        h.publish(LOG1); then(h.size()).isZero();
+        h.publish(LOG3); then(h.size()).isZero();
+        h.publish(LOG2); then(h.size()).isEqualTo(1);
+        
     }
 
 }
