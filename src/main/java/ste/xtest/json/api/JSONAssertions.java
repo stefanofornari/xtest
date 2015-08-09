@@ -41,7 +41,7 @@ public class JSONAssertions {
      * 
      * @param o the object to assert
      * 
-     * @return a new </code>{@link JSONAssertions}</code> with the given 
+     * @return a new <code>{@link JSONAssertions}</code> with the given 
      *         <code>JSONObject</code>.
      */
     public static JSONObjectAssert then(final JSONObject o) {
