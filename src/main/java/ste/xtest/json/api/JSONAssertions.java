@@ -21,7 +21,6 @@
  */
 package ste.xtest.json.api;
 
-import org.assertj.core.api.Assertions;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,15 +30,23 @@ import org.json.JSONObject;
  */
 public class JSONAssertions {
     
-    /** Creates a new </code>{@link Assertions}</code>. */
+    /** Creates a new </code>{@link JSONAssertions}</code>. */
     protected JSONAssertions() {
         // empty
     }
     
+    /** 
+     * Returns a new </code>{@link JSONAssertions}</code> with the given 
+     * <code>JSONObject</code>.
+     */
     public static JSONObjectAssert then(final JSONObject o) {
         return new JSONObjectAssert(o);
     }
     
+    /** 
+     * Returns a new </code>{@link JSONAssertions}</code> with the given 
+     * <code>JSONArray</code>.
+     */
     public static JSONArrayAssert then(final JSONArray a) {
         return new JSONArrayAssert(a);
     }
