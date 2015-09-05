@@ -1,3 +1,12 @@
+20150905
+- first draft of url mocking
+
+20150809
+- assertj support for JS objects
+
+20150923
+- BugFreeJavaScript.loadScript now loads a script from the classpath too
+
 20150726
 - added first fluent assertions for logging
 - fixed a bug in ListLogHandler.publish() so that messages are storedonly if 

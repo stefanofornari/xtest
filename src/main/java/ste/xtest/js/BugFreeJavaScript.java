@@ -27,9 +27,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import javassist.NotFoundException;
 import javax.script.ScriptException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
@@ -130,8 +133,8 @@ public abstract class BugFreeJavaScript  extends BugFree {
      * @throws IllegalArgumentException if name is null
      */
     public Object get(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("name cannot be null");
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("name can not be blank");
         }
         Object ret = scope.get(name, scope);
 
@@ -141,14 +144,26 @@ public abstract class BugFreeJavaScript  extends BugFree {
 
         return ret;
     }
+    
+    /**
+     * Sets a variable in the current script scope with given name and value
+     * 
+     * @param name the object name (variable, function, ...) - NOT BLANK
+     * @param value the value - MAY BE NULL
+     */
+    public void set(final String name, Object value) {
+        if (StringUtils.isBlank(name)) {
+            throw new IllegalArgumentException("name can not be blank");
+        }
+        scope.put(name, scope, value);
+    }
 
     /**
-     * Load the given script from the file system.
+     * Load the given script from the file system (first) or the class path.
      *
-     * @param script the script file name - NOT NULL
+     * @param script the script file/resource name - NOT NULL
      *
      * @throws IllegalArgumentException if fileName is null
-     * @throws NotFoundException if the script is not found
      * @throws IOException in case of IO errors
      *
      */
@@ -156,17 +171,29 @@ public abstract class BugFreeJavaScript  extends BugFree {
         if (script == null) {
             throw new IllegalArgumentException("script cannot be null");
         }
+        
+        //
+        // let's try to read the script from the file system first; if an io
+        // exception is thrown, then we try from the classpath
+        //
 
         Context cx = Context.enter();
-        FileReader r = null;
+        Reader r = null;
         try {
             r = new FileReader(script);
-            cx.evaluateReader(scope, r, script, 1, null);
+        } catch(FileNotFoundException x) {
+            InputStream is = getClass().getResourceAsStream(script);
+            if (is == null) {
+                throw x;
+            }
+            
+            r = new InputStreamReader(is);
         } finally {
-            Context.exit();
             if (r != null) {
+                cx.evaluateReader(scope, r, script, 1, null);
                 r.close();
             }
+            Context.exit();
         }
     }
 

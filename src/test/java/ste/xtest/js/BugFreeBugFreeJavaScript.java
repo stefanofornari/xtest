@@ -23,11 +23,14 @@
 package ste.xtest.js;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.EvaluatorException;
+import static ste.xtest.Constants.BLANKS;
 
 import static ste.xtest.js.Constants.*;
 
@@ -36,8 +39,9 @@ import static ste.xtest.js.Constants.*;
  * @author ste
  *
  * TODO: exec object's method
+ * TODO: in set and get name shall not be blank
  */
-public class BugFreeJavaScriptTest {
+public class BugFreeBugFreeJavaScript {
 
     @Test
     public void constructors() throws Exception {
@@ -58,15 +62,15 @@ public class BugFreeJavaScriptTest {
      * @throws Exception
      */
     @Test
-    public void javaScriptSetup() throws Exception {
+    public void javascript_setup() throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         then(test.get("Envjs")).isNotNull();
         then(test.get("jQuery")).isNotNull();
     }
-
+    
     @Test
-    public void loadScriptAndGet() throws Exception {
+    public void load_script_and_get() throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         try{
@@ -86,16 +90,32 @@ public class BugFreeJavaScriptTest {
         then(test.get("loaded")).isEqualTo("true");
         then(test.get("nothing")).isNull();
 
+        for (String BLANK: BLANKS) {
+            try {
+                test.get(BLANK);
+                fail("missing argument check");
+            } catch (IllegalArgumentException x) {
+                then(x).hasMessage("name can not be blank");
+            }
+        }
+    }
+    
+    @Test
+    public void load_script_from_classpath() throws Throwable {
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
+        
+        test.loadScript("/js/test1.js");
+        then(test.get("loaded")).isEqualTo("true");
+        
         try {
-            test.get(null);
-            fail("missing chek for null parameters!");
-        } catch (IllegalArgumentException x) {
-            then(x).hasMessageContaining("name");
+            test.loadScript("/notexisting.js");
+        } catch (FileNotFoundException x) {
+            then(x).hasMessageContaining("notexisting");
         }
     }
 
     @Test
-    public void callFunction() throws Throwable {
+    public void call_function() throws Throwable {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         test.loadScript(TEST_SCRIPT_1);
@@ -115,7 +135,7 @@ public class BugFreeJavaScriptTest {
     }
 
     @Test
-    public void execScript() throws Throwable {
+    public void exec_script() throws Throwable {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         try {
@@ -134,6 +154,32 @@ public class BugFreeJavaScriptTest {
         } catch (EvaluatorException x) {
             System.out.println(x);
             then(x).hasMessageContaining("missing ; before statement");
+        }
+    }
+    
+    @Test
+    public void set_and_get_variables() throws Throwable {
+        BugFreeJavaScript test = new BugFreeJavaScript(){};
+        
+        final HashMap TEST1 = new HashMap();
+        final HashSet TEST2 = new HashSet();
+        
+        test.set("collection", TEST1);
+        then(test.get("collection")).isSameAs(TEST1);
+        
+        test.set("collection", TEST2);
+        then(test.get("collection")).isSameAs(TEST2);
+        
+        test.set("collection", null);
+        then(test.get("collection")).isNull();
+        
+        for (String BLANK: BLANKS) {
+            try {
+                test.set(BLANK, "something");
+                fail("missing argument check");
+            } catch (IllegalArgumentException x) {
+                then(x).hasMessage("name can not be blank");
+            }
         }
     }
 
