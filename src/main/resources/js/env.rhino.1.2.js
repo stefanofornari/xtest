@@ -1485,6 +1485,14 @@ Envjs.deleteFile = function(url){
     file["delete"]();
 };
 
+Envjs.buildURL = function (url) {
+    return new java.net.URL(url);
+}
+
+Envjs.contentType = function(connection) {
+    return connection.getContentType();
+}
+
 /**
  * establishes connection and calls responsehandler
  * @param {Object} xhr
@@ -1492,7 +1500,7 @@ Envjs.deleteFile = function(url){
  * @param {Object} data
  */
 Envjs.connection = function(xhr, responseHandler, data){
-    var url = new java.net.URL(xhr.url),
+    var url = Envjs.buildURL(xhr.url),
         connection,
         header,
         outstream,
@@ -1523,25 +1531,18 @@ Envjs.connection = function(xhr, responseHandler, data){
                 connection = url.openConnection();
                 connection.connect();
                 //try to add some canned headers that make sense
-
+                
                 try{
-                    if(xhr.url.match(/html$/)){
-                        xhr.responseHeaders["Content-Type"] = 'text/html';
-                    }else if(xhr.url.match(/.xml$/)){
-                        xhr.responseHeaders["Content-Type"] = 'text/xml';
-                    }else if(xhr.url.match(/.js$/)){
-                        xhr.responseHeaders["Content-Type"] = 'text/javascript';
-                    }else if(xhr.url.match(/.json$/)){
-                        xhr.responseHeaders["Content-Type"] = 'application/json';
-                    }else{
-                        xhr.responseHeaders["Content-Type"] = 'text/plain';
-                    }
+                    xhr.responseHeaders["Content-Type"] =  Envjs.contentType(connection);
                     //xhr.responseHeaders['Last-Modified'] = connection.getLastModified();
                     //xhr.responseHeaders['Content-Length'] = headerValue+'';
                     //xhr.responseHeaders['Date'] = new Date()+'';*/
                 }catch(e){
                     console.log('failed to load response headers',e);
                 }
+                
+                xhr.status = 200;
+                xhr.statusText = "";
             }
         }catch(e){
             console.log('failed to open file %s %s', url, e);
@@ -1584,25 +1585,27 @@ Envjs.connection = function(xhr, responseHandler, data){
             connection.connect();
         }
     }
-
+    
     if(connection){
         try{
-            length = connection.getHeaderFields().size();
+            var headers = connection.getHeaderFields();
+            var names = headers.keySet().toArray();
             // Stick the response headers into responseHeaders
-            for (i = 0; i < length; i++) {
-                name = connection.getHeaderFieldKey(i);
-                value = connection.getHeaderField(i);
-                if (name)
-                    xhr.responseHeaders[name+''] = value+'';
+            for (i=0; i<names.length; ++i) {
+                value = connection.getHeaderField(names[i]);
+                if (names[i])
+                    xhr.responseHeaders[names[i]] = value+'';
             }
         }catch(e){
             console.log('failed to load response headers \n%s',e);
         }
 
-        xhr.readyState = 4;
-        xhr.status = parseInt(connection.responseCode,10) || undefined;
-        xhr.statusText = connection.responseMessage || "";
-
+        xhr.readyState = 2;
+        if (!xhr.status) {
+            xhr.status = connection.getResponseCode();
+            xhr.statusText = connection.getResponseMessage() || "";
+        }
+        
         contentEncoding = connection.getContentEncoding() || "utf-8";
         instream = null;
         responseXML = null;
@@ -1639,6 +1642,8 @@ Envjs.connection = function(xhr, responseHandler, data){
 
         outstream.close();
         instream.close();
+        
+        xhr.readyState = 4;
 
         if(binary){
             xhr.responseText = new String(outstream.toByteArray(), 'UTF-8') + '';
@@ -13126,6 +13131,7 @@ Location = function(url, doc, history) {
                     xhr.send(null, false);
                 } else {
                     //Treat as an XMLDocument
+                    Envjs.debug('loading xml document');
                     xhr.onreadystatechange = function() {
                         if (xhr.readyState === 4) {
                             $document = xhr.responseXML;
@@ -13149,6 +13155,7 @@ Location = function(url, doc, history) {
             this.assign($url);
         },
         replace: function(url) {
+            Envjs.debug('replacing %s',url);
             this.assign(url);
         }
     };
@@ -13269,7 +13276,7 @@ XMLHttpRequest.prototype = {
                             doc = domparser.parseFromString(_this.responseText+"", 'text/xml');
                         } catch(e) {
                             //Envjs.error('response XML does not appear to be well formed xml', e);
-                            console.warn('parseerror \n%s', e);
+                            console.warn('parse error \n%s', e);
                             doc = document.implementation.createDocument('','error',null);
                             doc.appendChild(doc.createTextNode(e+''));
                         }
