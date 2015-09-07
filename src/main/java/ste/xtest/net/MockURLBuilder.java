@@ -21,9 +21,13 @@
  */
 package ste.xtest.net;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +147,33 @@ public class MockURLBuilder extends AbstractURLBuilder {
     public MockURLBuilder json(final String json) {
         setContent(json, "application/json"); return this;
     }
+    
+    /**
+     * Sets the body, content-type (depending on file) and content-length (-1 if
+     * the file does not exist or the file length if the file exists) of the 
+     * request. 
+     * 
+     * @param file - MAY BE NULL
+     * 
+     * @return this builder
+     */
+    public MockURLBuilder file(final String file) {
+        String type = null;
+        
+        Path path = (file == null) ? null : FileSystems.getDefault().getPath(file);
+        if (path != null) {
+            try {
+                type = Files.probeContentType(path);
+            } catch (IOException x) {
+                //
+                // noting to do
+                //
+            }
+        }
+        
+        setContent(path, (type == null) ? "application/octet-stream" : type); 
+        return this;
+    }
 
     public MockURLBuilder header(final String header, final String value) {
         headers.put(header, Lists.newArrayList(value)); return this;
@@ -150,10 +181,6 @@ public class MockURLBuilder extends AbstractURLBuilder {
     
     public MockURLBuilder headers(final Map<String, List<String>> headers) {
         this.headers = headers; return this;
-    }
-    
-    public MockURLBuilder content(final String content) {
-        this.content = (content == null) ? null : content.getBytes(); return this;
     }
     
     public int getStatus() {
@@ -190,6 +217,14 @@ public class MockURLBuilder extends AbstractURLBuilder {
                 len = ((byte[])content).length;
             } else if (content instanceof String) {
                 len = ((String)content).length();
+            } else if (content instanceof Path) {
+                try {
+                    len = Files.size((Path)content);
+                } catch (IOException x) {
+                    //
+                    // nothing to do, it will take -1
+                    //
+                }
             }
         }
         

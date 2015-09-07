@@ -22,6 +22,8 @@
 package ste.xtest.net;
 
 import java.net.HttpURLConnection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,6 +196,38 @@ public class BugFreeMockURLBuilder {
         b.getHeaders().clear(); b.json(null);
         then(b.getContent()).isNull();
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/json");
+        then(
+            Long.parseLong(b.getHeaders().get("content-length").get(0))
+        ).isZero();
+    }
+    
+    @Test
+    public void set_content_as_path() {
+        MockURLBuilder b = new MockURLBuilder();
+        
+        final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
+        final String TEST_FILE2 = "src/test/resources/images/6096.png";
+        final String TEST_FILE3 = "src/test/resources/notexisting.unknown";
+        
+        b.file(TEST_FILE1);
+        then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE1);
+        then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
+        then(b.getHeaders().get("content-length").get(0)).isEqualTo("269");
+        
+        
+        b.file(TEST_FILE2);
+        then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE2);
+        then(b.getHeaders().get("content-type").get(0)).isEqualTo("image/png");
+        then(b.getHeaders().get("content-length").get(0)).isEqualTo("1516957");
+        
+        b.file(TEST_FILE3);
+        then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE3);
+        then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
+        then(b.getHeaders().get("content-length").get(0)).isEqualTo("-1");
+        
+        b.file(null);
+        then(b.getContent()).isNull();
+        then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isZero();

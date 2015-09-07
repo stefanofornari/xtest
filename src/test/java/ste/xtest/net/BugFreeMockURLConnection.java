@@ -21,7 +21,9 @@
  */
 package ste.xtest.net;
 
+import java.io.File;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
@@ -122,13 +124,13 @@ public class BugFreeMockURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        B.content(TEST_CONTENT1);
+        B.text(TEST_CONTENT1);
         then(IOUtils.toString(C.getInputStream())).isEqualTo(TEST_CONTENT1);
         
-        B.content(TEST_CONTENT2);
+        B.text(TEST_CONTENT2);
         then(IOUtils.toString(C.getInputStream())).isEqualTo(TEST_CONTENT2);
         
-        B.content((String)null);
+        B.text(null);
         then(C.getInputStream()).isEqualTo(null);
     }
     
@@ -140,8 +142,26 @@ public class BugFreeMockURLConnection {
     
     @Test
     public void get_stream_from_string() throws Exception {
-        B.content("some");
+        B.text("some");
         then(IOUtils.toString(C.getInputStream())).isEqualTo("some");
+    }
+    
+    @Test
+    public void get_stream_from_file() throws Exception {
+        final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
+        final String TEST_FILE2 = "src/test/resources/js/test1.js";
+        
+        B.file(TEST_FILE1);
+        then(IOUtils.toString(C.getInputStream()))
+            .isEqualTo(IOUtils.toString(new File(TEST_FILE1).getAbsoluteFile().toURI()));
+        then(C.getContentType()).isEqualTo("text/html");
+        then(C.getContentLength()).isEqualTo(269);
+        
+        B.file(TEST_FILE2);
+        then(IOUtils.toString(C.getInputStream()))
+            .isEqualTo(IOUtils.toString(new File(TEST_FILE2).getAbsoluteFile().toURI()));
+        then(C.getContentType()).isEqualTo("application/javascript");
+        then(C.getContentLength()).isEqualTo(194);
     }
     
     @Test

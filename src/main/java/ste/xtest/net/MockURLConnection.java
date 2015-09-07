@@ -25,6 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +79,7 @@ class MockURLConnection extends HttpURLConnection {
     }
     
     @Override
-    public InputStream getInputStream() {
+    public InputStream getInputStream() throws IOException {
         Object content = builder.getContent();
         if (content == null) {
             return null;
@@ -85,6 +87,8 @@ class MockURLConnection extends HttpURLConnection {
         
         if (content instanceof String) {
             return new ByteArrayInputStream(((String)content).getBytes());
+        } else if (content instanceof Path) {
+            return Files.newInputStream((Path)content);
         }
         
         return new ByteArrayInputStream((byte[])content);
