@@ -112,7 +112,7 @@ Envjs.defaultEventBehaviors = {};
  * the script like a browser would
  */
 Envjs.scriptTypes = {
-    "text/javascript"   :false,
+    "text/javascript"   :true,
     "text/envjs"        :true
 };
 

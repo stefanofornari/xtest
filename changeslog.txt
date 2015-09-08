@@ -1,3 +1,7 @@
+20150908
+- url mocking completed
+- released v1.10.0
+
 20150905
 - first draft of url mocking
 
