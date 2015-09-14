@@ -14106,6 +14106,7 @@ Window = function(scope, parent, opener){
             }catch(e){
                 console.log('%s',e);
             }
+            $closed = true;
         },
         alert : function(message){
             Envjs.alert(message);

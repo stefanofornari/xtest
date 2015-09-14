@@ -1,3 +1,6 @@
+20150915
+- fixed issue #3 - window.close() does not set .closed
+
 20150908
 - url mocking completed
 - released v1.10.0
