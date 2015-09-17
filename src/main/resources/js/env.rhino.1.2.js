@@ -14080,7 +14080,7 @@ Window = function(scope, parent, opener){
 
         open: function(url, name, features, replace){
             if (features) {
-                Envjs.debug("'features argument not yet implemented");
+                Envjs.debug("features argument not yet implemented");
             }
             var _window = Envjs.proxy({}),
                 open;
