@@ -27,7 +27,7 @@ import java.util.HashMap;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
-import ste.xtest.net.MockURLBuilder;
+import ste.xtest.net.StubURLBuilder;
 
 /**
  *
@@ -36,12 +36,12 @@ import ste.xtest.net.MockURLBuilder;
 public class BugFreeConnection extends BugFreeJavaScript {
     
     public BugFreeConnection() throws Exception {
-        loadScript("/js/envjs.urlmocker.js");
+        loadScript("/js/envjs.urlstubber.js");
     }
     
     @Test
     public void retrieve_mocked_html() throws Exception {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         URL url = b.set("http://a.url.com/home.html")
                    .status(200).text("<html><head><title>hello world</title></head></html>").build();
         
@@ -69,5 +69,22 @@ public class BugFreeConnection extends BugFreeJavaScript {
         );
         
         then(exec("document.title;")).isEqualTo("TODO supply a title");
+    }
+    
+    @Test
+    public void get_error_status() throws Exception {
+        StubURLBuilder b = new StubURLBuilder();
+        URL url = b.set("http://a.url.com/home.html").status(0).text("").build();
+        
+        NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");
+        HashMap map = (HashMap)o.unwrap();
+        map.put(url.toExternalForm(), url);
+        
+        exec(
+            "Envjs.DEBUG = true;" +
+            "window.location='http://a.url.com/home.html';\n"
+        );
+        
+        then(exec("document.title;")).isEqualTo("Untitled Document");
     }
 }
