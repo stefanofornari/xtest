@@ -32,7 +32,7 @@ import org.junit.Test;
  *
  * @author ste
  */
-public class BugFreeURLMockSelector {
+public class BugFreeURLStubSelector {
     
     private final String TEST_URL1 = "http://192.168.0.1/index.html";
     private final String TEST_URL2 = "file:///webroot/public/index.html";
@@ -40,21 +40,21 @@ public class BugFreeURLMockSelector {
     @Test
     public void constructor_with_mapping() throws Exception {
         try {
-            new URLMockSelector(null);
+            new URLStubSelector(null);
             fail("missing invalid argument check");
         } catch (IllegalArgumentException x) {
             then(x).hasMessage("map can not be null");
         }
         
-        URLMockSelector sel = new URLMockSelector(new HashMap<String,URL>());
+        URLStubSelector sel = new URLStubSelector(new HashMap<String,URL>());
         then(sel.getMapping()).isNotNull().isEmpty();
         
         HashMap<String, URL> map = new HashMap<>();
         map.put("key1", new URL("file://value1"));
-        then(new URLMockSelector(map).getMapping()).containsExactly(entry("key1", new URL("file://value1")));
+        then(new URLStubSelector(map).getMapping()).containsExactly(entry("key1", new URL("file://value1")));
         
         map.put("key2", new URL("file://value2"));
-        then(new URLMockSelector(map).getMapping())
+        then(new URLStubSelector(map).getMapping())
             .containsExactly(entry("key1", new URL("file://value1")), entry("key2", new URL("file://value2")));
     }
     
@@ -64,7 +64,7 @@ public class BugFreeURLMockSelector {
         map.put("http://server1", new URL("file://value1"));
         map.put("http://server2", new URL("file://value2"));
         
-        URLMockSelector sel = new URLMockSelector(map);
+        URLStubSelector sel = new URLStubSelector(map);
         then(sel.select("http://server1")).isEqualTo(new URL("file://value1"));
         then(sel.select("http://server2")).isEqualTo(new URL("file://value2"));
         then(sel.select(TEST_URL1)).isEqualTo(new URL(TEST_URL1));
@@ -74,21 +74,22 @@ public class BugFreeURLMockSelector {
     @Test
     public void selects_the_proper_URL_based_on_url_with_hash() throws Exception {
         HashMap<String, URL> map = new HashMap<>();
-        map.put("http://server1", new URL("file://value1"));
-        map.put("http://server2", new URL("file://value2"));
+        map.put("http://server1#/fragment", new URL("file://value1"));
+        map.put("http://server2#something?else", new URL("file://value2"));
         
-        URLMockSelector sel = new URLMockSelector(map);
-        then(sel.select("http://server1#something")).isEqualTo(new URL("file://value1"));
+        URLStubSelector sel = new URLStubSelector(map);
+        then(sel.select("http://server1#something")).isEqualTo(new URL("http://server1#something"));
+        then(sel.select("http://server1#/fragment")).isEqualTo(new URL("file://value1"));
         then(sel.select("http://server2#something?else")).isEqualTo(new URL("file://value2"));
         then(sel.select(TEST_URL1)).isEqualTo(new URL(TEST_URL1));
         then(sel.select(TEST_URL2)).isEqualTo(new URL(TEST_URL2));
     }
     
     @Test
-    public void select_with_invalid_url_throws_IllegalArvumentException() {
+    public void select_with_invalid_url_throws_IllegalArgumentException() {
         final String NOT_A_URL = "this:/is:80:78080/malformed";
         
-        URLMockSelector sel = new URLMockSelector(new HashMap<String,URL>());
+        URLStubSelector sel = new URLStubSelector(new HashMap<String,URL>());
         try {
             sel.select(null);
             fail("missing argument validity check");

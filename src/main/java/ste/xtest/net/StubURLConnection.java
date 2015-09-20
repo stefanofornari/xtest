@@ -39,11 +39,11 @@ import java.util.Map;
  * @TODO: getInputStream shall return a correct input stream accordingly to the 
  *        content type
  */
-class MockURLConnection extends HttpURLConnection {
+class StubURLConnection extends HttpURLConnection {
     
-    private MockURLBuilder builder;
+    private StubURLBuilder builder;
 
-    public MockURLConnection(MockURLBuilder builder) {
+    public StubURLConnection(StubURLBuilder builder) {
         super(builder.getUrl());
         
         this.builder = builder;

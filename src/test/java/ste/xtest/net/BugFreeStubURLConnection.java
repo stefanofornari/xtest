@@ -37,17 +37,17 @@ import org.junit.Test;
  *
  * @author ste
  */
-public class BugFreeMockURLConnection {
+public class BugFreeStubURLConnection {
     
     private static final String TEST_URL_DUMMY = "http://url.com";
     
-    private MockURLBuilder B;
-    private MockURLConnection C;
+    private StubURLBuilder B;
+    private StubURLConnection C;
     
     @Before
     public void before() {
-        B = new MockURLBuilder();
-        C = new MockURLConnection(B);
+        B = new StubURLBuilder();
+        C = new StubURLConnection(B);
     }
     
     @Test

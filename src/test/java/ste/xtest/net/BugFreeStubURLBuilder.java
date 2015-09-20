@@ -39,13 +39,13 @@ import org.junit.Test;
  * TODO: url in set can not be blank
  * TODO: getHeaderField and various headers
  */
-public class BugFreeMockURLBuilder {
+public class BugFreeStubURLBuilder {
     
     private static final String TEST_URL1 = "http://192.168.0.1/index.html";
 
     @Test
     public void build_throws_IllegalStateException_if_url_not_set() throws Exception {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         
         try {
             b.build();
@@ -57,20 +57,20 @@ public class BugFreeMockURLBuilder {
     
     @Test
     public void openConnection_returns_a_MockURLConnection() throws Exception {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.set(TEST_URL1);
         
-        then(b.build().openConnection()).isNotNull().isInstanceOf(MockURLConnection.class);
+        then(b.build().openConnection()).isNotNull().isInstanceOf(StubURLConnection.class);
     }
     
     @Test
     public void default_status_200() throws Exception {
-        then(new MockURLBuilder().getStatus()).isEqualTo(HttpURLConnection.HTTP_OK);
+        then(new StubURLBuilder().getStatus()).isEqualTo(HttpURLConnection.HTTP_OK);
     }
     
     @Test
     public void set_status() throws Exception {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.status(HttpURLConnection.HTTP_ACCEPTED);
         then(b.getStatus()).isEqualTo(HttpURLConnection.HTTP_ACCEPTED);
         
@@ -80,7 +80,7 @@ public class BugFreeMockURLBuilder {
     
     @Test
     public void set_message() throws Exception {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.message("ok");
         then(b.getMessage()).isEqualTo("ok");
         
@@ -96,7 +96,7 @@ public class BugFreeMockURLBuilder {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.getHeaders().clear(); b.content(TEST_CONTENT1.getBytes());
         then(b.getContent()).isEqualTo(TEST_CONTENT1.getBytes());
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
@@ -122,7 +122,7 @@ public class BugFreeMockURLBuilder {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.getHeaders().clear(); b.text(TEST_CONTENT1);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
@@ -150,7 +150,7 @@ public class BugFreeMockURLBuilder {
         final String TEST_CONTENT1 = "<html><body>hello world</body></html>";
         final String TEST_CONTENT2 = "<html><body>welcome on board</html></body>";
         
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.getHeaders().clear(); b.html(TEST_CONTENT1);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
@@ -178,7 +178,7 @@ public class BugFreeMockURLBuilder {
         final String TEST_CONTENT1 = "{ 'msg': 'hello world' }";
         final String TEST_CONTENT2 = "{ 'msg': 'welcome on board' }";
         
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.getHeaders().clear(); b.json(TEST_CONTENT1);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/json");
@@ -203,7 +203,7 @@ public class BugFreeMockURLBuilder {
     
     @Test
     public void set_content_as_path() {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         
         final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
         final String TEST_FILE2 = "src/test/resources/images/6096.png";
@@ -235,13 +235,13 @@ public class BugFreeMockURLBuilder {
     
     @Test
     public void headers_defatuls_to_empty_map() {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         then(b.getHeaders()).isNotNull().hasSize(0);
     }
     
     @Test
     public void set_single_header_adds_to_headers() {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         
         b.header("key1", "value1");
         then(b.getHeaders().keySet()).containsExactly("key1");
@@ -267,7 +267,7 @@ public class BugFreeMockURLBuilder {
         MAP2.put("key3", Lists.newArrayList("value3"));
         MAP2.put("key4", Lists.newArrayList("value4"));
         
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         b.headers(MAP1);
         then(b.getHeaders()).containsOnlyKeys(MAP1.keySet().toArray(new String[0]));
         
@@ -277,7 +277,7 @@ public class BugFreeMockURLBuilder {
     
     @Test
     public void set_type_sets_content_type() {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         
         b.type("text/html");
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
@@ -288,7 +288,7 @@ public class BugFreeMockURLBuilder {
     
     @Test
     public void set_type_to_null_removes_content_type() {
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         
         b.type("text/html");
         then(b.getHeaders()).containsKey("content-type");

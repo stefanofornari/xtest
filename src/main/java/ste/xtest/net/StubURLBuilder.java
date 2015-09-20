@@ -37,7 +37,7 @@ import org.assertj.core.util.Lists;
  *
  * @author ste
  */
-public class MockURLBuilder extends AbstractURLBuilder {
+public class StubURLBuilder extends AbstractURLBuilder {
     
     public enum Protocol {ANY, GET, POST};
     
@@ -47,7 +47,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
     private Object content;
     private Map<String, List<String>> headers;
 
-    public MockURLBuilder() {
+    public StubURLBuilder() {
         protocol = Protocol.GET;
         status = HttpURLConnection.HTTP_OK;
         headers = new HashMap<>();
@@ -60,25 +60,25 @@ public class MockURLBuilder extends AbstractURLBuilder {
         }
         return new URL(
             url.getProtocol(), url.getHost(), url.getPort(), url.getFile(), 
-            new MockStreamHandler(this)
+            new StubStreamHandler(this)
         );
     }
     
-    public MockURLBuilder set(final String url) throws MalformedURLException {
+    public StubURLBuilder set(final String url) throws MalformedURLException {
         super.set(new URL(url));
         
         return this;
     }
     
-    public MockURLBuilder get() {
+    public StubURLBuilder get() {
         return this;
     }
     
-    public MockURLBuilder status(int status) {
+    public StubURLBuilder status(int status) {
         this.status = status; return this;
     }
     
-    public MockURLBuilder message(final String message) {
+    public StubURLBuilder message(final String message) {
         this.message = message; return this;
     }
     
@@ -90,7 +90,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public MockURLBuilder type(final String type) {
+    public StubURLBuilder type(final String type) {
         if (type == null) {
             headers.remove("content-type");
         } else {
@@ -108,7 +108,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public MockURLBuilder content(final byte[] content) {
+    public StubURLBuilder content(final byte[] content) {
         setContent(content, "application/octet-stream"); return this;
     }
     
@@ -120,7 +120,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public MockURLBuilder text(final String text) {
+    public StubURLBuilder text(final String text) {
         setContent(text, "text/plain"); return this;
     }
     
@@ -132,7 +132,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public MockURLBuilder html(final String html) {
+    public StubURLBuilder html(final String html) {
         setContent(html, "text/html"); return this;
     }
     
@@ -144,7 +144,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public MockURLBuilder json(final String json) {
+    public StubURLBuilder json(final String json) {
         setContent(json, "application/json"); return this;
     }
     
@@ -157,7 +157,7 @@ public class MockURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public MockURLBuilder file(final String file) {
+    public StubURLBuilder file(final String file) {
         String type = null;
         
         Path path = (file == null) ? null : FileSystems.getDefault().getPath(file);
@@ -175,11 +175,11 @@ public class MockURLBuilder extends AbstractURLBuilder {
         return this;
     }
 
-    public MockURLBuilder header(final String header, final String value) {
+    public StubURLBuilder header(final String header, final String value) {
         headers.put(header, Lists.newArrayList(value)); return this;
     }
     
-    public MockURLBuilder headers(final Map<String, List<String>> headers) {
+    public StubURLBuilder headers(final Map<String, List<String>> headers) {
         this.headers = headers; return this;
     }
     

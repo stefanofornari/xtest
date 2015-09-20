@@ -30,11 +30,11 @@ import java.util.Map;
  *
  * @author ste
  */
-public class URLMockSelector {
+public class URLStubSelector {
     
     private Map<String, URL> map;
     
-    public URLMockSelector(final HashMap<String, URL> map) {
+    public URLStubSelector(final HashMap<String, URL> map) {
         if (map == null) {
             throw new IllegalArgumentException("map can not be null");
         }
@@ -52,16 +52,15 @@ public class URLMockSelector {
      * 
      * @return the selected mock 
      * 
-     * @throws IllegalArgumentExceptino if url is malformed or null
+     * @throws IllegalArgumentException if url is malformed or null
      */
     public URL select(final String url) {
         if (url == null) {
             throw new IllegalArgumentException("url can not be null");
         }
-        int pos = url.indexOf('#');
-        String urlKey = (pos > 0) ? url.substring(0, pos) : url;
-        URL selectedUrl = map.get(urlKey);
         
+        URL selectedUrl = map.get(url);
+        System.out.println("selectedUrl for " + url +": " + selectedUrl);
         if (selectedUrl != null) {
             return selectedUrl;
         }

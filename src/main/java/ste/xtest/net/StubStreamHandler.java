@@ -30,15 +30,15 @@ import java.net.URLStreamHandler;
  *
  * @author ste
  */
-class MockStreamHandler extends URLStreamHandler {
-    private MockURLBuilder builder;
+class StubStreamHandler extends URLStreamHandler {
+    private StubURLBuilder builder;
 
-    public MockStreamHandler(MockURLBuilder builder) {
+    public StubStreamHandler(StubURLBuilder builder) {
         this.builder = builder;
     }
 
     @Override
     protected URLConnection openConnection(URL u) throws IOException {
-        return new MockURLConnection(builder);
+        return new StubURLConnection(builder);
     }   
 }
