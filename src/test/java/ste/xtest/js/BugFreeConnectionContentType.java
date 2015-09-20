@@ -27,7 +27,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.NativeObject;
-import ste.xtest.net.MockURLBuilder;
+import ste.xtest.net.StubURLBuilder;
 
 /**
  *
@@ -44,7 +44,7 @@ public class BugFreeConnectionContentType {
     private void thenContentTypeIs(final String type) throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
         
-        MockURLBuilder b = new MockURLBuilder();
+        StubURLBuilder b = new StubURLBuilder();
         URL url = b.set("http://a.url.com/home.html").status(200).type(type).build();
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         test.set("c", connection);
