@@ -23,23 +23,52 @@ package ste.xtest.js;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import ste.xtest.net.StubURLBuilder;
 
 /**
  *
  * @author ste
  */
-public class BugFreeWindow {
+public class BugFreeWindow extends BugFreeJavaScript {
+    
+    public BugFreeWindow() throws Exception {
+        super();
+        loadScript("/js/envjs.urlstubber.js");
+    }
     
     @Test
     public void closing_window_set_closed() throws Exception {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-        
         then(
-            test.exec("var w = window.open('', 'test'); w.closed")
+            exec("var w = window.open('', 'test'); w.closed")
         ).isEqualTo(false);
         
         then(
-            test.exec("w.close(); w.closed")
+            exec("w.close(); w.closed")
         ).isEqualTo(true);
+    }
+    
+    @Test
+    public void opening_and_closing_window() throws Exception {
+        then(exec("Object.keys(Envjs.windows).length;")).isEqualTo(1.0);
+        exec("var w = window.open('', 'test');");
+        then(exec("Object.keys(Envjs.windows).length;")).isEqualTo(2.0);
+        exec("w.close();");
+        then(exec("Object.keys(Envjs.windows).length;")).isEqualTo(1.0);
+        exec("window.close();");
+        then(exec("Object.keys(Envjs.windows).length;")).isEqualTo(0.0);
+    }
+    
+    @Test
+    public void set_location_with_fragment() throws Exception {
+        final String url = "http://www.server.com/home.html#fragment";
+        
+        StubURLBuilder b = new StubURLBuilder();
+        b.set(url).status(200).text("");
+        
+        set("u", b.build());
+        exec("Envjs.DEBUG = true; Envjs.map.put('" + url + "', u); window.location = '" + url + "'");
+        then(
+            exec("window.location.href;")
+        ).isEqualTo(url);
     }
 }
