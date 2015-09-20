@@ -5,6 +5,47 @@
  * Copyright 2008-2010 John Resig, under the MIT License
  */
 
+if (!Object.keys) {
+  Object.keys = (function() {
+    'use strict';
+    var hasOwnProperty = Object.prototype.hasOwnProperty,
+        hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+        dontEnums = [
+          'toString',
+          'toLocaleString',
+          'valueOf',
+          'hasOwnProperty',
+          'isPrototypeOf',
+          'propertyIsEnumerable',
+          'constructor'
+        ],
+        dontEnumsLength = dontEnums.length;
+
+    return function(obj) {
+      if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+        throw new TypeError('Object.keys called on non-object');
+      }
+
+      var result = [], prop, i;
+
+      for (prop in obj) {
+        if (hasOwnProperty.call(obj, prop)) {
+          result.push(prop);
+        }
+      }
+
+      if (hasDontEnumBug) {
+        for (i = 0; i < dontEnumsLength; i++) {
+          if (hasOwnProperty.call(obj, dontEnums[i])) {
+            result.push(dontEnums[i]);
+          }
+        }
+      }
+      return result;
+    };
+  }());
+}
+
 var Envjs = function(){
     var i,
         name,
@@ -13819,7 +13860,7 @@ base64.encode = function(s) {
 //These descriptions of window properties are taken loosely David Flanagan's
 //'JavaScript - The Definitive Guide' (O'Reilly)
 
-var __windows__ = {};
+Envjs.windows = {};
 
 var __top__ = function(_scope){
     var _parent = _scope.parent;
@@ -13849,8 +13890,8 @@ Window = function(scope, parent, opener){
     });
 
     var $uuid = new Date().getTime()+'-'+Math.floor(Math.random()*1000000000000000);
-    __windows__[$uuid] = scope;
-    Envjs.debug('opening window %s', $uuid);
+    Envjs.windows[$uuid] = scope;
+    Envjs.debug('opening window %s (%d)', $uuid, Object.keys(Envjs.windows).length);
 
     // every window has one-and-only-one .document property which is always
     // an [object HTMLDocument].  also, only window.document objects are
@@ -14085,7 +14126,7 @@ Window = function(scope, parent, opener){
             var _window = Envjs.proxy({}),
                 open;
             if(replace && name){
-                for(open in __windows__){
+                for(open in Envjs.windows){
                     if(open.name === name) {
                         _window = open;
                     }
@@ -14100,9 +14141,9 @@ Window = function(scope, parent, opener){
             return _window;
         },
         close: function(){
-            Envjs.debug('closing window %s', __windows__[$uuid]);
+            Envjs.debug('closing window %s', Envjs.windows[$uuid]);
             try{
-                delete __windows__[$uuid];
+                delete Envjs.windows[$uuid];
             }catch(e){
                 console.log('%s',e);
             }
