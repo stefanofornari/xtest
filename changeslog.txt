@@ -1,3 +1,6 @@
+20150927
+- net: added support for POST in StubURLConnection
+
 20150920
 - Envjs: added tracking of windows open through Envjs.windows
 - net: renamed mock into stub
