@@ -1595,7 +1595,7 @@ Envjs.connection = function(xhr, responseHandler, data){
     } else {
         connection = url.openConnection();
         connection.setRequestMethod( xhr.method );
-
+        
         // Add headers to Java connection
         for (header in xhr.headers){
             connection.addRequestProperty(header+'', xhr.headers[header]+'');
@@ -1621,9 +1621,14 @@ Envjs.connection = function(xhr, responseHandler, data){
                     outstream.close();
                 }
             }
+        }
+        try {
             connection.connect();
-        }else{
-            connection.connect();
+        } catch (e) {
+            console.log('failed to connect to %s %s', url, e);
+            xhr.readyState = 4;
+            xhr.onreadystatechange();
+            throw e;
         }
     }
     
@@ -1646,6 +1651,7 @@ Envjs.connection = function(xhr, responseHandler, data){
             xhr.status = connection.getResponseCode();
             xhr.statusText = connection.getResponseMessage() || "";
         }
+        xhr.onreadystatechange();
         
         contentEncoding = connection.getContentEncoding() || "utf-8";
         instream = null;
