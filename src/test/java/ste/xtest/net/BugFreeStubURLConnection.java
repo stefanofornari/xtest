@@ -23,10 +23,10 @@ package ste.xtest.net;
 
 import java.io.File;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.assertj.core.util.Lists;
 import static org.junit.Assert.fail;
@@ -201,6 +201,11 @@ public class BugFreeStubURLConnection {
             // OK
             //
         }
+    }
+    
+    @Test
+    public void null_output_stream_by_default() throws Exception {
+        then(C.getOutputStream()).isInstanceOf(NullOutputStream.class);
     }
     
 }

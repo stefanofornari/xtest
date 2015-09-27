@@ -24,6 +24,7 @@ package ste.xtest.net;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.output.NullOutputStream;
 
 /**
  *
@@ -92,6 +94,11 @@ class StubURLConnection extends HttpURLConnection {
         }
         
         return new ByteArrayInputStream((byte[])content);
+    }
+    
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+        return NullOutputStream.NULL_OUTPUT_STREAM;
     }
     
     @Override
