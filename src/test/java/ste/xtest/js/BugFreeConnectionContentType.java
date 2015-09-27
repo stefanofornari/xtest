@@ -26,7 +26,6 @@ import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
-import org.mozilla.javascript.NativeObject;
 import ste.xtest.net.StubURLBuilder;
 
 /**
