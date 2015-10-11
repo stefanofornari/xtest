@@ -98,7 +98,9 @@ class StubURLConnection extends HttpURLConnection {
     
     @Override
     public OutputStream getOutputStream() throws IOException {
-        return NullOutputStream.NULL_OUTPUT_STREAM;
+        OutputStream out = builder.getOutputStream();
+        
+        return (out == null) ? NullOutputStream.NULL_OUTPUT_STREAM : out;
     }
     
     @Override

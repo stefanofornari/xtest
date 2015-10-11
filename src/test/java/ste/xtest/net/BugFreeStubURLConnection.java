@@ -21,6 +21,7 @@
  */
 package ste.xtest.net;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.util.List;
@@ -206,6 +207,19 @@ public class BugFreeStubURLConnection {
     @Test
     public void null_output_stream_by_default() throws Exception {
         then(C.getOutputStream()).isInstanceOf(NullOutputStream.class);
+    }
+    
+    @Test
+    public void use_given_output_stream() throws Exception {
+        ByteArrayOutputStream out1 = new ByteArrayOutputStream();
+        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        
+        B.out(out1);
+        then(C.getOutputStream()).isSameAs(out1);
+        
+        B.out(out2);
+        then(C.getOutputStream()).isSameAs(out2);
+        
     }
     
 }

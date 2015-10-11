@@ -22,6 +22,7 @@
 package ste.xtest.net;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -46,11 +47,13 @@ public class StubURLBuilder extends AbstractURLBuilder {
     private String message;
     private Object content;
     private Map<String, List<String>> headers;
+    private OutputStream out;
 
     public StubURLBuilder() {
         protocol = Protocol.GET;
         status = HttpURLConnection.HTTP_OK;
         headers = new HashMap<>();
+        out = null;
     }
 
 
@@ -183,6 +186,10 @@ public class StubURLBuilder extends AbstractURLBuilder {
         this.headers = headers; return this;
     }
     
+    public StubURLBuilder out(final OutputStream out) {
+        this.out = out; return this;
+    }
+    
     public int getStatus() {
         return status;
     }
@@ -197,6 +204,10 @@ public class StubURLBuilder extends AbstractURLBuilder {
     
     public Map<String, List<String>> getHeaders() {
         return headers;
+    }
+    
+    public OutputStream getOutputStream() {
+        return out;
     }
     
     // --------------------------------------------------------- private methods

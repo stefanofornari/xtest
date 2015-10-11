@@ -21,9 +21,8 @@
  */
 package ste.xtest.net;
 
+import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +57,7 @@ public class BugFreeStubURLBuilder {
     @Test
     public void openConnection_returns_a_MockURLConnection() throws Exception {
         StubURLBuilder b = new StubURLBuilder();
-        b.set(TEST_URL1);
+        then(b.set(TEST_URL1)).isSameAs(b);
         
         then(b.build().openConnection()).isNotNull().isInstanceOf(StubURLConnection.class);
     }
@@ -71,23 +70,23 @@ public class BugFreeStubURLBuilder {
     @Test
     public void set_status() throws Exception {
         StubURLBuilder b = new StubURLBuilder();
-        b.status(HttpURLConnection.HTTP_ACCEPTED);
+        then(b.status(HttpURLConnection.HTTP_ACCEPTED)).isSameAs(b);
         then(b.getStatus()).isEqualTo(HttpURLConnection.HTTP_ACCEPTED);
         
-        b.status(HttpURLConnection.HTTP_FORBIDDEN);
+        then(b.status(HttpURLConnection.HTTP_FORBIDDEN)).isSameAs(b);
         then(b.getStatus()).isEqualTo(HttpURLConnection.HTTP_FORBIDDEN);
     }
     
     @Test
     public void set_message() throws Exception {
         StubURLBuilder b = new StubURLBuilder();
-        b.message("ok");
+        then(b.message("ok")).isSameAs(b);
         then(b.getMessage()).isEqualTo("ok");
         
-        b.message("this is the response message");
+        then(b.message("this is the response message")).isSameAs(b);
         then(b.getMessage()).isEqualTo("this is the response message");
         
-        b.message(null);
+        then(b.message(null)).isSameAs(b);
         then(b.getMessage()).isEqualTo(null);
     }
     
@@ -97,20 +96,23 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT2 = "welcome on board";
         
         StubURLBuilder b = new StubURLBuilder();
-        b.getHeaders().clear(); b.content(TEST_CONTENT1.getBytes());
+        b.getHeaders().clear(); 
+        then(b.content(TEST_CONTENT1.getBytes())).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT1.getBytes());
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isEqualTo(TEST_CONTENT1.length());
         
-        b.getHeaders().clear(); b.content(TEST_CONTENT2.getBytes());
+        b.getHeaders().clear(); 
+        then(b.content(TEST_CONTENT2.getBytes())).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT2.getBytes());
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isEqualTo(TEST_CONTENT2.length());
         
-        b.getHeaders().clear(); b.content((byte[])null);
+        b.getHeaders().clear(); 
+        then(b.content((byte[])null)).isSameAs(b);
         then(b.getContent()).isNull();
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
@@ -123,21 +125,24 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT2 = "welcome on board";
         
         StubURLBuilder b = new StubURLBuilder();
-        b.getHeaders().clear(); b.text(TEST_CONTENT1);
+        b.getHeaders().clear(); 
+        then(b.text(TEST_CONTENT1)).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isEqualTo(TEST_CONTENT1.length());
         
-        b.getHeaders().clear(); b.text(TEST_CONTENT2);
+        b.getHeaders().clear(); 
+        then(b.text(TEST_CONTENT2)).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT2);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isEqualTo(TEST_CONTENT2.length());
         
-        b.getHeaders().clear(); b.text(null);
+        b.getHeaders().clear(); 
+        then(b.text(null)).isSameAs(b);
         then(b.getContent()).isNull();
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
         then(
@@ -151,21 +156,24 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT2 = "<html><body>welcome on board</html></body>";
         
         StubURLBuilder b = new StubURLBuilder();
-        b.getHeaders().clear(); b.html(TEST_CONTENT1);
+        b.getHeaders().clear(); 
+        then(b.html(TEST_CONTENT1)).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isEqualTo(TEST_CONTENT1.length());
         
-        b.getHeaders().clear(); b.html(TEST_CONTENT2);
+        b.getHeaders().clear(); 
+        then(b.html(TEST_CONTENT2)).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT2);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
         then(
             Long.parseLong(b.getHeaders().get("content-length").get(0))
         ).isEqualTo(TEST_CONTENT2.length());
         
-        b.getHeaders().clear(); b.html(null);
+        b.getHeaders().clear(); 
+        then(b.html(null)).isSameAs(b);
         then(b.getContent()).isNull();
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
         then(
@@ -209,23 +217,23 @@ public class BugFreeStubURLBuilder {
         final String TEST_FILE2 = "src/test/resources/images/6096.png";
         final String TEST_FILE3 = "src/test/resources/notexisting.unknown";
         
-        b.file(TEST_FILE1);
+        then(b.file(TEST_FILE1)).isSameAs(b);
         then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
         then(b.getHeaders().get("content-length").get(0)).isEqualTo("269");
         
         
-        b.file(TEST_FILE2);
+        then(b.file(TEST_FILE2)).isSameAs(b);
         then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE2);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("image/png");
         then(b.getHeaders().get("content-length").get(0)).isEqualTo("1516957");
         
-        b.file(TEST_FILE3);
+        then(b.file(TEST_FILE3)).isSameAs(b);
         then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE3);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
         then(b.getHeaders().get("content-length").get(0)).isEqualTo("-1");
         
-        b.file(null);
+        then(b.file(null)).isSameAs(b);
         then(b.getContent()).isNull();
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
         then(
@@ -243,14 +251,14 @@ public class BugFreeStubURLBuilder {
     public void set_single_header_adds_to_headers() {
         StubURLBuilder b = new StubURLBuilder();
         
-        b.header("key1", "value1");
+        then(b.header("key1", "value1")).isSameAs(b);
         then(b.getHeaders().keySet()).containsExactly("key1");
         then(b.getHeaders().get("key1").get(0)).isEqualTo("value1");
-        b.header("key2", "value2");
+        then(b.header("key2", "value2")).isSameAs(b);
         then(b.getHeaders().keySet()).containsExactly("key1", "key2");
         then(b.getHeaders().get("key1").get(0)).isEqualTo("value1");
         then(b.getHeaders().get("key2").get(0)).isEqualTo("value2");
-        b.header("key3", "value3");
+        then(b.header("key3", "value3")).isSameAs(b);
         then(b.getHeaders().keySet()).containsExactly("key1", "key2", "key3");
         then(b.getHeaders().get("key1").get(0)).isEqualTo("value1");
         then(b.getHeaders().get("key2").get(0)).isEqualTo("value2");
@@ -268,10 +276,10 @@ public class BugFreeStubURLBuilder {
         MAP2.put("key4", Lists.newArrayList("value4"));
         
         StubURLBuilder b = new StubURLBuilder();
-        b.headers(MAP1);
+        then(b.headers(MAP1)).isSameAs(b);
         then(b.getHeaders()).containsOnlyKeys(MAP1.keySet().toArray(new String[0]));
         
-        b.headers(MAP2);
+        then(b.headers(MAP2)).isSameAs(b);
         then(b.getHeaders()).containsOnlyKeys(MAP2.keySet().toArray(new String[0]));
     }
     
@@ -279,10 +287,10 @@ public class BugFreeStubURLBuilder {
     public void set_type_sets_content_type() {
         StubURLBuilder b = new StubURLBuilder();
         
-        b.type("text/html");
+        then(b.type("text/html")).isSameAs(b);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
         
-        b.type("text/plain");
+        then(b.type("text/plain")).isSameAs(b);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
     }
     
@@ -290,10 +298,24 @@ public class BugFreeStubURLBuilder {
     public void set_type_to_null_removes_content_type() {
         StubURLBuilder b = new StubURLBuilder();
         
-        b.type("text/html");
+        then(b.type("text/html")).isSameAs(b);
         then(b.getHeaders()).containsKey("content-type");
         
-        b.type(null);
+        then(b.type(null)).isSameAs(b);
         then(b.getHeaders()).doesNotContainKey("content-type");
-    }    
+    }  
+    
+    @Test
+    public void set_output_stream_for_posted_data() {
+        ByteArrayOutputStream out1 = new ByteArrayOutputStream();
+        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        
+        StubURLBuilder b = new StubURLBuilder();
+        then(b.out(out1)).isSameAs(b);
+        then(b.getOutputStream()).isSameAs(out1);
+        
+        then(b.out(out2)).isSameAs(b);
+        then(b.getOutputStream()).isSameAs(out2);
+        
+    }
 }
