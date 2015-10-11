@@ -40,7 +40,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
     }
     
     @Test
-    public void retrieve_mocked_html() throws Exception {
+    public void retrieve_stubbed_html() throws Exception {
         StubURLBuilder b = new StubURLBuilder();
         URL url = b.set("http://a.url.com/home.html")
                    .status(200).text("<html><head><title>hello world</title></head></html>").build();
