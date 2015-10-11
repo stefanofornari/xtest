@@ -1,3 +1,7 @@
+20151011
+- net: added custom output stream
+- js: added mocks for angularjs
+
 20150927
 - net: added support for POST in StubURLConnection
 
