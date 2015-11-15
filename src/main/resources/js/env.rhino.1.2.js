@@ -1234,41 +1234,7 @@ Envjs.os_version     = '';
 Envjs.lang           = '';
 Envjs.platform       = '';
 
-/**
- *
- * @param {Object} frameElement
- * @param {Object} url
- */
-Envjs.loadFrame = function(frame, url){
-    try {
-        if(frame.contentWindow){
-            //mark for garbage collection
-            frame.contentWindow = null;
-        }
-
-        //create a new scope for the window proxy
-        //platforms will need to override this function
-        //to make sure the scope is global-like
-        frame.contentWindow = (function(){return this;})();
-        new Window(frame.contentWindow, window);
-
-        //I dont think frames load asynchronously in firefox
-        //and I think the tests have verified this but for
-        //some reason I'm less than confident... Are there cases?
-        frame.contentDocument = frame.contentWindow.document;
-        frame.contentDocument.async = false;
-        if(url){
-            Envjs.debug('envjs.loadFrame async %s', frame.contentDocument.async);
-            frame.contentWindow.location = url;
-        }
-    } catch(e) {
-        console.log("failed to load frame content: from %s %s", url, e);
-    }
-};
-
-
 // The following are in rhino/window.js
-// TODO: Envjs.unloadFrame
 // TODO: Envjs.proxy
 
 /**
@@ -1572,7 +1538,8 @@ Envjs.connection = function(xhr, responseHandler, data){
                 connection = url.openConnection();
                 connection.connect();
                 //try to add some canned headers that make sense
-                
+
+                /** TODO TO BE REMOVED **/
                 try{
                     xhr.responseHeaders["Content-Type"] =  Envjs.contentType(connection);
                     //xhr.responseHeaders['Last-Modified'] = connection.getLastModified();
@@ -1581,6 +1548,7 @@ Envjs.connection = function(xhr, responseHandler, data){
                 }catch(e){
                     console.log('failed to load response headers',e);
                 }
+                /** **/
                 
                 xhr.status = 200;
                 xhr.statusText = "";
@@ -1651,6 +1619,7 @@ Envjs.connection = function(xhr, responseHandler, data){
             xhr.status = connection.getResponseCode();
             xhr.statusText = connection.getResponseMessage() || "";
         }
+        xhr.responseType = connection.getContentType();
         xhr.onreadystatechange();
         
         contentEncoding = connection.getContentEncoding() || "utf-8";
@@ -1724,6 +1693,7 @@ Envjs.lang           = java.lang.System.getProperty("user.lang");
  * @param {Object} url
  */
 Envjs.loadFrame = function(frame, url){
+    Envjs.debug('envjs.loadFrame src: ', url);
     try {
         if(frame.contentWindow){
             //mark for garbage collection
@@ -8976,9 +8946,11 @@ __extend__(HTMLFrameElement.prototype, {
         this.setAttribute('scrolling', value);
     },
     get src(){
+        Envjs.debug("get HTMLElement.src");
         return this.getAttribute('src')||"";
     },
     set src(value){
+        Envjs.debug("set HTMLElement.src to %s", value);
         this.setAttribute('src', value);
     },
     toString: function(){
@@ -9131,6 +9103,23 @@ __extend__(HTMLIFrameElement.prototype, {
     set width(val) {
         return this.setAttribute("width",val);
     },
+    get src(){
+        Envjs.debug("get HTMLIFrameElement.src");
+        return this.getAttribute('src') || '';
+    },
+    set src(value){
+        Envjs.debug("set HTMLIFrameElement.src to %s", value);
+        this.setAttribute('src', value);
+        if (this.parentNode && value && value.length > 0){
+            Envjs.debug('loading frame %s', value);
+            Envjs.loadFrame(this, Envjs.uri(value));
+
+            Envjs.debug('event frame load %s', value);
+            event = this.ownerDocument.createEvent('HTMLEvents');
+            event.initEvent("load", false, false);
+            this.dispatchEvent( event, false );
+        }
+    },
     toString: function(){
         return '[object HTMLIFrameElement]';
     }
@@ -9177,9 +9166,11 @@ __extend__(HTMLImageElement.prototype, {
         this.setAttribute('name', value);
     },
     get src(){
+        Envjs.debug("get HTMLImageElement.src")
         return this.getAttribute('src') || '';
     },
     set src(value){
+        Envjs.debug("set HTMLImageElement.src to %s", value);
         this.setAttribute('src', value);
     },
     get width(){
@@ -9388,10 +9379,12 @@ __extend__(HTMLInputElement.prototype, {
     /**
      * Src is a URL string
      */
-    get src(){
+    get src() {
+        Envjs.debug("get HTMLInputElement.src");
         return this.getAttribute('src') || '';
     },
     set src(value){
+        Envjs.debug("set HTMLInputElement.src %s", value);
         // TODO: make absolute any relative URLS
         this.setAttribute('src', value);
     },
@@ -10169,9 +10162,11 @@ __extend__(HTMLScriptElement.prototype, {
         this.setAttribute('defer',value);
     },
     get src(){
+        Envjs.debug("get HTMLScriptElement.src");
         return this.getAttribute('src')||'';
     },
     set src(value){
+        Envjs.debug("set HTMLScriptElement.src to %s", value);
         this.setAttribute('src',value);
     },
     get type(){
@@ -10312,6 +10307,21 @@ HTMLSpanElement.prototype = new HTMLElement();
 __extend__(HTMLSpanElement.prototype, {
     toString: function(){
         return '[object HTMLSpanElement]';
+    }
+});
+
+/**
+ * HTML 5: 4.6.22 The pre element
+ * http://dev.w3.org/html5/spec/Overview.html#the-span-element
+ *
+ */
+HTMLPreElement = function(ownerDocument) {
+    HTMLElement.apply(this, arguments);
+};
+HTMLPreElement.prototype = new HTMLElement();
+__extend__(HTMLPreElement.prototype, {
+    toString: function(){
+        return '[object HTMLPreElement]';
     }
 });
 
@@ -12430,19 +12440,6 @@ var __elementPopped__ = function(ns, name, node){
                                     }catch(e){
                                         console.log('error loading html element %s %e', node, e.toString());
                                     }
-                                    /*try{
-                                        if (node.src && node.src.length > 0){
-                                            Envjs.debug("getting content document for (i)frame from %s", node.src);
-                                            Envjs.loadFrame(node, Envjs.uri(node.src));
-                                            event = node.ownerDocument.createEvent('HTMLEvents');
-                                            event.initEvent("load", false, false);
-                                            node.dispatchEvent( event, false );
-                                        }else{
-                                            Envjs.debug('src/parser/htmldocument: triggering frame load (no src)');
-                                        }
-                                    }catch(e){
-                                        console.log('error loading html element %s %s %s %e', ns, name, node, e.toString());
-                                    }*/
                                     break;
                                 case 'link':
                                     if (node.href) {
@@ -13166,13 +13163,21 @@ Location = function(url, doc, history) {
                 // TODO: is there a better way to test if a node is an HTMLDocument?
                 if ($document.toString() === '[object HTMLDocument]') {
                     //tell the xhr to not parse the document as XML
-                    Envjs.debug('loading html document');
+                    Envjs.debug('loading document');
                     xhr.onreadystatechange = function() {
                         Envjs.debug('readyState %s, status: %s', xhr.readyState, xhr.statusText);
                         if (xhr.readyState === 4) {
                             $document.baseURI = new Location(url, $document);
                             Envjs.debug('new document baseURI %s', $document.baseURI);
-                            __exchangeHTMLDocument__($document, xhr.responseText, url);
+                            Envjs.debug('new document type: %s', xhr.responseType);
+                            Envjs.debug('image: ' + xhr.responseType.length() + ' ' + xhr.responseType.startsWith('image/'));
+                            if (xhr.responseType == 'text/html') {
+                                __exchangeHTMLDocument__($document, xhr.responseText, url);
+                            } else if (xhr.responseType == 'text/plain') {
+                                Envjs.createSimpleDocument($document, xhr.responseText, url, xhr.responseType);
+                            } else if ((xhr.responseType.length() > 6) && (xhr.responseType.startsWith('image/'))) {
+                                Envjs.createSimpleDocument($document, url, url, xhr.responseType);
+                            }
                         }
                     };
                     xhr.send(null, false);
@@ -13210,6 +13215,7 @@ Location = function(url, doc, history) {
 
 var __exchangeHTMLDocument__ = function(doc, text, url) {
     var html, head, title, body, event, e;
+
     try {
         doc.baseURI = url;
         HTMLParser.parseDocument(text, doc);
@@ -13221,47 +13227,55 @@ var __exchangeHTMLDocument__ = function(doc, text, url) {
         } catch (e) {
             // swallow
         }
-        doc = new HTMLDocument(new DOMImplementation(), doc.ownerWindow);
-        html =    doc.createElement('html');
-        head =    doc.createElement('head');
-        title =   doc.createElement('title');
-        body =    doc.createElement('body');
-        title.appendChild(doc.createTextNode('Error'));
-        body.appendChild(doc.createTextNode('' + e));
-        head.appendChild(title);
-        html.appendChild(head);
-        html.appendChild(body);
-        doc.appendChild(html);
-        Envjs.debug('default error document \n %s', doc.documentElement.outerHTML);
-
-        //DOMContentLoaded event
-        if (doc.createEvent) {
-            event = doc.createEvent('Event');
-            event.initEvent('DOMContentLoaded', false, false);
-            doc.dispatchEvent( event, false );
-
-            event = doc.createEvent('HTMLEvents');
-            event.initEvent('load', false, false);
-            doc.dispatchEvent( event, false );
-        }
-
-        //finally fire the window.onload event
-        //TODO: this belongs in window.js which is a event
-        //      event handler for DOMContentLoaded on document
-
-        try {
-            if (doc === window.document) {
-                Envjs.debug('triggering window.load');
-                event = doc.createEvent('HTMLEvents');
-                event.initEvent('load', false, false);
-                window.dispatchEvent( event, false );
-            }
-        } catch (e) {
-            Envjs.debug('window load event failed %s', e);
-            //swallow
-        }
+        Envjs.createSimpleDoc(doc, '' + e, 'Error', 'text/plain');
     };  /* closes return {... */
 };
+
+Envjs.createSimpleDocument = function(doc, src, title, type) {
+    var html =    doc.createElement('html');
+    var head =    doc.createElement('head');
+    var body =    doc.createElement('body');
+    
+    //doc = new HTMLDocument(new DOMImplementation(), doc.ownerWindow);
+    
+    head.innerHTML = '<title>' + title + '</title>';
+    
+    if ((type.length() > 6) && type.startsWith('image/')) {
+        body.innerHTML = "<img src='" + src + "'>";
+    } else {
+        body.innerHTML = '<pre>' + src + '</pre>';
+    }
+    html.appendChild(head);
+    html.appendChild(body);
+    doc.appendChild(html);
+    
+    //DOMContentLoaded event
+    if (doc.createEvent) {
+        event = doc.createEvent('Event');
+        event.initEvent('DOMContentLoaded', false, false);
+        doc.dispatchEvent( event, false );
+
+        event = doc.createEvent('HTMLEvents');
+        event.initEvent('load', false, false);
+        doc.dispatchEvent( event, false );
+    }
+
+    //finally fire the window.onload event
+    //TODO: this belongs in window.js which is a event
+    //      event handler for DOMContentLoaded on document
+
+    try {
+        if (doc === window.document) {
+            Envjs.debug('triggering window.load');
+            event = doc.createEvent('HTMLEvents');
+            event.initEvent('load', false, false);
+            window.dispatchEvent( event, false );
+        }
+    } catch (e) {
+        Envjs.debug('window load event failed %s', e);
+        //swallow
+    }
+}
 
 /**
  *
@@ -13465,7 +13479,12 @@ __extend__(HTMLFrameElement.prototype,{
             this.contentWindow.document:
             null;
     },
+    get src(){
+        Envjs.debug("get HTMLFrameElement.src");
+        return this.getAttribute('src') || '';
+    },
     set src(value){
+        Envjs.debug("set HTMLFrameElement.src to %s", value);
         var event;
         this.setAttribute('src', value);
         if (this.parentNode && value && value.length > 0){
