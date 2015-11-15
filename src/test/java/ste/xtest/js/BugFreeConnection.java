@@ -43,7 +43,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
     public void retrieve_stubbed_html() throws Exception {
         StubURLBuilder b = new StubURLBuilder();
         URL url = b.set("http://a.url.com/home.html")
-                   .status(200).text("<html><head><title>hello world</title></head></html>").build();
+                   .html("<html><head><title>hello world</title></head></html>").build();
         
         NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");
         HashMap map = (HashMap)o.unwrap();
@@ -52,10 +52,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
         //
         // let's just trigger the process for now...
         //
-        exec(
-            "Envjs.DEBUG = true;" +
-            "window.location='http://a.url.com/home.html';\n"
-        );
+        exec("window.location='http://a.url.com/home.html';\n");
         
         then(exec("document.title;")).isEqualTo("hello world");
     }
@@ -63,10 +60,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
     @Test
     public void retrieve_file_url() throws Exception {
         File file = new File("src/test/resources/html/documentlocation.html");
-        exec(
-            "Envjs.DEBUG = true;" +
-            "window.location='file://" + file.getAbsolutePath() +"';"
-        );
+        exec("window.location='file://" + file.getAbsolutePath() +"';");
         
         then(exec("document.title;")).isEqualTo("TODO supply a title");
     }
@@ -80,10 +74,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
         HashMap map = (HashMap)o.unwrap();
         map.put(url.toExternalForm(), url);
         
-        exec(
-            "Envjs.DEBUG = true;" +
-            "window.location='http://a.url.com/home.html';\n"
-        );
+        exec("window.location='http://a.url.com/home.html';\n");
         
         then(exec("document.title;")).isEqualTo("Untitled Document");
     }
