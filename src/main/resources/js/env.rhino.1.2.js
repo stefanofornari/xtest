@@ -7818,6 +7818,7 @@ __extend__(HTMLElement.prototype, {
      */
 
     setAttribute: function(name, value) {
+        Envjs.debug("HTMLElement.setAttribute('" + name + "', '" + value + "')");
         var result = __DOMElement__.prototype.setAttribute.apply(this, arguments);
         __addNamedMap__(this.ownerDocument, this);
         var tagname = this.tagName;
@@ -7827,6 +7828,7 @@ __extend__(HTMLElement.prototype, {
         }
     },
     setAttributeNS: function(namespaceURI, name, value) {
+        Envjs.debug("HTMLElement.setAttributeNS('" + name + "', '" + value + "')");
         var result = __DOMElement__.prototype.setAttributeNS.apply(this, arguments);
         __addNamedMap__(this.ownerDocument, this);
         var tagname = this.tagName;
@@ -7838,6 +7840,7 @@ __extend__(HTMLElement.prototype, {
         return result;
     },
     setAttributeNode: function(newnode) {
+        Envjs.debug("HTMLElement.setAttributeNode('" + name + "', '" + value + "')");
         var result = __DOMElement__.prototype.setAttributeNode.apply(this, arguments);
         __addNamedMap__(this.ownerDocument, this);
         var tagname = this.tagName;
@@ -7848,6 +7851,7 @@ __extend__(HTMLElement.prototype, {
         return result;
     },
     setAttributeNodeNS: function(newnode) {
+        Envjs.debug("HTMLElement.setAttributeNodeNS('" + name + "', '" + value + "')");
         var result = __DOMElement__.prototype.setAttributeNodeNS.apply(this, arguments);
         __addNamedMap__(this.ownerDocument, this);
         var tagname = this.tagName;
@@ -8946,11 +8950,9 @@ __extend__(HTMLFrameElement.prototype, {
         this.setAttribute('scrolling', value);
     },
     get src(){
-        Envjs.debug("get HTMLElement.src");
         return this.getAttribute('src')||"";
     },
     set src(value){
-        Envjs.debug("set HTMLElement.src to %s", value);
         this.setAttribute('src', value);
     },
     toString: function(){
@@ -9104,24 +9106,26 @@ __extend__(HTMLIFrameElement.prototype, {
         return this.setAttribute("width",val);
     },
     get src(){
-        Envjs.debug("get HTMLIFrameElement.src");
         return this.getAttribute('src') || '';
     },
     set src(value){
-        Envjs.debug("set HTMLIFrameElement.src to %s", value);
         this.setAttribute('src', value);
-        if (this.parentNode && value && value.length > 0){
-            Envjs.debug('loading frame %s', value);
-            Envjs.loadFrame(this, Envjs.uri(value));
-
-            Envjs.debug('event frame load %s', value);
-            event = this.ownerDocument.createEvent('HTMLEvents');
-            event.initEvent("load", false, false);
-            this.dispatchEvent( event, false );
-        }
     },
     toString: function(){
         return '[object HTMLIFrameElement]';
+    }
+});
+
+HTMLElement.registerSetAttribute('IFRAME', 'src', function(node, value) {
+    Envjs.debug('setting IFRAME src to %s', value);
+    if (value && value.length > 0) {
+        Envjs.debug('loading frame %s', value);
+        Envjs.loadFrame(node, Envjs.uri(value));
+
+        Envjs.debug('event frame load %s', value);
+        event = node.ownerDocument.createEvent('HTMLEvents');
+        event.initEvent("load", false, false);
+        node.dispatchEvent( event, false );
     }
 });
 
@@ -9166,11 +9170,9 @@ __extend__(HTMLImageElement.prototype, {
         this.setAttribute('name', value);
     },
     get src(){
-        Envjs.debug("get HTMLImageElement.src")
         return this.getAttribute('src') || '';
     },
     set src(value){
-        Envjs.debug("set HTMLImageElement.src to %s", value);
         this.setAttribute('src', value);
     },
     get width(){
@@ -9290,6 +9292,7 @@ HTMLElement.registerSetAttribute('IMG', 'src', function(node, value) {
         __loadImage__(node, value);
     }
 });
+
 /**
  * HTMLInputElement
  *
@@ -9380,11 +9383,9 @@ __extend__(HTMLInputElement.prototype, {
      * Src is a URL string
      */
     get src() {
-        Envjs.debug("get HTMLInputElement.src");
         return this.getAttribute('src') || '';
     },
     set src(value){
-        Envjs.debug("set HTMLInputElement.src %s", value);
         // TODO: make absolute any relative URLS
         this.setAttribute('src', value);
     },
@@ -10162,11 +10163,9 @@ __extend__(HTMLScriptElement.prototype, {
         this.setAttribute('defer',value);
     },
     get src(){
-        Envjs.debug("get HTMLScriptElement.src");
         return this.getAttribute('src')||'';
     },
     set src(value){
-        Envjs.debug("set HTMLScriptElement.src to %s", value);
         this.setAttribute('src',value);
     },
     get type(){
@@ -13170,7 +13169,6 @@ Location = function(url, doc, history) {
                             $document.baseURI = new Location(url, $document);
                             Envjs.debug('new document baseURI %s', $document.baseURI);
                             Envjs.debug('new document type: %s', xhr.responseType);
-                            Envjs.debug('image: ' + xhr.responseType.length() + ' ' + xhr.responseType.startsWith('image/'));
                             if (xhr.responseType == 'text/html') {
                                 __exchangeHTMLDocument__($document, xhr.responseText, url);
                             } else if (xhr.responseType == 'text/plain') {
@@ -13480,11 +13478,9 @@ __extend__(HTMLFrameElement.prototype,{
             null;
     },
     get src(){
-        Envjs.debug("get HTMLFrameElement.src");
         return this.getAttribute('src') || '';
     },
     set src(value){
-        Envjs.debug("set HTMLFrameElement.src to %s", value);
         var event;
         this.setAttribute('src', value);
         if (this.parentNode && value && value.length > 0){

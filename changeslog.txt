@@ -1,3 +1,8 @@
+20151120
+- Envjs: improved iframe loading of the content when setting the attribute src
+         (as opposed to setting directly src).
+- released v1.11.1
+
 20151115
 - Envjs: added support for XMLHttpRequest.responseType
 - Envjs: implemented iframe loading of content, in particular special handling 

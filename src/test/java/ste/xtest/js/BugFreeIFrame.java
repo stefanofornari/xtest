@@ -70,7 +70,7 @@ public class BugFreeIFrame extends BugFreeJavaScript {
         b7.set("http://noserver.com/hello.html").html("<html><body>hello world!</body></html>");
         stubs.put(b7.getUrl().toExternalForm(), b7.build());
         
-        exec("Envjs.DEBUG=false;");
+        exec("Envjs.DEBUG=true;");
         exec("window.location='src/test/resources/html/iframe.html';");
     }
     
@@ -81,14 +81,27 @@ public class BugFreeIFrame extends BugFreeJavaScript {
     }
     
     @Test
-    public void changing_src_sets_the_attribute() throws Exception {
+    public void changing_src_sets_source() throws Exception {
         exec("document.getElementById('i1').src = 'innerframe3.html';");
+        then(exec("document.getElementById('i1').src;")).isEqualTo("innerframe3.html");
+    }
+    
+    @Test
+    public void changing_attribute_sets_srouce() throws Exception {
+        exec("$('#i1').attr('src', 'innerframe3.html');");
         then(exec("document.getElementById('i1').src;")).isEqualTo("innerframe3.html");
     }
     
     @Test
     public void changing_src_loads_the_document() throws Exception {
         exec("document.getElementById('i1').src = 'http://noserver.com/hello.html';");
+        then(exec("document.getElementById('i1').contentDocument.innerHTML;")).isEqualTo("<html><head/><body>hello world!</body></html>");
+    }
+    
+    @Test
+    public void changing_src_attribute_loads_the_document() throws Exception {
+        exec("console.log('>>' + $('#i1')[0]);");
+        exec("$('#i1').attr('src', 'http://noserver.com/hello.html');");
         then(exec("document.getElementById('i1').contentDocument.innerHTML;")).isEqualTo("<html><head/><body>hello world!</body></html>");
     }
     
