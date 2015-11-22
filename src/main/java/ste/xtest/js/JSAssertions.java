@@ -22,7 +22,6 @@
 package ste.xtest.js;
 
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Assertions;
 import org.mozilla.javascript.NativeObject;
 
 /**
