@@ -1686,6 +1686,41 @@ Envjs.os_arch        = java.lang.System.getProperty("os.arch");
 Envjs.os_version     = java.lang.System.getProperty("os.version");
 Envjs.lang           = java.lang.System.getProperty("user.lang");
 
+Envjs.screen = {
+    $width: 800,
+    $height: 600,
+    
+    get width() {
+        return this.$width;
+    },
+    
+    set width(w) {
+        if (w < 0) {
+            throw java.lang.IllegalArgumentException("screen width can not be < 0");
+        }
+        this.$width = w;
+    },
+    
+    get height() {
+        return this.$height;
+    },
+    
+    set height(h) {
+        if (h < 0) {
+            throw java.lang.IllegalArgumentException("screen height can not be < 0");
+        }
+        this.$height = h;
+    },
+    
+    get availWidth() {
+        return this.$width;
+    },
+    
+    get availHeight() {
+        return this.$height-32; // taskbar of 32 pixel
+    }
+};
+
 
 /**
  *
@@ -13629,44 +13664,14 @@ Navigator = function(){
 
 Screen = function(__window__){
 
-    var $availHeight  = 600,
-        $availWidth   = 800,
-        $colorDepth   = 16,
+    var $colorDepth   = 16,
         $pixelDepth   = 24,
-        $height       = 600,
-        $width        = 800,
         $top          = 0,
         $left         = 0,
         $availTop     = 0,
         $availLeft    = 0;
 
-    __extend__( __window__, {
-        moveBy : function(dx,dy){
-            //TODO - modify $locals to reflect change
-        },
-        moveTo : function(x,y) {
-            //TODO - modify $locals to reflect change
-        },
-        /*print : function(){
-            //TODO - good global to modify to ensure print is not misused
-        };*/
-        resizeBy : function(dw, dh){
-            __window__resizeTo($width + dw, $height + dh);
-        },
-        resizeTo : function(width, height){
-            $width = (width <= $availWidth) ? width : $availWidth;
-            $height = (height <= $availHeight) ? height : $availHeight;
-        },
-        scroll : function(x,y){
-            //TODO - modify $locals to reflect change
-        },
-        scrollBy : function(dx, dy){
-            //TODO - modify $locals to reflect change
-        },
-        scrollTo : function(x,y){
-            //TODO - modify $locals to reflect change
-        }
-    });
+    __extend__( __window__, {});
 
     return {
         get top(){
@@ -13682,10 +13687,10 @@ Screen = function(__window__){
             return $availLeft;
         },
         get availHeight(){
-            return $availHeight;
+            return Envjs.screen.availHeight;
         },
         get availWidth(){
-            return $availWidth;
+            return Envjs.screen.availWidth;
         },
         get colorDepth(){
             return $colorDepth;
@@ -13694,10 +13699,10 @@ Screen = function(__window__){
             return $pixelDepth;
         },
         get height(){
-            return $height;
+            return Envjs.screen.height;
         },
         get width(){
-            return $width;
+            return Envjs.screen.width;
         }
     };
 };
@@ -13962,17 +13967,6 @@ Window = function(scope, parent, opener){
     // only for top-level window objects.
     var $opener = opener?opener:null;
 
-    // read-only properties that specify the height and width, in pixels
-    var $innerHeight = 600, $innerWidth = 800;
-
-    // Read-only properties that specify the total height and width, in pixels,
-    // of the browser window. These dimensions include the height and width of
-    // the menu bar, toolbars, scrollbars, window borders and so on.  These
-    // properties are not supported by IE and IE offers no alternative
-    // properties;
-    var $outerHeight = $innerHeight,
-        $outerWidth = $innerWidth;
-
     // Read-only properties that specify the number of pixels that the current
     // document has been scrolled to the right and down.  These are not
     // supported by IE.
@@ -13992,6 +13986,12 @@ Window = function(scope, parent, opener){
 
     // a read/write string that specifies the current status line.
     var $status = '';
+    
+    //
+    // default window size: 800x600
+    //
+    var $width = 800;
+    var $height = 600;
 
     __extend__(scope, EventTarget.prototype);
 
@@ -14027,12 +14027,6 @@ Window = function(scope, parent, opener){
         get history(){
             return $history;
         },
-        get innerHeight(){
-            return $innerHeight;
-        },
-        get innerWidth(){
-            return $innerWidth;
-        },
         get clientHeight(){
             return $innerHeight;
         },
@@ -14063,12 +14057,6 @@ Window = function(scope, parent, opener){
         },
         get opener(){
             return $opener;
-        },
-        get outerHeight(){
-            return $outerHeight;
-        },
-        get outerWidth(){
-            return $outerWidth;
         },
         get pageXOffest(){
             return $pageXOffset;
@@ -14113,6 +14101,45 @@ Window = function(scope, parent, opener){
         get window(){
             return this;
         },
+        get outerWidth() {
+            return $width;
+        },
+        get innerWidth() {
+            return this.outerWidth;
+        },
+        get outerHeight() {
+            return $height;
+        },
+        get innerHeight() {
+            return this.outerHeight-50; // toolbars/scrollbars height: 50px
+        },
+        
+        moveBy : function(dx,dy){
+            //TODO - modify $locals to reflect change
+        },
+        moveTo : function(x,y) {
+            //TODO - modify $locals to reflect change
+        },
+        /*print : function(){
+            //TODO - good global to modify to ensure print is not misused
+        };*/
+        resizeBy : function(dw, dh){
+            this.resizeTo($width + dw, $height + dh);
+        },
+        resizeTo : function(width, height){
+            $width = width;
+            $height = height;
+        },
+        scroll : function(x,y){
+            //TODO - modify $locals to reflect change
+        },
+        scrollBy : function(dx, dy){
+            //TODO - modify $locals to reflect change
+        },
+        scrollTo : function(x,y){
+            //TODO - modify $locals to reflect change
+        },
+        
         toString : function(){
             return '[Window]';
         },
