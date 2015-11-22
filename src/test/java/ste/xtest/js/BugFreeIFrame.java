@@ -70,7 +70,7 @@ public class BugFreeIFrame extends BugFreeJavaScript {
         b7.set("http://noserver.com/hello.html").html("<html><body>hello world!</body></html>");
         stubs.put(b7.getUrl().toExternalForm(), b7.build());
         
-        exec("Envjs.DEBUG=true;");
+        exec("Envjs.DEBUG=false;");
         exec("window.location='src/test/resources/html/iframe.html';");
     }
     
