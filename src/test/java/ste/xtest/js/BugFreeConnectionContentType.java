@@ -44,7 +44,7 @@ public class BugFreeConnectionContentType {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
         
         StubURLBuilder b = new StubURLBuilder();
-        URL url = b.set("http://a.url.com/home.html").status(200).type(type).build();
+        URL url = b.set("http://a.url.com/home").status(200).type(type).build();
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         test.set("c", connection);
         
