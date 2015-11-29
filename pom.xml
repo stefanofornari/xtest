@@ -19,7 +19,7 @@
 
     <groupId>ste.test</groupId>
     <artifactId>xtest</artifactId>
-    <version>1.12.1-SNAPSHOT</version>
+    <version>1.12.1</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
@@ -172,7 +172,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/xtest.git</connection>
         <url>https://github.com/stefanofornari/xtest</url>
-        <tag>HEAD</tag>
+        <tag>xtest-1.12.1</tag>
     </scm>
 
     <distributionManagement>
