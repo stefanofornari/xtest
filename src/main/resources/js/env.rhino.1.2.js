@@ -1554,11 +1554,17 @@ Envjs.connection = function(xhr, responseHandler, data){
                 xhr.statusText = "";
             }
         }catch(e){
-            console.log('failed to open file %s %s', url, e);
+            console.log('failed to open file %s %s', url, e.message);
             connection = null;
             xhr.readyState = 4;
             xhr.statusText = "Local File Protocol Error";
-            xhr.responseText = "<html><head/><body><p>"+ e+ "</p></body></html>";
+            if (e.message.indexOf("java.io.FileNotFoundException") >= 0) {
+                xhr.status = 404;
+                xhr.responseText = "<html><head/><body><p>" + url + " not found</p></body></html>";
+            } else {
+                xhr.status = 500;
+                xhr.responseText = "<html><head/><body><p>"+ e + "</p></body></html>";
+            }
         }
     } else {
         connection = url.openConnection();
@@ -13199,16 +13205,17 @@ Location = function(url, doc, history) {
                     //tell the xhr to not parse the document as XML
                     Envjs.debug('loading document');
                     xhr.onreadystatechange = function() {
-                        Envjs.debug('readyState %s, status: %s', xhr.readyState, xhr.statusText);
+                        Envjs.debug('readyState %s, status: %s - %s', xhr.readyState, xhr.status, xhr.statusText);
                         if (xhr.readyState === 4) {
                             $document.baseURI = new Location(url, $document);
                             Envjs.debug('new document baseURI %s', $document.baseURI);
                             Envjs.debug('new document type: %s', xhr.responseType);
-                            if (xhr.responseType == 'text/html') {
+                            if ((xhr.status != 200) || (xhr.responseType == 'text/html')) {
+                            //if (xhr.responseType == 'text/html') {
                                 __exchangeHTMLDocument__($document, xhr.responseText, url);
                             } else if (xhr.responseType == 'text/plain') {
                                 Envjs.createSimpleDocument($document, xhr.responseText, url, xhr.responseType);
-                            } else if ((xhr.responseType.length() > 6) && (xhr.responseType.startsWith('image/'))) {
+                            } else if (xhr.responseType.startsWith('image/')) {
                                 Envjs.createSimpleDocument($document, url, url, xhr.responseType);
                             }
                         }

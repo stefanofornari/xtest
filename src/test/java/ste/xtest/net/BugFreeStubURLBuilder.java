@@ -220,7 +220,7 @@ public class BugFreeStubURLBuilder {
         then(b.file(TEST_FILE1)).isSameAs(b);
         then(String.valueOf(b.getContent())).isEqualTo(TEST_FILE1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
-        then(b.getHeaders().get("content-length").get(0)).isEqualTo("269");
+        then(b.getHeaders().get("content-length").get(0)).isEqualTo("142");
         
         
         then(b.file(TEST_FILE2)).isSameAs(b);

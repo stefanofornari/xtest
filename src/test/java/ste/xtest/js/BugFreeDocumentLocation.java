@@ -22,6 +22,8 @@
 package ste.xtest.js;
 
 import java.io.File;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 
@@ -30,42 +32,65 @@ import org.junit.Test;
  *
  * @author ste
  */
-public class BugFreeDocumentLocation {
+public class BugFreeDocumentLocation extends BugFreeJavaScript {
+    
+    public BugFreeDocumentLocation() throws Exception {
+        
+    }
 
     @Test
-    public void locationWithQuery() throws Throwable {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-        
+    public void location_with_query() throws Throwable {
         final String TEST_HREF = "src/test/resources/html/documentlocation.html";
         final String TEST_SEARCH = "?p1=v1&p2=v2";
         final String TEST_URL = TEST_HREF + TEST_SEARCH;
 
-        test.exec(
+        exec(
             "window.location='" + TEST_URL + "';"
         );
 
-        then(test.exec("document.URL.href;"))
+        then(exec("document.URL.href;"))
             .isEqualTo(new File(TEST_HREF).toURI().toString().replace("file:/", "file:///")+TEST_SEARCH);
-        then(test.exec("document.URL.search;"))
+        then(exec("document.URL.search;"))
             .isEqualTo(TEST_SEARCH);
-        then(test.exec("document.URL.pathname;"))
+        then(exec("document.URL.pathname;"))
             .isEqualTo(new File(TEST_HREF).getAbsolutePath());
     }
     
     @Test
-    public void locationWithoutQuery() throws Throwable {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-        
+    public void location_without_query() throws Throwable {
         final String TEST_URL = "src/test/resources/html/documentlocation.html";
-        test.exec(
+        exec(
             "window.location='" + TEST_URL + "';"
         );
 
-        then(test.exec("document.URL.href;"))
+        then(exec("document.URL.href;"))
             .isEqualTo(new File(TEST_URL).toURI().toString().replace("file:/", "file:///"));
-        then(test.exec("document.URL.search;"))
+        then(exec("document.URL.search;"))
             .isEqualTo("");
-        then(test.exec("document.URL.pathname;"))
+        then(exec("document.URL.pathname;"))
             .isEqualTo(new File(TEST_URL).getAbsolutePath());
+    }
+    
+    @Test
+    public void load_url() throws Throwable {
+        exec("window.location='src/test/resources/html/documentlocation.html';");
+        then(StringUtils.replaceChars((String)exec("document.innerHTML;"), "\r\n\t ", ""))
+           .isEqualTo(
+                StringUtils.replaceChars(
+                    IOUtils.toString(new File("src/test/resources/html/documentlocation.html").toURI()),
+                    "\n\r\t ", ""
+                )
+            );
+    }
+    
+    @Test
+    public void not_found_url() throws Throwable {
+        File f = new File("src/test/resources/html/notfound.html");
+        exec(String.format("window.location='%s';", f.toString()));
+        then(exec("document.innerHTML;"))
+            .isEqualTo(String.format(
+                "<html><head/><body><p>%s not found</p></body></html>",
+                f.toURI().toString()
+            ));
     }
 }

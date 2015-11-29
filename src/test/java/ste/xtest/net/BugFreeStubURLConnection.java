@@ -156,7 +156,7 @@ public class BugFreeStubURLConnection {
         then(IOUtils.toString(C.getInputStream()))
             .isEqualTo(IOUtils.toString(new File(TEST_FILE1).getAbsoluteFile().toURI()));
         then(C.getContentType()).isEqualTo("text/html");
-        then(C.getContentLength()).isEqualTo(269);
+        then(C.getContentLength()).isEqualTo(142);
         
         B.file(TEST_FILE2);
         then(IOUtils.toString(C.getInputStream()))
