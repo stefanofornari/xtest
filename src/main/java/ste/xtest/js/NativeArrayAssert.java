@@ -22,30 +22,40 @@
 package ste.xtest.js;
 
 import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.internal.ObjectArrays;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeObject;
 
 /**
  *
  * @author ste
  */
-public class NativeObjectAssert extends AbstractAssert<NativeObjectAssert, NativeObject> {
+public class NativeArrayAssert extends AbstractAssert<NativeArrayAssert, NativeArray> {
     
-    private final String property;
+    private ObjectArrays arrays = ObjectArrays.instance();
+    private NativeObject[] javaArray = null;
     
-    protected NativeObjectAssert(final NativeObject o) {
-        super(o, NativeObjectAssert.class);
-        property = null;
+    protected NativeArrayAssert(final NativeArray a) {
+        super(a, NativeArrayAssert.class);
+        
+        javaArray = toJavaArray(actual);
     }
     
-    protected NativeObjectAssert(final NativeObject o, final String p) {
-        super(o, NativeObjectAssert.class);
-        property = p;
+    public NativeArrayAssert isEmpty() {
+        arrays.assertEmpty(info, javaArray); return myself;
     }
-
-    /**
-     * @return the selected property (null if no property selected)
-     */
-    public String getSelectedProperty() {
-        return property;
+    
+    public NativeArrayAssert isNotEmpty() {
+        arrays.assertNotEmpty(info, javaArray); return myself;
+    }
+    
+    public NativeArrayAssert hasSize(int expected) {
+        arrays.assertHasSize(info, javaArray, expected); return myself;
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private NativeObject[] toJavaArray(NativeArray actual) {
+        return new NativeObject[(int)actual.getLength()];
     }
 }

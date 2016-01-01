@@ -24,6 +24,7 @@ package ste.xtest.js;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeObject;
 
 /**
@@ -50,14 +51,26 @@ public class BugFreeJSAssertions {
             } catch (IllegalArgumentException x) {
                 then(x).hasMessage("p can not be blank");
             }
-        }
-        
+        }   
+    }
+    
+    @Test
+    public void get_js_assert_with_NativeArray() {
+        then(JSAssertions.then(new NativeArray(0))).isInstanceOf(NativeArrayAssert.class);
+        then(JSAssertions.then(new SubNativeArray())).isInstanceOf(NativeArrayAssert.class);
+        NativeArrayAssert naa = JSAssertions.then(new NativeArray(0));
     }
     
     // --------------------------------------------------------- SubNativeObject
     
     private class SubNativeObject extends NativeObject {
         public SubNativeObject() {
+        }
+    }
+    
+    private class SubNativeArray extends NativeArray {
+        public SubNativeArray() {
+            super(0);
         }
     }
 }

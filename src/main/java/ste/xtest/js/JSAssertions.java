@@ -22,6 +22,7 @@
 package ste.xtest.js;
 
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeObject;
 
 /**
@@ -65,5 +66,18 @@ public class JSAssertions {
             throw new IllegalArgumentException("p can not be blank");
         }
         return new NativeObjectAssert(o, p);
+    }
+    
+    /** 
+     * Returns a new <code>{@link JSAssertions}</code> with the given 
+     * <code>JS NativeArray</code>.
+     * 
+     * @param a the object to assert
+     * 
+     * @return a new <code>{@link JSAssertions}</code> with the given 
+     *         <code>JS NativeArray</code>.
+     */
+    public static NativeArrayAssert then(final NativeArray a) {
+        return new NativeArrayAssert(a);
     }
 }

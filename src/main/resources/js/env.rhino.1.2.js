@@ -5683,6 +5683,21 @@ EventTarget.prototype.dispatchEvent = function(event, bubbles){
     __dispatchEvent__(this, event, bubbles);
 };
 
+//
+// getEventListeners is not defined by the standard and not implemented directly
+//  in real browsers. however, it is pretty useful to require an event handler 
+//  is really attached to an element.
+//
+EventTarget.prototype.getEventListeners = function(type){
+    if ($events[this.uuid]) {
+        if ($events[this.uuid][type]) {
+            return $events[this.uuid][type]['BUBBLING'];
+        }
+    }
+    
+    return [];
+};
+
 __extend__(Node.prototype, EventTarget.prototype);
 
 
@@ -6173,6 +6188,12 @@ MutationEvent.REMOVAL = 2;
 CustomEvent = function(type, options) {
     this._type = type;
     this._detail = "";
+    
+    if (options) {
+        if (options.detail) {
+            this._detail = options.detail;
+        }
+    }
 };
 
 CustomEvent.prototype = new Event();
@@ -6182,7 +6203,7 @@ __extend__(Event.prototype,{
     },
     initCustomEvent: function(type, bubbles, cancelable, windowObject, detail){
         this.initEvent(type, bubbles, cancelable);
-        this._detail = "";
+        this._detail = detail;
     }
 });
 
