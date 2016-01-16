@@ -13914,7 +13914,30 @@ base64.encode = function(s) {
 //These descriptions of window properties are taken loosely David Flanagan's
 //'JavaScript - The Definitive Guide' (O'Reilly)
 
-Envjs.windows = {};
+Envjs.windows = {
+    get: function(name) {
+        for(p in this) {
+            if(this[p].name === name) {
+                return this[p];
+            }
+        };
+        
+        return null;
+    },
+    
+    getAll: function() {
+        var ret = [];
+        
+        for(p in this) {
+            if(this[p].document) {
+                ret.push(p);
+            }
+        };
+        
+        return ret;
+    }
+};
+
 
 var __top__ = function(_scope){
     var _parent = _scope.parent;
@@ -13937,8 +13960,6 @@ var __top__ = function(_scope){
 Window = function(scope, parent, opener){
 
     // the window property is identical to the self property and to this obj
-    //var proxy = new Envjs.proxy(scope, parent);
-    //scope.__proxy__ = proxy;
     scope.__defineGetter__('window', function(){
         return scope;
     });
@@ -14199,13 +14220,11 @@ Window = function(scope, parent, opener){
             if (features) {
                 Envjs.debug("features argument not yet implemented");
             }
-            var _window = Envjs.proxy({}),
-                open;
-            if(replace && name){
-                for(open in Envjs.windows){
-                    if(open.name === name) {
-                        _window = open;
-                    }
+            var _window = Envjs.proxy({});
+            if(name){
+                var old = Envjs.windows.get(name);
+                if (old != null) {
+                    _window = old;
                 }
             }
             new Window(_window, _window, this);

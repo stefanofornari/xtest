@@ -1,3 +1,8 @@
+20160116
+- improvements to Envjs.windows for better bug free code
+- fixed window.open() issue when opening windows with the same name
+- released v1.12.3
+
 20160101
 - added .getEventListeners() for better BugFree code
 - fixed CustomEvent implementation
