@@ -205,6 +205,30 @@ public class BugFreeStubURLConnection {
     }
     
     @Test
+    public void get_header_with_single_value() throws Exception {
+        B.text(""); // sets Content-Type
+        then(C.getHeaderField("content-type")).isEqualTo("text/plain");
+        
+        B.header("name", "value");
+        then(C.getHeaderField("name")).isEqualTo("value");
+    }
+    
+    /**
+     * When an header has multiple values, <code>getHeaderField()</code> shall
+     * return the last value.
+     * 
+     * @throws Exception 
+     */
+    @Test
+    public void get_header_with_multiple_values() throws Exception {
+        B.header("name1", "value1", "value2", "value3");
+        then(C.getHeaderField("name1")).isEqualTo("value3");
+        
+        B.header("name2", "valueA", "valueB");
+        then(C.getHeaderField("name2")).isEqualTo("valueB");
+    }
+    
+    @Test
     public void null_output_stream_by_default() throws Exception {
         then(C.getOutputStream()).isInstanceOf(NullOutputStream.class);
     }

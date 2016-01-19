@@ -108,7 +108,7 @@ class StubURLConnection extends HttpURLConnection {
         List<String> values = builder.getHeaders().get(key);
         
         if ((values != null) && (values.size()>0)) {
-            return values.get(0);
+            return values.get(values.size()-1);
         }
         
         return null;
