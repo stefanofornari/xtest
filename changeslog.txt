@@ -1,3 +1,9 @@
+2016019
+- fixed and improved cookie handling and document.cookie
+- fixed StubURLConnection.getHeaderField() not returning the last value
+- in StubURLBuilder, header() now accepts multiple values for an header
+- released v1.12.3
+
 20160116
 - improvements to Envjs.windows for better bug free code
 - fixed window.open() issue when opening windows with the same name

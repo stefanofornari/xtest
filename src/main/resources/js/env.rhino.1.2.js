@@ -135,6 +135,17 @@ Envjs.debug = function(message){
 };
 
 /**
+ * Implements str.trim()
+ */
+Envjs.trim = function(s) {
+    //
+    // make sure it is a valid string...
+    //
+    var ret = "" + s;
+    return ret.replace(/^\s+|\s+$/gm,"");
+}
+
+/**
  * Writes error info out to console
  * @param {Error} e
  */
@@ -384,12 +395,16 @@ Envjs.setCookie = function(url, cookie){
         properties = {},
         attr,
         attrs;
-    url = Envjs.urlsplit(url);
-    if(cookie)
-        attrs = cookie.split(";");
-    else
-        return;
 
+    console.log("setCookie %s for %s", cookie, url);
+
+    url = Envjs.urlsplit(url);
+    if(cookie) {
+        attrs = cookie.split(";");
+    } else {
+        return;
+    }
+    
     //for now the strategy is to simply create a json object
     //and post it to a file in the .cookies.js file.  I hate parsing
     //dates so I decided not to implement support for 'expires'
@@ -399,10 +414,13 @@ Envjs.setCookie = function(url, cookie){
     cookie['domain'] = url.hostname;
     cookie['path'] = url.path||'/';
     for(i=0;i<attrs.length;i++){
-        index = attrs[i].indexOf("=");
+        var index = attrs[i].indexOf("=");
         if(index > -1){
-            name = __trim__(attrs[i].slice(0,index));
-            value = __trim__(attrs[i].slice(index+1));
+            name = Envjs.trim(attrs[i].substring(0,index));
+            value = Envjs.trim(attrs[i].substring(index+1));
+            
+            Envjs.debug("cookie: {name: %s, value: %s}", name, value);
+
             if(name=='max-age'){
                 //we'll have to when to check these
                 //and garbage collect expired cookies
@@ -500,7 +518,7 @@ function __cookieString__(cookies, url) {
                     for (name in cookies[domain][path]) {
                         Envjs.debug('cookie domain path name %s', name);
                         cookieString +=
-                            ((i++ > 0)?'; ':'') +
+                            ((i++ > 0)?';':'') +
                             name + "=" +
                             cookies[domain][path][name].value;
                     }
@@ -520,17 +538,26 @@ function __mergeCookie__(target, cookie, properties){
         target[cookie.domain][cookie.path] = {};
     }
     for(name in properties){
-        now = new Date().getTime();
+        var now = new Date().getTime();
+        var maxAge = (cookie['max-age'] || 0);
+        var secure = (cookie.secure) ? true: false;
+        
         target[cookie.domain][cookie.path][name] = {
-            "value":properties[name],
-            "secure":cookie.secure,
-            "max-age":cookie['max-age'],
-            "date-created":now,
-            "expiration":(cookie['max-age']===0) ?
-                0 :
-                now + cookie['max-age']
+            "value": properties[name],
+            "secure": secure,
+            "max-age": maxAge,
+            "date-created": now,
+            "expiration": now + maxAge
         };
-        Envjs.debug('cookie is %o',target[cookie.domain][cookie.path][name]);
+        Envjs.debug(
+            "cookie is %s/%s/%s=[%s,%d,%s,%d,%s]",
+            cookie.domain, cookie.path, name,
+            target[cookie.domain][cookie.path][name].value,
+            target[cookie.domain][cookie.path][name]["max-age"],
+            target[cookie.domain][cookie.path][name]["date-created"] + "",
+            target[cookie.domain][cookie.path][name].expiration,
+            target[cookie.domain][cookie.path][name].secure + ""
+        );
     }
 };
 
@@ -1611,11 +1638,17 @@ Envjs.connection = function(xhr, responseHandler, data){
             var headers = connection.getHeaderFields();
             var names = headers.keySet().toArray();
             // Stick the response headers into responseHeaders
+            Envjs.debug("reading headers...");
             for (i=0; i<names.length; ++i) {
-                value = connection.getHeaderField(names[i]);
-                if (names[i])
-                    xhr.responseHeaders[names[i]] = value+'';
+                value = (headers.get(names[i]).size() == 1) 
+                      ? (headers.get(names[i]).get(0))
+                      : headers.get(names[i]).toArray();
+                if (names[i]) {
+                    xhr.responseHeaders[names[i].toLowerCase()] = value;
+                }
+                Envjs.debug("%d) %s: %s", i, names[i], value);
             }
+            Envjs.debug("reading headers done");
         }catch(e){
             console.log('failed to load response headers \n%s',e);
         }
@@ -6653,19 +6686,6 @@ var HTMLDocument,
 (function(){
 
 
-
-
-
-/**
- * @author ariel flesler
- *    http://flesler.blogspot.com/2008/11/fast-trim-function-for-javascript.html
- * @param {Object} str
- */
-function __trim__( str ){
-    return (str || "").replace( /^\s+|\s+$/g, "" );
-}
-
-
 /**
  * @author john resig
  */
@@ -7720,7 +7740,7 @@ __extend__(HTMLElement.prototype, {
         return this.getAttribute("class")||'';
     },
     set className(value) {
-        return this.setAttribute("class",__trim__(value));
+        return this.setAttribute("class", Envjs.trim(value));
     },
     get dir() {
         return this.getAttribute("dir")||"ltr";
@@ -11080,15 +11100,6 @@ function __setArray__( target, array ) {
     Array.prototype.push.apply( target, array );
 }
 
-/**
- * @author ariel flesler
- *    http://flesler.blogspot.com/2008/11/fast-trim-function-for-javascript.html
- * @param {Object} str
- */
-function __trim__( str ){
-    return (str || "").replace( /^\s+|\s+$/g, "" );
-}
-
 /*
  * Interface DocumentStyle (introduced in DOM Level 2)
  * http://www.w3.org/TR/2000/REC-DOM-Level-2-Style-20001113/stylesheets.html#StyleSheets-StyleSheet-DocumentStyle
@@ -11521,7 +11532,7 @@ CSSStyleSheet = function(options){
         if (!text) {
             text = '';
         }
-        text = __trim__(text.replace(/\/\*(\r|\n|.)*\*\//g,""));
+        text = Envjs.trim(text.replace(/\/\*(\r|\n|.)*\*\//g,""));
         // TODO: @import
         var blocks = text.split("}");
         blocks.pop();
@@ -11533,7 +11544,7 @@ CSSStyleSheet = function(options){
                 selectors = definition_block[0].split(",");
                 for (j=0; j<selectors.length; j++) {
                     cssRules.push(new CSSRule({
-                        selectorText : __trim__(selectors[j]),
+                        selectorText : Envjs.trim(selectors[j]),
                         cssText      : definition_block[1]
                     }));
                 }
@@ -12652,16 +12663,6 @@ function __setArray__( target, array ) {
 }
 
 /**
- * @author ariel flesler
- *    http://flesler.blogspot.com/2008/11/fast-trim-function-for-javascript.html
- * @param {Object} str
- */
-function __trim__( str ){
-    return (str || "").replace( /^\s+|\s+$/g, "" );
-}
-
-
-/**
  * @todo: document
  */
 __extend__(Document.prototype,{
@@ -13407,9 +13408,10 @@ XMLHttpRequest.prototype = {
                     }
 
                     try{
-                        cookie = _this.getResponseHeader('SET-COOKIE');
+                        Envjs.debug("retrieving and setting cookie");
+                        cookie = _this.getResponseHeader('Set-Cookie');
                         if(cookie){
-                             Envjs.setCookie(_this.url, cookie);
+                            Envjs.setCookie(_this.url, cookie);
                         }
                     }catch(e){
                         console.warn("Failed to set cookie");
@@ -13445,20 +13447,15 @@ XMLHttpRequest.prototype = {
     },
     getResponseHeader: function(header){
         //$debug('GETTING RESPONSE HEADER '+header);
-        var rHeader, returnedHeaders;
+        var key = header.toLowerCase();
         if (this.readyState < 3){
             throw new Error("INVALID_STATE_ERR");
         } else {
-            returnedHeaders = [];
-            for (rHeader in this.responseHeaders) {
-                if (rHeader.match(new RegExp(header, "i"))) {
-                    returnedHeaders.push(this.responseHeaders[rHeader]);
-                }
-            }
-
-            if (returnedHeaders.length){
-                //$debug('GOT RESPONSE HEADER '+returnedHeaders.join(", "));
-                return returnedHeaders.join(", ");
+            if (this.responseHeaders[key]) {
+                var v = (this.responseHeaders[key] instanceof Array) 
+                      ? this.responseHeaders[key].join(";") 
+                      : this.responseHeaders[key]; 
+                return v;
             }
         }
         return null;
