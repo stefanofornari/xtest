@@ -266,6 +266,19 @@ public class BugFreeStubURLBuilder {
     }
     
     @Test
+    public void set_header_with_multiple_values() {
+        StubURLBuilder b = new StubURLBuilder();
+        
+        then(b.header("key1", "value1", "value2")).isSameAs(b);
+        then(b.getHeaders().keySet()).containsExactly("key1");
+        then(b.getHeaders().get("key1")).containsExactly("value1", "value2");
+        
+        then(b.header("key2", "value3", "value4", "value5")).isSameAs(b);
+        then(b.getHeaders().keySet()).containsExactly("key1", "key2");
+        then(b.getHeaders().get("key2")).containsExactly("value3", "value4", "value5");
+    }
+    
+    @Test
     public void set_headers_replace_all_headers() {
         final Map<String, List<String>> MAP1 = new HashMap<>(), MAP2 = new HashMap<>();
         

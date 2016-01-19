@@ -178,8 +178,8 @@ public class StubURLBuilder extends AbstractURLBuilder {
         return this;
     }
 
-    public StubURLBuilder header(final String header, final String value) {
-        headers.put(header, Lists.newArrayList(value)); return this;
+    public StubURLBuilder header(final String header, final String... values) {
+        headers.put(header, Lists.newArrayList(values)); return this;
     }
     
     public StubURLBuilder headers(final Map<String, List<String>> headers) {
