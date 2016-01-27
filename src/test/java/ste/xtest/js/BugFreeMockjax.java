@@ -44,7 +44,7 @@ public class BugFreeMockjax {
         test.loadScript(TEST_SCRIPT_3);
 
         assertEquals("error", test.exec("ret.status"));
-        assertEquals(500, test.exec("ret.code"));
+        assertEquals(500.0, test.exec("ret.code"));
         assertEquals("Server error", test.exec("ret.message"));
     }
 
