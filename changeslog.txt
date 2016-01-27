@@ -1,8 +1,13 @@
+20160127
+- fixed an issue with the handling of file:/ URLs which was not using 
+  URLConnection.getResponseCode() (preventing to use a subs for file:/ urls)
+- released v1.12.6
+
 2016019
 - fixed and improved cookie handling and document.cookie
 - fixed StubURLConnection.getHeaderField() not returning the last value
 - in StubURLBuilder, header() now accepts multiple values for an header
-- released v1.12.3
+- released v1.12.5
 
 20160116
 - improvements to Envjs.windows for better bug free code

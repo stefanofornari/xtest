@@ -35,34 +35,27 @@ import ste.xtest.net.StubURLBuilder;
  * 
  * TODO: implement response handler based on responseType
  */
-public class BugFreeXMLHttpRequest extends BugFreeJavaScript {
+public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     
     public BugFreeXMLHttpRequest() throws Exception {
         loadScript("/js/envjs.urlstubber.js");
     }
     
-    /*
     @Test
     public void retrieve_mocked_html() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
-        URL url = b.set("http://a.url.com/home.html")
-                   .status(200).text("<html><head><title>hello world</title></head></html>").build();
+        StubURLBuilder b = prepareUrlStupBuilders("http://a.url.com/home.html")[0];
         
-        NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");
-        HashMap map = (HashMap)o.unwrap();
-        map.put(url.toExternalForm(), url);
+        b.status(200).html("<html><head><title>hello world</title></head></html>").build();
         
         //
         // let's just trigger the process for now...
         //
         exec(
-            "Envjs.DEBUG = true;" +
-            "window.location='http://a.url.com/home.html';\n"
+            "window.location='http://a.url.com/home.html';"
         );
         
         then(exec("document.title;")).isEqualTo("hello world");
     }
-    */
     
     @Test
     public void send_transitions_readyState_to_2_and_4() throws Exception {
@@ -134,4 +127,35 @@ public class BugFreeXMLHttpRequest extends BugFreeJavaScript {
         );
         then(((NativeJavaObject)get("type")).unwrap()).isEqualTo("image/jpg");
     }
+    
+    /**
+     * HTTP error codes are 4xx and 5xx
+     * 
+     * @throws Exception 
+     */
+    @Test
+    public void error_if_status_is_error_code() throws Exception {
+        String[] urls = new String[] {
+            "http://a.url.com/home.html",
+            "file:///afile.txt"
+        };
+        StubURLBuilder[] builders = prepareUrlStupBuilders(urls);
+        
+        for (int i=0; i<urls.length; ++i) {
+            builders[i].text("not found").status(404).build();
+            
+            exec(
+                "var xhr = new XMLHttpRequest();" + 
+                "var status = -1;" + 
+                "xhr.onreadystatechange = function () {" +
+                "    status = xhr.status;" +
+                "};" +
+                "xhr.open('GET', '" + urls[i] + "', false);" +
+                "xhr.send(null);"
+            );
+
+            then(((Number)exec("status;")).intValue()).isEqualTo(404);
+        }
+    }
+    
 }

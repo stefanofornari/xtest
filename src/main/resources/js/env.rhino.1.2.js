@@ -1577,7 +1577,12 @@ Envjs.connection = function(xhr, responseHandler, data){
                 }
                 /** **/
                 
-                xhr.status = 200;
+                //
+                // some implementation of URLConnection may not have getResponseCode()
+                // 
+                if (!connection.responseCode) {
+                    xhr.status = 200;
+                }
                 xhr.statusText = "";
             }
         }catch(e){
@@ -1655,9 +1660,10 @@ Envjs.connection = function(xhr, responseHandler, data){
 
         xhr.readyState = 2;
         if (!xhr.status) {
-            xhr.status = connection.getResponseCode();
-            xhr.statusText = connection.getResponseMessage() || "";
+            xhr.status = connection.responseCode;
+            xhr.statusText = connection.responseMessage || "";
         }
+        Envjs.debug("connection response status: %d", xhr.status);
         xhr.responseType = connection.getContentType();
         xhr.onreadystatechange();
         
