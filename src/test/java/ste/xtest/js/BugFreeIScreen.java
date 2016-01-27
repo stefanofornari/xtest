@@ -60,10 +60,10 @@ public class BugFreeIScreen extends BugFreeJavaScript {
     @Test
     public void set_get_screen_width() {
         exec("Envjs.screen.width = 1024;");
-        then(exec("Envjs.screen.width;")).isEqualTo(1024);
+        then(exec("Envjs.screen.width;")).isEqualTo(1024.0);
         
         exec("Envjs.screen.width = 2048;");
-        then(exec("Envjs.screen.width;")).isEqualTo(2048);
+        then(exec("Envjs.screen.width;")).isEqualTo(2048.0);
     }
     
     @Test
