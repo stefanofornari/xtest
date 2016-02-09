@@ -21,8 +21,8 @@
  */
 package ste.xtest.js;
 
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import static ste.xtest.js.Constants.*;
 
@@ -38,14 +38,14 @@ public class BugFreeMockjax {
 
         test.loadScript(TEST_SCRIPT_2);
 
-        assertEquals("success", test.exec("ret.status"));
-        assertEquals("ste", test.exec("ret.name"));
+        then(test.exec("ret.status")).isEqualTo("success");
+        then(test.exec("ret.name")).isEqualTo("ste");
 
         test.loadScript(TEST_SCRIPT_3);
 
-        assertEquals("error", test.exec("ret.status"));
-        assertEquals(500.0, test.exec("ret.code"));
-        assertEquals("Server error", test.exec("ret.message"));
+        then(test.exec("ret.status")).isEqualTo("error");
+        then(((Number)test.exec("ret.code")).intValue()).isEqualTo(500);
+        then(test.exec("ret.message")).isEqualTo("Server error");
     }
 
 }
