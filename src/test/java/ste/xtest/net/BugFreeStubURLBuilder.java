@@ -23,6 +23,7 @@ package ste.xtest.net;
 
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.assertj.core.util.Lists;
 import static org.junit.Assert.fail;
 import org.junit.Test;
+import ste.xtest.reflect.PrivateAccess;
 
 /**
  *
@@ -330,5 +332,47 @@ public class BugFreeStubURLBuilder {
         then(b.out(out2)).isSameAs(b);
         then(b.getOutputStream()).isSameAs(out2);
         
+    }
+    
+    @Test
+    public void get_connection_stub_once_created() throws Exception {
+        StubURLBuilder b = new StubURLBuilder();
+        b.set("http://localhost/test").text("");
+        
+        b.build().openConnection();
+        URLConnection c1 = b.getConnection();
+        then(PrivateAccess.getInstanceValue(b, "connection")).isSameAs(c1);
+        
+        b.build().openConnection();
+        URLConnection c2 = b.getConnection();
+        then(PrivateAccess.getInstanceValue(b, "connection")).isSameAs(c2);
+        then(c2).isNotSameAs(c1);
+    }
+    
+    @Test
+    public void get_connection_in_invalid_state_before_calling_openConnection() throws Exception {
+        try {
+            new StubURLBuilder().getConnection();
+            fail("illegal state not captured");
+        } catch (IllegalStateException x) {
+            then(x).hasMessage("call openConnection() first");
+        }
+    }
+    
+    @Test
+    public void reset_connection_on_build() throws Exception {
+        StubURLBuilder b = new StubURLBuilder();
+        b.set("http://localhost/test").text("");
+        
+        b.build().openConnection();
+        b.getConnection(); // ok
+        
+        b.build(); // reset
+        try {
+            b.getConnection();
+            fail("illegal state not captured");
+        } catch (IllegalStateException x) {
+            then(x).hasMessage("call openConnection() first");
+        }
     }
 }

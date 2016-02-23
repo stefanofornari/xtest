@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,6 +49,8 @@ public class StubURLBuilder extends AbstractURLBuilder {
     private Object content;
     private Map<String, List<String>> headers;
     private OutputStream out;
+    
+    private StubURLConnection connection;
 
     public StubURLBuilder() {
         protocol = Protocol.GET;
@@ -61,8 +64,12 @@ public class StubURLBuilder extends AbstractURLBuilder {
         if (url == null) {
             throw new IllegalStateException("url not set, call set() first");
         }
+        
+        connection = null;
+        
         return new URL(
-            url.getProtocol(), url.getHost(), url.getPort(), url.getFile(), 
+            url.getProtocol(), url.getHost(), 
+            url.getPort()    , url.getFile(), 
             new StubStreamHandler(this)
         );
     }
@@ -208,6 +215,24 @@ public class StubURLBuilder extends AbstractURLBuilder {
     
     public OutputStream getOutputStream() {
         return out;
+    }
+    
+    public URLConnection getConnection() {
+        if (connection == null) {
+            throw new IllegalStateException("call openConnection() first");
+        }
+        
+        return connection;
+    }
+    
+    // --------------------------------------------------------- package methods
+    
+    /**
+     * 
+     * @param c 
+     */
+    void setConnection(StubURLConnection c) {
+        connection = c;
     }
     
     // --------------------------------------------------------- private methods

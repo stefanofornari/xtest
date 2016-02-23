@@ -49,6 +49,7 @@ class StubURLConnection extends HttpURLConnection {
         super(builder.getUrl());
         
         this.builder = builder;
+        this.builder.setConnection(this);
     }
 
     @Override
