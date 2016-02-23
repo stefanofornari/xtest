@@ -21,8 +21,6 @@
  */
 package ste.xtest.js;
 
-import java.net.URL;
-import java.util.Map;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
@@ -38,7 +36,6 @@ import ste.xtest.net.StubURLBuilder;
 public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     
     public BugFreeXMLHttpRequest() throws Exception {
-        loadScript("/js/envjs.urlstubber.js");
     }
     
     @Test
@@ -77,55 +74,49 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     
     @Test
     public void set_responseType_with_content_type() throws Exception {
-        StubURLBuilder b1 = new StubURLBuilder(),
-                       b2 = new StubURLBuilder(),
-                       b3 = new StubURLBuilder();
-        URL url1 = b1.set("http://a.url.com/home.txt")
-                   .status(200).text("hello").build();
-        URL url2 = b2.set("http://a.url.com/home.html")
-                   .status(200).html("<html><body>hello</body></html>").build();
-        URL url3 = b3.set("http://a.url.com/home.jpg")
-                   .status(200).content(new byte[] {0}).type("image/jpg").build();
-        
-        NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");
-        Map map = (Map)o.unwrap();
-        map.put(url1.toExternalForm(), url1);
-        map.put(url2.toExternalForm(), url2);
-        map.put(url3.toExternalForm(), url3);
+        String[] urls = new String[] {
+            "http://a.url.com/home.txt",
+            "http://a.url.com/home.html",
+            "http://a.url.com/home.jpg"
+        };
+        StubURLBuilder[] builders = prepareUrlStupBuilders(urls);
+        builders[0].status(200).text("hello").build();
+        builders[1].status(200).html("<html><body>hello</body></html>").build();
+        builders[2].status(200).content(new byte[] {0}).type("image/jpg").build();
         
         //
         // text/plain
         //
         exec(
             "var xhr = new XMLHttpRequest();" + 
-            "var type = undefined;" + 
+            "var t = undefined;" + 
             "xhr.onreadystatechange = function () {" +
-            "    type = xhr.responseType;" +
+            "    t = xhr.responseType;" +
             "};" +
-            "xhr.open('POST', '" + url1.toExternalForm() + "', true);" +
+            "xhr.open('POST', '" + urls[0] + "', true);" +
             "xhr.send(null);"
         );
-        then(((NativeJavaObject)get("type")).unwrap()).isEqualTo("text/plain");
+        then(((NativeJavaObject)get("t")).unwrap()).isEqualTo("text/plain");
         
         //
         // text/html
         //
         exec(
-            "var type = undefined;" + 
-            "xhr.open('POST', '" + url2.toExternalForm() + "', true);" +
+            "var t = undefined;" + 
+            "xhr.open('POST', '" + urls[1] + "', true);" +
             "xhr.send(null);"
         );
-        then(((NativeJavaObject)get("type")).unwrap()).isEqualTo("text/html");
+        then(((NativeJavaObject)get("t")).unwrap()).isEqualTo("text/html");
         
         //
         // image/jpg
         //
         exec(
-            "var type = undefined;" + 
-            "xhr.open('POST', '" + url3.toExternalForm() + "', true);" +
+            "var t = undefined;" + 
+            "xhr.open('POST', '" + urls[2] + "', true);" +
             "xhr.send(null);"
         );
-        then(((NativeJavaObject)get("type")).unwrap()).isEqualTo("image/jpg");
+        then(((NativeJavaObject)get("t")).unwrap()).isEqualTo("image/jpg");
     }
     
     /**
