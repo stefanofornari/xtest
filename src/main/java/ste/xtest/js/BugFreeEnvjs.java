@@ -21,6 +21,7 @@
  */
 package ste.xtest.js;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Map;
 import javax.script.ScriptException;
@@ -32,8 +33,12 @@ import ste.xtest.net.StubURLBuilder;
  */
 public class BugFreeEnvjs extends BugFreeJavaScript {
     
-    public BugFreeEnvjs() throws ScriptException {
+    public BugFreeEnvjs() throws ScriptException, IOException {
         super();
+        loadScript("/js/ecma5-adapter.js");
+        loadScript("/js/angular-rhino.js");
+        loadScript("/js/angular-mocks-rhino.js");
+        loadScript("/js/envjs.urlstubber.js");
     }
     
     /**

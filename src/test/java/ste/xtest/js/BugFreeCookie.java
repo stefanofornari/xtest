@@ -34,7 +34,6 @@ public class BugFreeCookie extends BugFreeEnvjs {
     
     public BugFreeCookie() throws Exception {
         super();
-        loadScript("/js/envjs.urlstubber.js");
     }
     
     @Test

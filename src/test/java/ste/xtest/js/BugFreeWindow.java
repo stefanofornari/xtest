@@ -34,7 +34,6 @@ public class BugFreeWindow extends BugFreeEnvjs {
     
     public BugFreeWindow() throws Exception {
         super();
-        loadScript("/js/envjs.urlstubber.js");
     }
     
     @Test
