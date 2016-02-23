@@ -1,3 +1,10 @@
+20160223
+- added StubURLBuilder.getConnection() to get access to connection data 
+  (even after connecting)
+
+20160215
+- added base class BugFreeEnvjs
+
 20160127
 - fixed an issue with the handling of file:/ URLs which was not using 
   URLConnection.getResponseCode() (preventing to use a subs for file:/ urls)
