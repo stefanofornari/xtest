@@ -32,10 +32,4 @@ public class Constants {
     static final String TEST_SCRIPT_1 = "src/test/resources/js/test1.js";
     static final String TEST_SCRIPT_2 = "src/test/resources/js/test2.js";
     static final String TEST_SCRIPT_3 = "src/test/resources/js/test3.js";
-
-    /**
-     * Simple fixtures
-     */
-    static final String TEST_FIXTURE_1 = "src/test/resources/js/fixtures/fixture1.html";
-    static final String TEST_FIXTURE_2 = "src/test/resources/js/fixtures/fixture2.html";
 }

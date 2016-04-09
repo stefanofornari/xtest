@@ -82,7 +82,7 @@ import ste.xtest.junit.BugFree;
  * </pre></blockquote>
  *
  */
-public abstract class BugFreeJavaScript  extends BugFree {
+public abstract class BugFreeJavaScript extends BugFree {
     
     //
     // TODO: extract common base class between JavaScriptTest and BeanShellTest
@@ -116,7 +116,6 @@ public abstract class BugFreeJavaScript  extends BugFree {
                 "/js/env.rhino.1.2.js",
                 "/js/sprintf-0.0.7.min.js",
                 "/js/jquery-1.11.1.min.js",
-                "/js/jquery.mockjax.js",
                 "/js/xtest.setup.js"
             }
         );

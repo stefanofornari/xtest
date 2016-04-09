@@ -19,12 +19,14 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import java.util.UUID;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
+import ste.xtest.js.BugFreeJavaScript;
+import ste.xtest.js.JSAssertions;
 
 /**
  *

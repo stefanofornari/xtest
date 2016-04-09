@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2013 Stefano Fornari
+ * Copyright (C) 2014 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -19,33 +19,42 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Before;
 import org.junit.Test;
+import ste.xtest.js.BugFreeJavaScript;
 
-import static ste.xtest.js.Constants.*;
 
 /**
  *
  * @author ste
  */
-public class BugFreeMockjax {
+public class BugFreeGetElementStyles extends BugFreeJavaScript {
+    
+    public BugFreeGetElementStyles() throws Exception {
+        
+    }
+    
+    @Before
+    public void setUp() throws Throwable {
+        exec("window.location='src/test/resources/html/getstyles.html';");
+    }
 
     @Test
-    public void loadMockjax() throws Throwable {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-
-        test.loadScript(TEST_SCRIPT_2);
-
-        then(test.exec("ret.status")).isEqualTo("success");
-        then(test.exec("ret.name")).isEqualTo("ste");
-
-        test.loadScript(TEST_SCRIPT_3);
-
-        then(test.exec("ret.status")).isEqualTo("error");
-        then(((Number)test.exec("ret.code")).intValue()).isEqualTo(500);
-        then(test.exec("ret.message")).isEqualTo("Server error");
+    public void stylesFromElement() throws Throwable {
+        then(exec("document.getElementById('testdiv').style.display;")).isEqualTo("none");
+        then(exec("document.getElementById('testdiv').style.position;")).isEqualTo("absolute");
+        then(exec("document.getElementById('testdiv').style.top;")).isEqualTo("0px");
+        then(exec("document.getElementById('testdiv').style.left;")).isEqualTo("0px");
+    }
+    
+    @Test
+    public void setStylesProgrammatically() throws Throwable {
+        exec("document.getElementById('testdiv').style.display='block'");
+        
+        then(exec("document.getElementById('testdiv').style.display;")).isEqualTo("block");
     }
 
 }

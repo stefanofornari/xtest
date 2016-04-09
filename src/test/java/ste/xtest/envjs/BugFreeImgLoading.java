@@ -20,15 +20,15 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import ste.xtest.js.BugFreeJavaScript;
 
 /**
  *
@@ -36,7 +36,10 @@ import org.junit.runner.Description;
  *
  * TODO: exec object's method
  */
-public class BugFreeImgLoading {
+public class BugFreeImgLoading extends BugFreeJavaScript {
+    
+    public BugFreeImgLoading() throws Exception {
+    }
     
     @Rule
     public final TestRule watcher = new TestWatcher() {
@@ -48,18 +51,13 @@ public class BugFreeImgLoading {
     
     private BugFreeJavaScript test = null;
     
-    @Before
-    public void setUp() throws Exception {
-        test = new BugFreeJavaScript(){};
-    }
-
     @Test
     public void defaultThumbnailWhenThumbnailIsNotAvailable() throws Exception {
-        test.exec("Envjs.loadImage = function(node, src) {console.log(src); return false;};");
-        test.exec("window.location='src/test/resources/html/loadimageonerror.html';");
+        exec("Envjs.loadImage = function(node, src) {console.log(src); return false;};");
+        exec("window.location='src/test/resources/html/loadimageonerror.html';");
 
-        then(test.exec("document.getElementsByTagName('img')[0].src")).isEqualTo("default.png");
-        then(test.exec("document.getElementsByTagName('img')[0].onerror")).isNull();
+        then(exec("document.getElementsByTagName('img')[0].src")).isEqualTo("default.png");
+        then(exec("document.getElementsByTagName('img')[0].onerror")).isNull();
     }
     
     @Test
@@ -68,11 +66,11 @@ public class BugFreeImgLoading {
         //
         // image loads successfully
         //
-        test.exec("var error = false;");
-        test.loadScript(TEST_SCRIPT_1);
-        then(test.exec("document.getElementsByTagName('img')[0].src")).isEqualTo("loadthis.jpg");
-        then(test.exec("loaded.length")).isEqualTo(1.0);
-        then(test.exec("loaded[0]")).isEqualTo("loadthis.jpg");
+        exec("var error = false;");
+        loadScript(TEST_SCRIPT_1);
+        then(exec("document.getElementsByTagName('img')[0].src")).isEqualTo("loadthis.jpg");
+        then(exec("loaded.length")).isEqualTo(1.0);
+        then(exec("loaded[0]")).isEqualTo("loadthis.jpg");
     }
     
     @Test
@@ -82,11 +80,11 @@ public class BugFreeImgLoading {
         //
         // image does not load...
         //
-        test.exec("var error = true;");
-        test.loadScript(TEST_SCRIPT_1);
-        then(test.exec("document.getElementsByTagName('img')[0].src")).isEqualTo("default.png");
-        then(test.exec("loaded.length")).isEqualTo(2.0);
-        then(test.exec("loaded[0]")).isEqualTo("loadthis.jpg");
-        then(test.exec("loaded[1]")).isEqualTo("default.png");
+        exec("var error = true;");
+        loadScript(TEST_SCRIPT_1);
+        then(exec("document.getElementsByTagName('img')[0].src")).isEqualTo("default.png");
+        then(exec("loaded.length")).isEqualTo(2.0);
+        then(exec("loaded[0]")).isEqualTo("loadthis.jpg");
+        then(exec("loaded[1]")).isEqualTo("default.png");
     }
 }

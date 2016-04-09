@@ -37,7 +37,6 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
         super();
         loadScript("/js/ecma5-adapter.js");
         loadScript("/js/angular-rhino.js");
-        loadScript("/js/angular-mocks-rhino.js");
         loadScript("/js/envjs.urlstubber.js");
     }
     

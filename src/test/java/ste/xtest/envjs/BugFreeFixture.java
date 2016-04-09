@@ -19,10 +19,11 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import java.io.FileNotFoundException;
 import org.junit.Test;
+import ste.xtest.js.BugFreeJavaScript;
 import static org.junit.Assert.*;
 
 import static ste.xtest.js.Constants.*;
@@ -31,29 +32,36 @@ import static ste.xtest.js.Constants.*;
  *
  * @author ste
  */
-public class BugFreeFixture {
-
+public class BugFreeFixture extends BugFreeJavaScript {
+    
+    public BugFreeFixture() throws Exception {
+    }
+    
+    /**
+     * Simple fixtures
+     */
+    static final String TEST_FIXTURE_1 = "src/test/resources/js/fixtures/fixture1.html";
+    static final String TEST_FIXTURE_2 = "src/test/resources/js/fixtures/fixture2.html";
+    
     @Test
     public void loadFixture() throws Throwable {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-
         try {
-            test.loadFixture(null);
+            loadFixture(null);
             fail("missing check for nulls");
         } catch (IllegalArgumentException x) {
             assertTrue(x.getMessage().contains("fixture"));
         }
 
         try {
-            test.loadFixture("notexisting.fixture");
+            loadFixture("notexisting.fixture");
             fail("missing check for file not found");
         } catch (FileNotFoundException x) {
             assertTrue(x.getMessage().contains("notexisting.fixture"));
         }
 
-        test.loadFixture(TEST_FIXTURE_1);
-        assertEquals(1.0, test.exec("$('#f1').length;")); // I do not know why a double
-        assertEquals(0.0, test.exec("$('#f2').length;")); // just to make sure
+        loadFixture(TEST_FIXTURE_1);
+        assertEquals(1.0, exec("$('#f1').length;")); // I do not know why a double
+        assertEquals(0.0, exec("$('#f2').length;")); // just to make sure
     }
 
 }

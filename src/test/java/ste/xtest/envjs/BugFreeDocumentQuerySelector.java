@@ -19,41 +19,37 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
+import ste.xtest.js.BugFreeJavaScript;
 
 
 /**
  *
  * @author ste
  */
-public class BugFreeGetElementStyles {
+public class BugFreeDocumentQuerySelector extends BugFreeJavaScript {
     
     private BugFreeJavaScript test = null;
     
+    public BugFreeDocumentQuerySelector() throws Exception {
+    }
+    
     @Before
     public void setUp() throws Throwable {
-        test = new BugFreeJavaScript(){};
-        
-        test.exec("window.location='src/test/resources/html/getstyles.html';");
+        exec("window.location='src/test/resources/html/queryselector.html';");
     }
 
     @Test
-    public void stylesFromElement() throws Throwable {
-        then(test.exec("document.getElementById('testdiv').style.display;")).isEqualTo("none");
-        then(test.exec("document.getElementById('testdiv').style.position;")).isEqualTo("absolute");
-        then(test.exec("document.getElementById('testdiv').style.top;")).isEqualTo("0px");
-        then(test.exec("document.getElementById('testdiv').style.left;")).isEqualTo("0px");
+    public void noElementsSelectedWithNotExistingSelector() throws Throwable {
+        then(exec("document.querySelector('[none]')")).isNull();
     }
     
     @Test
-    public void setStylesProgrammatically() throws Throwable {
-        test.exec("document.getElementById('testdiv').style.display='block'");
-        
-        then(test.exec("document.getElementById('testdiv').style.display;")).isEqualTo("block");
+    public void oneElementFound() throws Throwable {
+        then(exec("document.querySelector('div').id")).isEqualTo("testdiv1");
     }
-
 }

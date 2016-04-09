@@ -20,13 +20,14 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import java.util.Map;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
+import ste.xtest.js.BugFreeJavaScript;
 import ste.xtest.net.StubURLBuilder;
 
 /**

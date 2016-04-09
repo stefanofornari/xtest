@@ -20,11 +20,11 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.js;
+package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.xtest.junit.BugFree;
+import ste.xtest.js.BugFreeJavaScript;
 
 /**
  *
@@ -32,22 +32,23 @@ import ste.xtest.junit.BugFree;
  *
  * TODO: exec object's method
  */
-public class BugFreeTimeout extends BugFree {
+public class BugFreeTimeout extends BugFreeJavaScript {
+    
+    public BugFreeTimeout() throws Exception {
+    }
 
     @Test
     public void setTimeoutNoStop() throws Exception {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-
-        test.exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 50);");
+        exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 50);");
         Thread.sleep(100);
 
-        long s = ((Double)test.get("s")).longValue(), e = ((Double)test.get("e")).longValue();
+        long s = ((Double)get("s")).longValue(), e = ((Double)get("e")).longValue();
         then(e-s).isGreaterThanOrEqualTo(50);
 
-        test.exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 75);");
+        exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 75);");
         Thread.sleep(100);
 
-        s = ((Double)test.get("s")).longValue(); e = ((Double)test.get("e")).longValue();
+        s = ((Double)get("s")).longValue(); e = ((Double)get("e")).longValue();
         then(e-s).isGreaterThanOrEqualTo(75);
     }
 
@@ -55,23 +56,21 @@ public class BugFreeTimeout extends BugFree {
     public void setTimeoutWithStop() throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
-        test.exec("var s = new Date().getTime(), e = s; var t = setTimeout(function() {e = new Date().getTime();}, 50); clearTimeout(t);");
+        exec("var s = new Date().getTime(), e = s; var t = setTimeout(function() {e = new Date().getTime();}, 50); clearTimeout(t);");
 
         then(test.get("e")).isEqualTo(test.get("s"));
     }
 
     @Test
     public void setTimeoutWithInfinityInterval() throws Exception {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-
-        test.exec("var ran = false; setTimeout(function() {ran = true;}, Infinity);");
+        exec("var ran = false; setTimeout(function() {ran = true;}, Infinity);");
 
         //
         // No much we can test it: at least it does not throws an error, and it
         // has not ran
         //
         Thread.sleep(1000);
-        then((boolean)test.get("ran")).isFalse();
+        then((boolean)get("ran")).isFalse();
     }
 
 }
