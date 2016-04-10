@@ -56,14 +56,17 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     }
     
     @Test
-    public void send_transitions_readyState_to_2_and_4() throws Exception {
+    public void send_transitions_readyState_to_1_and_4() throws Exception {
+        //
+        // make sure no HTTP server is listening on port 11111 ...
+        //
         exec(
             "var xhr = new XMLHttpRequest();" + 
             "var states = [];" + 
             "xhr.onreadystatechange = function () {" +
             "    states.push(this.readyState);" + 
             "};" +
-            "xhr.open('POST', 'http://127.0.0.1:8080', true);" +
+            "xhr.open('POST', 'http://127.0.0.1:11111', true);" +
             "xhr.send(null);"
         );
 

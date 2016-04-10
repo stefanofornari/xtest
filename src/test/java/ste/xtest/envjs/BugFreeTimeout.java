@@ -22,9 +22,12 @@
 
 package ste.xtest.envjs;
 
+import java.time.Clock;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.js.BugFreeJavaScript;
+import ste.xtest.time.FixedClock;
 
 /**
  *
@@ -38,7 +41,7 @@ public class BugFreeTimeout extends BugFreeJavaScript {
     }
 
     @Test
-    public void setTimeoutNoStop() throws Exception {
+    public void set_timeout_without_stop() throws Exception {
         exec("var s = new Date().getTime(), e = s; setTimeout(function() {e = new Date().getTime();}, 50);");
         Thread.sleep(100);
 
@@ -53,7 +56,7 @@ public class BugFreeTimeout extends BugFreeJavaScript {
     }
 
     @Test
-    public void setTimeoutWithStop() throws Exception {
+    public void set_timeout_with_stop() throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
 
         exec("var s = new Date().getTime(), e = s; var t = setTimeout(function() {e = new Date().getTime();}, 50); clearTimeout(t);");
@@ -62,7 +65,7 @@ public class BugFreeTimeout extends BugFreeJavaScript {
     }
 
     @Test
-    public void setTimeoutWithInfinityInterval() throws Exception {
+    public void set_timeout_with_infinity_interval() throws Exception {
         exec("var ran = false; setTimeout(function() {ran = true;}, Infinity);");
 
         //
@@ -71,6 +74,60 @@ public class BugFreeTimeout extends BugFreeJavaScript {
         //
         Thread.sleep(1000);
         then((boolean)get("ran")).isFalse();
+    }
+    
+    /**
+     * By default the Envjs clock is the system clock
+     */
+    @Test
+    public void default_clock_is_system_clock() {
+        then(((NativeJavaObject)exec("Envjs.clock;")).unwrap()).hasSameClassAs(Clock.systemDefaultZone());
+    }
+    
+    @Test
+    public void set_timeout_with_given_clock() throws Exception {
+        exec("Envjs.clock = new Packages.ste.xtest.time.FixedClock();");
+        exec("var ran = false; setTimeout(function() {ran = true;}, 10);");
+        Thread.sleep(50);
+        then((boolean)exec("ran;")).isFalse();
+        FixedClock clock = (FixedClock)((NativeJavaObject)exec("Envjs.clock")).unwrap();
+        clock.millis += 100;
+        Thread.sleep(25);
+        then((boolean)exec("ran;")).isTrue();
+    }
+    
+    @Test
+    public void set_interval_with_given_clock() throws Exception {
+        exec("Envjs.clock = new Packages.ste.xtest.time.FixedClock();");
+        exec("var n = 0; setInterval(function() {++n;}, 20);");
+        Thread.sleep(50);
+        then(((Number)get("n")).intValue()).isZero();
+        Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isZero();
+        FixedClock clock = (FixedClock)((NativeJavaObject)exec("Envjs.clock")).unwrap();
+        clock.millis += 10; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isZero();
+        clock.millis += 15; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isEqualTo(1);
+        clock.millis += 25; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isEqualTo(2);
+    }
+    
+    @Test
+    public void clear_interval_stops_interval() throws Exception {
+        exec("Envjs.clock = new Packages.ste.xtest.time.FixedClock();");
+        exec("var n = 0; var id = setInterval(function() {++n;}, 20);");
+        Thread.sleep(50);
+        FixedClock clock = (FixedClock)((NativeJavaObject)exec("Envjs.clock")).unwrap();
+        clock.millis += 50; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isEqualTo(1);
+        clock.millis += 50; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isEqualTo(2);
+        exec("clearInterval(id);");
+        clock.millis += 50; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isEqualTo(2);
+        clock.millis += 50; Thread.sleep(25);
+        then(((Number)get("n")).intValue()).isEqualTo(2);
     }
 
 }

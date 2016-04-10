@@ -1,3 +1,13 @@
+20160410
+- added Envjs.clock to instrument Envjs to use a custom Clock object
+- fixed implementaton of setInterval (did not seem to repeat the task...)
+
+20160402
+- removed obsolete jquery/angular mocking/stubbing 
+
+20160319
+- upgraded beanshell to v2.0b6
+
 20160313
 - released v1.13.0
 

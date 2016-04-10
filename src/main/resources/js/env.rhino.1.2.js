@@ -83,6 +83,8 @@ Envjs.appName      = "Resig/20070309 PilotFish/1.2.13";
 
 Envjs.version = "1.2.13";
 Envjs.revision = '';
+
+Envjs.clock = java.time.Clock.systemDefaultZone();
 /*
  * Envjs core-env.1.2.13
  * Pure JavaScript Browser Environment
@@ -538,7 +540,7 @@ function __mergeCookie__(target, cookie, properties){
         target[cookie.domain][cookie.path] = {};
     }
     for(name in properties){
-        var now = new Date().getTime();
+        var now = Envjs.clock.millis();
         var maxAge = (cookie['max-age'] || 0);
         var secure = (cookie.secure) ? true: false;
         
@@ -1341,13 +1343,13 @@ Envjs.loadInlineScript = function(script){
         Envjs.eval(
             script.ownerDocument.ownerWindow,
             script.text,
-            'eval('+script.text.substring(0,16)+'...):'+new Date().getTime()
+            'eval('+script.text.substring(0,16)+'...):'+Envjs.clock.millis()
         );
     }else{
         Envjs.eval(
             __this__,
             script.text,
-            'eval('+script.text.substring(0,16)+'...):'+new Date().getTime()
+            'eval('+script.text.substring(0,16)+'...):'+Envjs.clock.millis()
         );
     }
     Envjs.debug(
@@ -5921,7 +5923,7 @@ Event = function(options){
     this._currentTarget = null;
     this._target = null;
     this._eventPhase = Event.AT_TARGET;
-    this._timeStamp = new Date().getTime();
+    this._timeStamp = Envjs.clock.millis();
     this._preventDefault = false;
     this._stopPropogation = false;
 };
@@ -6365,10 +6367,9 @@ $timers.lock = function(fn){
 };
 
 //private internal class
-var Timer = function(fn, interval){
+var Timer = function(fn, interval, repeat){
     this.fn = fn;
     this.interval = interval;
-    this.at = Date.now() + interval;
     // allows for calling wait() from callbacks
     this.running = false;
 
@@ -6378,16 +6379,21 @@ var Timer = function(fn, interval){
     this.run = function() {
         if (interval != Infinity) {
             me.running = true;
-            me.thread.sleep(interval);
-            //
-            // If run in a multithreded way, stop may set running to false before the
-            // interval has expired. In such case, the task shall not be executed.
-            // Hoever, please note that the current implementation of Timer does not
-            // spawn new threads
-            //
-            if (this.running) {
-                me.fn();
-            }
+            do {
+                me.at = Envjs.clock.millis() + interval;
+                do {
+                    me.thread.sleep(0, 5000);
+                } while (Envjs.clock.millis() < me.at);
+                //
+                // If run in a multithreded way, stop may set running to false before the
+                // interval has expired. In such case, the task shall not be executed.
+                // Hoever, please note that the current implementation of Timer does not
+                // spawn new threads
+                //
+                if (this.running) {
+                    me.fn();
+                }
+            } while (repeat === true);
         }
         me.running = false;
     }
@@ -6451,7 +6457,7 @@ setTimeout = function(fn, time){
             };
         }
         Envjs.debug("Creating timer number %s", num);
-        $timers[num] = new Timer(tfn, time);
+        $timers[num] = new Timer(tfn, time, false);
         $timers[num].start();
     });
     return num;
@@ -6478,7 +6484,7 @@ setInterval = function(fn, time){
     $timers.lock(function(){
         num = $timers.length+1;
         //Envjs.debug("Creating timer number "+num);
-        $timers[num] = new Timer(fn, time);
+        $timers[num] = new Timer(fn, time, true);
         $timers[num].start();
     });
     return num;
@@ -6512,7 +6518,7 @@ clearInterval = clearTimeout = function(num){
 Envjs.wait = function(wait) {
     Envjs.debug('wait %s', wait);
     var delta_wait,
-        start = Date.now(),
+        start = Envjs.clock.millis(),
         was_running = EVENT_LOOP_RUNNING;
 
     if (wait < 0) {
@@ -6521,7 +6527,7 @@ Envjs.wait = function(wait) {
     }
     EVENT_LOOP_RUNNING = true;
     if (wait !== 0 && wait !== null && wait !== undefined){
-        wait += Date.now();
+        wait += Envjs.clock.millis();
     }
 
     var earliest,
@@ -6549,7 +6555,7 @@ Envjs.wait = function(wait) {
             }
         });
         //next sleep time
-        sleep = earliest && earliest.at - Date.now();
+        sleep = earliest && earliest.at - Envjs.clock.millis();
         if ( earliest && sleep <= 0 ) {
             nextfn = earliest.fn;
             try {
@@ -6562,7 +6568,7 @@ Envjs.wait = function(wait) {
                 earliest.running = false;
             }
             goal = earliest.at + earliest.interval;
-            now = Date.now();
+            now = Envjs.clock.millis();
             if ( goal < now ) {
                 earliest.at = now;
             } else {
@@ -6574,7 +6580,7 @@ Envjs.wait = function(wait) {
         // bunch of subtle cases here ...
         if ( !earliest ) {
             // no events in the queue (but maybe XHR will bring in events, so ...
-            if ( !wait || wait < Date.now() ) {
+            if ( !wait || wait < Envjs.clock.millis() ) {
                 // Loop ends if there are no events and a wait hasn't been
                 // requested or has expired
                 break;
@@ -6586,7 +6592,7 @@ Envjs.wait = function(wait) {
                 //TODO: why waste a check on a tight
                 // loop if it just falls through?
             // if they will happen within the next delta, fall through to sleep
-            } else */if ( wait === 0 || ( wait > 0 && wait < Date.now () ) ) {
+            } else */if ( wait === 0 || ( wait > 0 && wait < Envjs.clock.millis() ) ) {
                 // loop ends even if there are events but the user
                 // specifcally asked not to wait too long
                 break;
@@ -13967,7 +13973,7 @@ Window = function(scope, parent, opener){
         return scope;
     });
 
-    var $uuid = new Date().getTime()+'-'+Math.floor(Math.random()*1000000000000000);
+    var $uuid = Envjs.clock.millis()+'-'+Math.floor(Math.random()*1000000000000000);
     Envjs.windows[$uuid] = scope;
     Envjs.debug('opening window %s (%d)', $uuid, Object.keys(Envjs.windows).length);
 
