@@ -26,7 +26,7 @@ import java.net.MalformedURLException;
 import java.util.Map;
 import javax.script.ScriptException;
 import org.mozilla.javascript.NativeJavaObject;
-import ste.xtest.net.StubURLBuilder;
+import ste.xtest.net.StubURL;
 
 /**
  * @author ste
@@ -51,13 +51,13 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
      * 
      * @throws MalformedURLException if any of the urls is incorrect
      */
-    protected StubURLBuilder[] prepareUrlStupBuilders(final String... urls) throws MalformedURLException {
-        StubURLBuilder[] builders = new StubURLBuilder[urls.length];
+    protected StubURL[] prepareUrlStupBuilders(final String... urls) throws MalformedURLException {
+        StubURL[] builders = new StubURL[urls.length];
         
         Map map = (Map)((NativeJavaObject)exec("Envjs.map;")).unwrap();
         int i = 0;
         while(i<builders.length) {
-            builders[i] = new StubURLBuilder();
+            builders[i] = new StubURL();
             builders[i].set(urls[i]);
             map.put(urls[i], builders[i].build());
             ++i;

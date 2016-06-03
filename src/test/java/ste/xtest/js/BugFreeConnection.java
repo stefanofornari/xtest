@@ -27,7 +27,7 @@ import java.util.HashMap;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
-import ste.xtest.net.StubURLBuilder;
+import ste.xtest.net.StubURL;
 
 /**
  *
@@ -41,7 +41,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
     
     @Test
     public void retrieve_stubbed_html() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
+        StubURL b = new StubURL();
         URL url = b.set("http://a.url.com/home.html")
                    .html("<html><head><title>hello world</title></head></html>").build();
         
@@ -67,7 +67,7 @@ public class BugFreeConnection extends BugFreeJavaScript {
     
     @Test
     public void get_error_status() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
+        StubURL b = new StubURL();
         URL url = b.set("http://a.url.com/home.html").status(0).text("").build();
         
         NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");

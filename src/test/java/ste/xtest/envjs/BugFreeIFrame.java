@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.js.BugFreeJavaScript;
-import ste.xtest.net.StubURLBuilder;
+import ste.xtest.net.StubURL;
 
 /**
  *
@@ -43,31 +43,31 @@ public class BugFreeIFrame extends BugFreeJavaScript {
     @Before
     public void before() throws Exception {
         Map stubs = (Map)((NativeJavaObject)exec("Envjs.map;")).unwrap();
-        StubURLBuilder b1 = new StubURLBuilder();
+        StubURL b1 = new StubURL();
         b1.set("http://noserver.com/hello1.txt").text("1. hello world!");
         stubs.put(b1.getUrl().toExternalForm(), b1.build());
         
-        StubURLBuilder b2 = new StubURLBuilder();
+        StubURL b2 = new StubURL();
         b2.set("http://noserver.com/hello2.txt").text("2. hello world!");
         stubs.put(b2.getUrl().toExternalForm(), b2.build());
         
-        StubURLBuilder b3 = new StubURLBuilder();
+        StubURL b3 = new StubURL();
         b3.set("http://noserver.com/hello1.html").html("<html><head/><body>hello world 1</body></html>");
         stubs.put(b3.getUrl().toExternalForm(), b3.build());
         
-        StubURLBuilder b4 = new StubURLBuilder();
+        StubURL b4 = new StubURL();
         b4.set("http://noserver.com/hello2.html").html("<html><head/><body>hello world 2</body></html>");
         stubs.put(b4.getUrl().toExternalForm(), b4.build());
         
-        StubURLBuilder b5 = new StubURLBuilder();
+        StubURL b5 = new StubURL();
         b5.set("http://noserver.com/hello1.jpg").content(new byte[] {0}).type("image/jpg");
         stubs.put(b5.getUrl().toExternalForm(), b5.build());
         
-        StubURLBuilder b6 = new StubURLBuilder();
+        StubURL b6 = new StubURL();
         b6.set("http://noserver.com/hello2.png").content(new byte[] {0}).type("image/png");
         stubs.put(b6.getUrl().toExternalForm(), b6.build());
         
-        StubURLBuilder b7 = new StubURLBuilder();
+        StubURL b7 = new StubURL();
         b7.set("http://noserver.com/hello.html").html("<html><body>hello world!</body></html>");
         stubs.put(b7.getUrl().toExternalForm(), b7.build());
         

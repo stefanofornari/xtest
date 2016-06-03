@@ -23,7 +23,7 @@ package ste.xtest.net;
 
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
-import java.net.URLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,6 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.assertj.core.util.Lists;
 import static org.junit.Assert.fail;
 import org.junit.Test;
-import ste.xtest.reflect.PrivateAccess;
 
 /**
  *
@@ -40,38 +39,27 @@ import ste.xtest.reflect.PrivateAccess;
  * TODO: url in set can not be blank
  * TODO: getHeaderField and various headers
  */
-public class BugFreeStubURLBuilder {
+public class BugFreeStubStreamHandler {
     
     private static final String TEST_URL1 = "http://192.168.0.1/index.html";
-
-    @Test
-    public void build_throws_IllegalStateException_if_url_not_set() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
-        
-        try {
-            b.build();
-            fail("illegalstate not detected");
-        } catch (IllegalStateException x) {
-            then(x).hasMessage("url not set, call set() first");
-        }
-    }
+    
+    
     
     @Test
     public void openConnection_returns_a_MockURLConnection() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
-        then(b.set(TEST_URL1)).isSameAs(b);
+        StubStreamHandler b = new StubStreamHandler();
         
-        then(b.build().openConnection()).isNotNull().isInstanceOf(StubURLConnection.class);
+        then(b.openConnection(new URL(TEST_URL1))).isNotNull().isInstanceOf(StubURLConnection.class);
     }
     
     @Test
     public void default_status_200() throws Exception {
-        then(new StubURLBuilder().getStatus()).isEqualTo(HttpURLConnection.HTTP_OK);
+        then(new StubStreamHandler().getStatus()).isEqualTo(HttpURLConnection.HTTP_OK);
     }
     
     @Test
     public void set_status() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         then(b.status(HttpURLConnection.HTTP_ACCEPTED)).isSameAs(b);
         then(b.getStatus()).isEqualTo(HttpURLConnection.HTTP_ACCEPTED);
         
@@ -81,7 +69,7 @@ public class BugFreeStubURLBuilder {
     
     @Test
     public void set_message() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         then(b.message("ok")).isSameAs(b);
         then(b.getMessage()).isEqualTo("ok");
         
@@ -97,7 +85,7 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         b.getHeaders().clear(); 
         then(b.content(TEST_CONTENT1.getBytes())).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT1.getBytes());
@@ -126,7 +114,7 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         b.getHeaders().clear(); 
         then(b.text(TEST_CONTENT1)).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
@@ -157,7 +145,7 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT1 = "<html><body>hello world</body></html>";
         final String TEST_CONTENT2 = "<html><body>welcome on board</html></body>";
         
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         b.getHeaders().clear(); 
         then(b.html(TEST_CONTENT1)).isSameAs(b);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
@@ -188,7 +176,7 @@ public class BugFreeStubURLBuilder {
         final String TEST_CONTENT1 = "{ 'msg': 'hello world' }";
         final String TEST_CONTENT2 = "{ 'msg': 'welcome on board' }";
         
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         b.getHeaders().clear(); b.json(TEST_CONTENT1);
         then(b.getContent()).isEqualTo(TEST_CONTENT1);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("application/json");
@@ -213,7 +201,7 @@ public class BugFreeStubURLBuilder {
     
     @Test
     public void set_content_as_path() {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         
         final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
         final String TEST_FILE2 = "src/test/resources/images/6096.png";
@@ -245,13 +233,13 @@ public class BugFreeStubURLBuilder {
     
     @Test
     public void headers_defatuls_to_empty_map() {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         then(b.getHeaders()).isNotNull().hasSize(0);
     }
     
     @Test
     public void set_single_header_adds_to_headers() {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         
         then(b.header("key1", "value1")).isSameAs(b);
         then(b.getHeaders().keySet()).containsExactly("key1");
@@ -269,7 +257,7 @@ public class BugFreeStubURLBuilder {
     
     @Test
     public void set_header_with_multiple_values() {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         
         then(b.header("key1", "value1", "value2")).isSameAs(b);
         then(b.getHeaders().keySet()).containsExactly("key1");
@@ -290,7 +278,7 @@ public class BugFreeStubURLBuilder {
         MAP2.put("key3", Lists.newArrayList("value3"));
         MAP2.put("key4", Lists.newArrayList("value4"));
         
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         then(b.headers(MAP1)).isSameAs(b);
         then(b.getHeaders()).containsOnlyKeys(MAP1.keySet().toArray(new String[0]));
         
@@ -300,7 +288,7 @@ public class BugFreeStubURLBuilder {
     
     @Test
     public void set_type_sets_content_type() {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         
         then(b.type("text/html")).isSameAs(b);
         then(b.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
@@ -311,7 +299,7 @@ public class BugFreeStubURLBuilder {
     
     @Test
     public void set_type_to_null_removes_content_type() {
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         
         then(b.type("text/html")).isSameAs(b);
         then(b.getHeaders()).containsKey("content-type");
@@ -325,7 +313,7 @@ public class BugFreeStubURLBuilder {
         ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
         
-        StubURLBuilder b = new StubURLBuilder();
+        StubStreamHandler b = new StubStreamHandler();
         then(b.out(out1)).isSameAs(b);
         then(b.getOutputStream()).isSameAs(out1);
         
@@ -334,10 +322,11 @@ public class BugFreeStubURLBuilder {
         
     }
     
+    /*
     @Test
     public void get_connection_stub_once_created() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
-        b.set("http://localhost/test").text("");
+        StubStreamHandler b = new StubStreamHandler();
+        //b.set("http://localhost/test").text("");
         
         b.build().openConnection();
         URLConnection c1 = b.getConnection();
@@ -348,28 +337,12 @@ public class BugFreeStubURLBuilder {
         then(PrivateAccess.getInstanceValue(b, "connection")).isSameAs(c2);
         then(c2).isNotSameAs(c1);
     }
+    */
     
     @Test
     public void get_connection_in_invalid_state_before_calling_openConnection() throws Exception {
         try {
-            new StubURLBuilder().getConnection();
-            fail("illegal state not captured");
-        } catch (IllegalStateException x) {
-            then(x).hasMessage("call openConnection() first");
-        }
-    }
-    
-    @Test
-    public void reset_connection_on_build() throws Exception {
-        StubURLBuilder b = new StubURLBuilder();
-        b.set("http://localhost/test").text("");
-        
-        b.build().openConnection();
-        b.getConnection(); // ok
-        
-        b.build(); // reset
-        try {
-            b.getConnection();
+            new StubStreamHandler().getConnection();
             fail("illegal state not captured");
         } catch (IllegalStateException x) {
             then(x).hasMessage("call openConnection() first");

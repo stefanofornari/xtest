@@ -22,23 +22,38 @@
 package ste.xtest.net;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.assertj.core.util.Lists;
 
 /**
  *
  * @author ste
  */
-class StubStreamHandler extends URLStreamHandler {
-    private StubURLBuilder builder;
-
-    public StubStreamHandler(StubURLBuilder builder) {
-        this.builder = builder;
+public class StubStreamHandler extends URLStreamHandler {
+    
+    public StubStreamHandler() {
     }
-
+    
+    public static StubStreamHandler add(String url) {
+        return new StubStreamHandler();
+    }
+    
+    
     @Override
-    protected URLConnection openConnection(URL u) throws IOException {
-        return new StubURLConnection(builder);
-    }   
+    protected URLConnection openConnection(URL url) throws IOException {
+        return new StubURLConnection(url);
+    }
+    
+    // -------------------------------------------------------------------------
 }

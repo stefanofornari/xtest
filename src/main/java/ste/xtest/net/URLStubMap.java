@@ -30,19 +30,11 @@ import java.util.Map;
  *
  * @author ste
  */
-public class URLStubSelector {
+public class URLStubMap {
     
-    private Map<String, URL> map;
+    private static final Map<String, StubURL> map = new HashMap<String, StubURL>();
     
-    public URLStubSelector(final HashMap<String, URL> map) {
-        if (map == null) {
-            throw new IllegalArgumentException("map can not be null");
-        }
-        
-        this.map = map;
-    }
-    
-    public Map<String, URL> getMapping() {
+    public static Map<String, StubURL> getMapping() {
         return map;
     }
     
@@ -53,24 +45,22 @@ public class URLStubSelector {
      * @return the selected mock 
      * 
      * @throws IllegalArgumentException if url is malformed or null
+     * 
      */
-    public URL select(final String url) {
+    public static StubURL get(String url) {
         if (url == null) {
             throw new IllegalArgumentException("url can not be null");
         }
         
-        URL selectedUrl = map.get(url);
-        System.out.println("selectedUrl for " + url +": " + selectedUrl);
+        StubURL selectedUrl = map.get(url);
         if (selectedUrl != null) {
             return selectedUrl;
         }
         
-        try {
-            return new URL(url);
-        } catch (MalformedURLException x) {
-            throw new IllegalArgumentException(
-                String.format("'%s' is not a valid url: %s", url, x.getMessage())
-            );
-        }
+        return new StubURL();
+    }
+    
+    public static void put(String url, StubURL stub) {
+        map.put(url, stub);
     }
 }

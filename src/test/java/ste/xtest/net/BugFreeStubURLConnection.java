@@ -24,6 +24,7 @@ package ste.xtest.net;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
@@ -42,39 +43,39 @@ public class BugFreeStubURLConnection {
     
     private static final String TEST_URL_DUMMY = "http://url.com";
     
-    private StubURLBuilder B;
+    private StubStreamHandler H;
     private StubURLConnection C;
     
     @Before
     public void before() {
-        B = new StubURLBuilder();
-        C = new StubURLConnection(B);
+        H = new StubStreamHandler();
+        C = new StubURLConnection(H);
     }
     
     @Test
     public void default_status_200() throws Exception {
-        B.status(HttpURLConnection.HTTP_OK);
+        H.status(HttpURLConnection.HTTP_OK);
         then(C.getResponseCode()).isEqualTo(HttpURLConnection.HTTP_OK);        
     }
     
     @Test
     public void set_status() throws Exception {
-        B.status(HttpURLConnection.HTTP_ACCEPTED);
+        H.status(HttpURLConnection.HTTP_ACCEPTED);
         then(C.getResponseCode()).isEqualTo(HttpURLConnection.HTTP_ACCEPTED);
         
-        B.status(HttpURLConnection.HTTP_FORBIDDEN);
+        H.status(HttpURLConnection.HTTP_FORBIDDEN);
         then(C.getResponseCode()).isEqualTo(HttpURLConnection.HTTP_FORBIDDEN);
     }
     
     @Test
     public void set_message() throws Exception {
-        B.message("ok");
+        H.message("ok");
         then(C.getResponseMessage()).isEqualTo("ok");
         
-        B.message("this is the response message");
+        H.message("this is the response message");
         then(C.getResponseMessage()).isEqualTo("this is the response message");
         
-        B.message(null);
+        H.message(null);
         then(C.getResponseMessage()).isEqualTo(null);
     }
     
@@ -83,17 +84,17 @@ public class BugFreeStubURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        B.content(TEST_CONTENT1.getBytes());
+        H.content(TEST_CONTENT1.getBytes());
         then(C.getContent()).isEqualTo(TEST_CONTENT1.getBytes());
         then(C.getContentType()).isEqualTo("application/octet-stream");
         then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT1.length());
         
-        B.content(TEST_CONTENT2.getBytes());
+        H.content(TEST_CONTENT2.getBytes());
         then(C.getContent()).isEqualTo(TEST_CONTENT2.getBytes());
         then(C.getContentType()).isEqualTo("application/octet-stream");
         then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT2.length());
         
-        B.content((byte[])null);
+        H.content((byte[])null);
         then(C.getContent()).isEqualTo(null);
         then(C.getContentType()).isEqualTo("application/octet-stream");
         then(C.getContentLengthLong()).isZero();
@@ -104,17 +105,17 @@ public class BugFreeStubURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        B.text(TEST_CONTENT1);
+        H.text(TEST_CONTENT1);
         then(C.getContent()).isEqualTo(TEST_CONTENT1);
         then(C.getContentType()).isEqualTo("text/plain");
         then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT1.length());
         
-        B.text(TEST_CONTENT2);
+        H.text(TEST_CONTENT2);
         then(C.getContent()).isEqualTo(TEST_CONTENT2);
         then(C.getContentType()).isEqualTo("text/plain");
         then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT2.length());
         
-        B.text((String)null);
+        H.text((String)null);
         then(C.getContent()).isEqualTo(null);
         then(C.getContentType()).isEqualTo("text/plain");
         then(C.getContentLengthLong()).isZero();
@@ -125,25 +126,25 @@ public class BugFreeStubURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        B.text(TEST_CONTENT1);
+        H.text(TEST_CONTENT1);
         then(IOUtils.toString(C.getInputStream())).isEqualTo(TEST_CONTENT1);
         
-        B.text(TEST_CONTENT2);
+        H.text(TEST_CONTENT2);
         then(IOUtils.toString(C.getInputStream())).isEqualTo(TEST_CONTENT2);
         
-        B.text(null);
+        H.text(null);
         then(C.getInputStream()).isEqualTo(null);
     }
     
     @Test
     public void get_stream_from_byte_array() throws Exception {
-        B.content("some".getBytes());
+        H.content("some".getBytes());
         then(IOUtils.toString(C.getInputStream())).isEqualTo("some");
     }
     
     @Test
     public void get_stream_from_string() throws Exception {
-        B.text("some");
+        H.text("some");
         then(IOUtils.toString(C.getInputStream())).isEqualTo("some");
     }
     
@@ -152,13 +153,13 @@ public class BugFreeStubURLConnection {
         final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
         final String TEST_FILE2 = "src/test/resources/js/test1.js";
         
-        B.file(TEST_FILE1);
+        H.file(TEST_FILE1);
         then(IOUtils.toString(C.getInputStream()))
             .isEqualTo(IOUtils.toString(new File(TEST_FILE1).getAbsoluteFile().toURI()));
         then(C.getContentType()).isEqualTo("text/html");
         then(C.getContentLength()).isEqualTo(142);
         
-        B.file(TEST_FILE2);
+        H.file(TEST_FILE2);
         then(IOUtils.toString(C.getInputStream()))
             .isEqualTo(IOUtils.toString(new File(TEST_FILE2).getAbsoluteFile().toURI()));
         then(C.getContentType()).isEqualTo("application/javascript");
@@ -182,7 +183,7 @@ public class BugFreeStubURLConnection {
             //
         }
         
-        B.type("text/plain"); headers = C.getHeaderFields();
+        H.type("text/plain"); headers = C.getHeaderFields();
         then(headers).hasSize(1).containsOnlyKeys("content-type");
         try {
             headers.put("key", Lists.newArrayList("value"));
@@ -206,10 +207,10 @@ public class BugFreeStubURLConnection {
     
     @Test
     public void get_header_with_single_value() throws Exception {
-        B.text(""); // sets Content-Type
+        H.text(""); // sets Content-Type
         then(C.getHeaderField("content-type")).isEqualTo("text/plain");
         
-        B.header("name", "value");
+        H.header("name", "value");
         then(C.getHeaderField("name")).isEqualTo("value");
     }
     
@@ -221,10 +222,10 @@ public class BugFreeStubURLConnection {
      */
     @Test
     public void get_header_with_multiple_values() throws Exception {
-        B.header("name1", "value1", "value2", "value3");
+        H.header("name1", "value1", "value2", "value3");
         then(C.getHeaderField("name1")).isEqualTo("value3");
         
-        B.header("name2", "valueA", "valueB");
+        H.header("name2", "valueA", "valueB");
         then(C.getHeaderField("name2")).isEqualTo("valueB");
     }
     
@@ -238,10 +239,10 @@ public class BugFreeStubURLConnection {
         ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
         
-        B.out(out1);
+        H.out(out1);
         then(C.getOutputStream()).isSameAs(out1);
         
-        B.out(out2);
+        H.out(out2);
         then(C.getOutputStream()).isSameAs(out2);
         
     }

@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -41,15 +43,27 @@ import org.apache.commons.io.output.NullOutputStream;
  * @TODO: getInputStream shall return a correct input stream accordingly to the 
  *        content type
  */
-class StubURLConnection extends HttpURLConnection {
+public class StubURLConnection extends HttpURLConnection {
     
-    private StubURLBuilder builder;
+    private static URL FAKE_URL = null;
+    
+    static {
+        try {
+            FAKE_URL = new URL("http://fake.url.connection");
+        } catch (MalformedURLException x) {
+            //
+            // nothing should really be needed...
+            //
+        }
+    }
+    
+    private StubStreamHandler handler;
 
-    public StubURLConnection(StubURLBuilder builder) {
-        super(builder.getUrl());
+    public StubURLConnection(StubStreamHandler handler) {
+        super(FAKE_URL);
         
-        this.builder = builder;
-        this.builder.setConnection(this);
+        this.handler = handler;
+        this.handler.setConnection(this);
     }
 
     @Override
@@ -67,23 +81,23 @@ class StubURLConnection extends HttpURLConnection {
     
     @Override
     public int getResponseCode() {
-        return builder.getStatus();
+        return handler.getStatus();
     }
     
     @Override 
     public String getResponseMessage() {
-        return builder.getMessage();
+        return handler.getMessage();
     }
     
     @Override
     public Object getContent() {
-        Object content = builder.getContent();
+        Object content = handler.getContent();
         return (content == null) ? null : content;
     }
     
     @Override
     public InputStream getInputStream() throws IOException {
-        Object content = builder.getContent();
+        Object content = handler.getContent();
         if (content == null) {
             return null;
         }
@@ -99,14 +113,14 @@ class StubURLConnection extends HttpURLConnection {
     
     @Override
     public OutputStream getOutputStream() throws IOException {
-        OutputStream out = builder.getOutputStream();
+        OutputStream out = handler.getOutputStream();
         
         return (out == null) ? NullOutputStream.NULL_OUTPUT_STREAM : out;
     }
     
     @Override
     public String getHeaderField(final String key) {
-        List<String> values = builder.getHeaders().get(key);
+        List<String> values = handler.getHeaders().get(key);
         
         if ((values != null) && (values.size()>0)) {
             return values.get(values.size()-1);
@@ -119,8 +133,8 @@ class StubURLConnection extends HttpURLConnection {
     public Map<String, List<String>> getHeaderFields() {
         Map<String, List<String>> copy = new HashMap<>();
         
-        for (String key: builder.getHeaders().keySet()) {
-            copy.put(key, Collections.unmodifiableList(builder.getHeaders().get(key)));
+        for (String key: handler.getHeaders().keySet()) {
+            copy.put(key, Collections.unmodifiableList(handler.getHeaders().get(key)));
         }
         return Collections.unmodifiableMap(copy);
     }

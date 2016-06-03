@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
 import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
-import ste.xtest.net.StubURLBuilder;
+import ste.xtest.net.StubURL;
 
 /**
  *
@@ -63,7 +63,7 @@ public class BugFreeWindow extends BugFreeEnvjs {
     @Test
     public void set_location_with_fragment() throws Exception {
         final String URL = "http://www.server.com/home.html#fragment";
-        StubURLBuilder[] b = prepareUrlStupBuilders(URL);
+        StubURL[] b = prepareUrlStupBuilders(URL);
         b[0].set(URL).status(200).text("");
         
         exec("window.location = '" + URL + "'");
@@ -76,7 +76,7 @@ public class BugFreeWindow extends BugFreeEnvjs {
     @Test
     public void windows_with_same_name_do_not_open_new_windows() throws Exception {
         final String URL = "http://www.server.com/home.html";
-        StubURLBuilder[] b = prepareUrlStupBuilders(URL);
+        StubURL[] b = prepareUrlStupBuilders(URL);
         b[0].set(URL).status(200).text(""); 
         
         exec(
@@ -92,7 +92,7 @@ public class BugFreeWindow extends BugFreeEnvjs {
     @Test
     public void windows_with_different_name_open_new_windows() throws Exception {
         final String URL = "http://www.server.com/home.html";
-        StubURLBuilder[] b = prepareUrlStupBuilders(URL);
+        StubURL[] b = prepareUrlStupBuilders(URL);
         b[0].set(URL).status(200).text(""); 
         
         exec(

@@ -39,11 +39,8 @@ import org.assertj.core.util.Lists;
  *
  * @author ste
  */
-public class StubURLBuilder extends AbstractURLBuilder {
+public class StubURL extends AbstractURLBuilder {
     
-    public enum Protocol {ANY, GET, POST};
-    
-    private Protocol protocol;
     private int status;
     private String message;
     private Object content;
@@ -52,8 +49,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
     
     private StubURLConnection connection;
 
-    public StubURLBuilder() {
-        protocol = Protocol.GET;
+    public StubURL() {
         status = HttpURLConnection.HTTP_OK;
         headers = new HashMap<>();
         out = null;
@@ -70,25 +66,25 @@ public class StubURLBuilder extends AbstractURLBuilder {
         return new URL(
             url.getProtocol(), url.getHost(), 
             url.getPort()    , url.getFile(), 
-            new StubStreamHandler(this)
+            new StubStreamHandler()
         );
     }
     
-    public StubURLBuilder set(final String url) throws MalformedURLException {
+    public StubURL set(final String url) throws MalformedURLException {
         super.set(new URL(url));
         
         return this;
     }
     
-    public StubURLBuilder get() {
+    public StubURL get() {
         return this;
     }
     
-    public StubURLBuilder status(int status) {
+    public StubURL status(int status) {
         this.status = status; return this;
     }
     
-    public StubURLBuilder message(final String message) {
+    public StubURL message(final String message) {
         this.message = message; return this;
     }
     
@@ -100,7 +96,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public StubURLBuilder type(final String type) {
+    public StubURL type(final String type) {
         if (type == null) {
             headers.remove("content-type");
         } else {
@@ -118,7 +114,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public StubURLBuilder content(final byte[] content) {
+    public StubURL content(final byte[] content) {
         setContent(content, "application/octet-stream"); return this;
     }
     
@@ -130,7 +126,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public StubURLBuilder text(final String text) {
+    public StubURL text(final String text) {
         setContent(text, "text/plain"); return this;
     }
     
@@ -142,7 +138,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public StubURLBuilder html(final String html) {
+    public StubURL html(final String html) {
         setContent(html, "text/html"); return this;
     }
     
@@ -154,7 +150,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public StubURLBuilder json(final String json) {
+    public StubURL json(final String json) {
         setContent(json, "application/json"); return this;
     }
     
@@ -167,7 +163,7 @@ public class StubURLBuilder extends AbstractURLBuilder {
      * 
      * @return this builder
      */
-    public StubURLBuilder file(final String file) {
+    public StubURL file(final String file) {
         String type = null;
         
         Path path = (file == null) ? null : FileSystems.getDefault().getPath(file);
@@ -185,15 +181,15 @@ public class StubURLBuilder extends AbstractURLBuilder {
         return this;
     }
 
-    public StubURLBuilder header(final String header, final String... values) {
+    public StubURL header(final String header, final String... values) {
         headers.put(header, Lists.newArrayList(values)); return this;
     }
     
-    public StubURLBuilder headers(final Map<String, List<String>> headers) {
+    public StubURL headers(final Map<String, List<String>> headers) {
         this.headers = headers; return this;
     }
     
-    public StubURLBuilder out(final OutputStream out) {
+    public StubURL out(final OutputStream out) {
         this.out = out; return this;
     }
     
