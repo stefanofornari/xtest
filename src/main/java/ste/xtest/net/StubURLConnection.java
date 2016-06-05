@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2015 Stefano Fornari
+ * Copyright (C) 2016 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.output.NullOutputStream;
+import org.assertj.core.util.Lists;
 
 /**
  *
@@ -45,25 +46,12 @@ import org.apache.commons.io.output.NullOutputStream;
  */
 public class StubURLConnection extends HttpURLConnection {
     
-    private static URL FAKE_URL = null;
-    
-    static {
-        try {
-            FAKE_URL = new URL("http://fake.url.connection");
-        } catch (MalformedURLException x) {
-            //
-            // nothing should really be needed...
-            //
-        }
-    }
-    
-    private StubStreamHandler handler;
-
-    public StubURLConnection(StubStreamHandler handler) {
-        super(FAKE_URL);
+    public StubURLConnection(URL url) {
+        super(url);
         
-        this.handler = handler;
-        this.handler.setConnection(this);
+        status = HttpURLConnection.HTTP_OK;
+        headers = new HashMap<>();
+        out = null;
     }
 
     @Override
@@ -81,23 +69,21 @@ public class StubURLConnection extends HttpURLConnection {
     
     @Override
     public int getResponseCode() {
-        return handler.getStatus();
+        return getStatus();
     }
     
     @Override 
     public String getResponseMessage() {
-        return handler.getMessage();
+        return getMessage();
     }
     
     @Override
     public Object getContent() {
-        Object content = handler.getContent();
-        return (content == null) ? null : content;
+        return content;
     }
     
     @Override
     public InputStream getInputStream() throws IOException {
-        Object content = handler.getContent();
         if (content == null) {
             return null;
         }
@@ -113,14 +99,12 @@ public class StubURLConnection extends HttpURLConnection {
     
     @Override
     public OutputStream getOutputStream() throws IOException {
-        OutputStream out = handler.getOutputStream();
-        
         return (out == null) ? NullOutputStream.NULL_OUTPUT_STREAM : out;
     }
     
     @Override
     public String getHeaderField(final String key) {
-        List<String> values = handler.getHeaders().get(key);
+        List<String> values = getHeaders().get(key);
         
         if ((values != null) && (values.size()>0)) {
             return values.get(values.size()-1);
@@ -133,9 +117,210 @@ public class StubURLConnection extends HttpURLConnection {
     public Map<String, List<String>> getHeaderFields() {
         Map<String, List<String>> copy = new HashMap<>();
         
-        for (String key: handler.getHeaders().keySet()) {
-            copy.put(key, Collections.unmodifiableList(handler.getHeaders().get(key)));
+        for (String key: getHeaders().keySet()) {
+            copy.put(key, Collections.unmodifiableList(getHeaders().get(key)));
         }
         return Collections.unmodifiableMap(copy);
+    }
+    
+    // -------------------------------------------------------------------------
+    
+    private int status;
+    private String message;
+    private Object content;
+    private Map<String, List<String>> headers;
+    private OutputStream out;
+    
+    /**
+     * Sets the HTTP(s) status
+     * 
+     * @param status a valid HTTP status
+     * 
+     * @return this
+     */
+    public StubURLConnection status(int status) {
+        this.status = status; return this;
+    }
+    
+    /**
+     * Store the provided response message
+     * 
+     * @param message the response message - MY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection message(final String message) {
+        this.message = message; return this;
+    }
+    
+    /**
+     * Sets the content type of the request. Note that it replaces the current 
+     * value if set (e.g. by calling content(), text() html()).
+     * 
+     * @param type - the content type - NOT BLANK
+     * 
+     * @return this builder
+     */
+    public StubURLConnection type(final String type) {
+        if (type == null) {
+            headers.remove("content-type");
+        } else {
+            headers.put("content-type", Lists.newArrayList(type));
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Sets the body, content-type (application/octet-stream) and content-length
+     * (the length of content or 0 if content is null) of the request. 
+     * 
+     * @param content - MAY BE NULL
+     * 
+     * @return this builder
+     */
+    public StubURLConnection content(final byte[] content) {
+        setContent(content, "application/octet-stream"); return this;
+    }
+    
+    /**
+     * Sets the body, content-type (text/plain) and content-length (the length 
+     * text or 0 if text is null) of the request. 
+     * 
+     * @param text - MAY BE NULL
+     * 
+     * @return this builder
+     */
+    public StubURLConnection text(final String text) {
+        setContent(text, "text/plain"); return this;
+    }
+    
+    /**
+     * Sets the body, content-type (text/html) and content-length (the length 
+     * of html or 0 if text is null) of the request. 
+     * 
+     * @param html - MAY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection html(final String html) {
+        setContent(html, "text/html"); return this;
+    }
+    
+    /**
+     * Sets the body, content-type (application/json) and content-length (the 
+     * length of json or 0 if json is null) of the request. 
+     * 
+     * @param json - MAY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection json(final String json) {
+        setContent(json, "application/json"); return this;
+    }
+    
+    /**
+     * Sets the body, content-type (depending on file) and content-length (-1 if
+     * the file does not exist or the file length if the file exists) of the 
+     * request. 
+     * 
+     * @param file - MAY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection file(final String file) {
+        String type = null;
+        
+        Path path = (file == null) ? null : FileSystems.getDefault().getPath(file);
+        if (path != null) {
+            try {
+                type = Files.probeContentType(path);
+            } catch (IOException x) {
+                //
+                // noting to do
+                //
+            }
+        }
+        
+        setContent(path, (type == null) ? "application/octet-stream" : type); 
+        return this;
+    }
+
+    /**
+     * Stores the given header.
+     * 
+     * @param header header name - MUST NOT BE EMPTY
+     * @param values header values - MAY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection header(final String header, final String... values) {
+        headers.put(header, Lists.newArrayList(values)); return this;
+    }
+    
+    /**
+     * Stores the given headers
+     * 
+     * @param headers the headers map - MAY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection headers(final Map<String, List<String>> headers) {
+        this.headers = headers; return this;
+    }
+    
+    /**
+     * Sets the output stream content can be written to
+     * 
+     * @param out the output stream - MAY BE NULL
+     * 
+     * @return this
+     */
+    public StubURLConnection out(final OutputStream out) {
+        this.out = out; return this;
+    }
+    
+    public int getStatus() {
+        return status;
+    }
+    
+    public String getMessage() {
+        return message;
+    }
+    
+    public Map<String, List<String>> getHeaders() {
+        return headers;
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private void setContent(final Object content, final String type) {
+        this.content = content;
+        headers.put("content-type", Lists.newArrayList(type));
+        headers.put("content-length", Lists.newArrayList(getContentLength(content)));
+    }
+    
+    private String getContentLength(final Object content) {
+        long len = -1;
+        
+        if (content == null) {
+            len = 0;
+        } else {
+            if (content instanceof byte[]) {
+                len = ((byte[])content).length;
+            } else if (content instanceof String) {
+                len = ((String)content).length();
+            } else if (content instanceof Path) {
+                try {
+                    len = Files.size((Path)content);
+                } catch (IOException x) {
+                    //
+                    // nothing to do, it will take -1
+                    //
+                }
+            }
+        }
+        
+        return String.valueOf(len);
     }
 }

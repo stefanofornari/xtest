@@ -25,7 +25,7 @@ import java.net.MalformedURLException;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.net.StubURL;
+import ste.xtest.net.StubURLConnection;
 
 /**
  * 
@@ -92,7 +92,7 @@ public class BugFreeCookie extends BugFreeEnvjs {
             "http://server.com/cookie/values1",
             "http://server.com/cookie/values2"
         };
-        StubURL[] builders = prepareUrlStupBuilders(URLS);
+        StubURLConnection[] builders = prepareUrlStupBuilders(URLS);
         
         int i=0;
         builders[i++].text("");

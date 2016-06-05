@@ -22,11 +22,13 @@
 package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.mozilla.javascript.NativeArray;
 import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
-import ste.xtest.net.StubURL;
+import ste.xtest.net.StubURLConnection;
 
 /**
  *
@@ -63,8 +65,8 @@ public class BugFreeWindow extends BugFreeEnvjs {
     @Test
     public void set_location_with_fragment() throws Exception {
         final String URL = "http://www.server.com/home.html#fragment";
-        StubURL[] b = prepareUrlStupBuilders(URL);
-        b[0].set(URL).status(200).text("");
+        StubURLConnection[] b = prepareUrlStupBuilders(URL);
+        b[0].status(200).text("");
         
         exec("window.location = '" + URL + "'");
 
@@ -76,8 +78,8 @@ public class BugFreeWindow extends BugFreeEnvjs {
     @Test
     public void windows_with_same_name_do_not_open_new_windows() throws Exception {
         final String URL = "http://www.server.com/home.html";
-        StubURL[] b = prepareUrlStupBuilders(URL);
-        b[0].set(URL).status(200).text(""); 
+        StubURLConnection[] b = prepareUrlStupBuilders(URL);
+        b[0].status(200).text(""); 
         
         exec(
             String.format(
@@ -92,8 +94,8 @@ public class BugFreeWindow extends BugFreeEnvjs {
     @Test
     public void windows_with_different_name_open_new_windows() throws Exception {
         final String URL = "http://www.server.com/home.html";
-        StubURL[] b = prepareUrlStupBuilders(URL);
-        b[0].set(URL).status(200).text(""); 
+        StubURLConnection[] b = prepareUrlStupBuilders(URL);
+        b[0].status(200).text(""); 
         
         exec(
             String.format(

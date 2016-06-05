@@ -23,21 +23,25 @@ package ste.xtest.js;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Map;
+import java.net.URL;
 import javax.script.ScriptException;
-import org.mozilla.javascript.NativeJavaObject;
-import ste.xtest.net.StubURL;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import ste.xtest.net.StubURLConnection;
+import ste.xtest.net.StubStreamHandler.URLMap;
 
 /**
  * @author ste
  */
 public class BugFreeEnvjs extends BugFreeJavaScript {
+    @Rule
+    public final ProvideSystemProperty PACKAGE_HANDLERS
+	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
     
     public BugFreeEnvjs() throws ScriptException, IOException {
         super();
         loadScript("/js/ecma5-adapter.js");
         loadScript("/js/angular-rhino.js");
-        loadScript("/js/envjs.urlstubber.js");
     }
     
     /**
@@ -51,15 +55,13 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
      * 
      * @throws MalformedURLException if any of the urls is incorrect
      */
-    protected StubURL[] prepareUrlStupBuilders(final String... urls) throws MalformedURLException {
-        StubURL[] builders = new StubURL[urls.length];
+    protected StubURLConnection[] prepareUrlStupBuilders(final String... urls) throws MalformedURLException {
+        StubURLConnection[] builders = new StubURLConnection[urls.length];
         
-        Map map = (Map)((NativeJavaObject)exec("Envjs.map;")).unwrap();
         int i = 0;
         while(i<builders.length) {
-            builders[i] = new StubURL();
-            builders[i].set(urls[i]);
-            map.put(urls[i], builders[i].build());
+            builders[i] = new StubURLConnection(new URL(urls[i]));
+            URLMap.add(builders[i]);
             ++i;
         }
         

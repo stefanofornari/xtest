@@ -71,7 +71,6 @@
             <groupId>com.github.stefanbirkner</groupId>
             <artifactId>system-rules</artifactId>
             <version>1.16.0</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -132,6 +131,9 @@
                         <include>**/*BugFree.java</include>
                         <include>**/*BF.java</include>
                     </includes>
+                    <forkMode>always</forkMode>
+                    <parallel>classes</parallel>
+                    <threadCountClasses>1</threadCountClasses>
                 </configuration>
             </plugin>
             

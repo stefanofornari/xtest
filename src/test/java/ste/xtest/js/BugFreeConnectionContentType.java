@@ -24,15 +24,22 @@ package ste.xtest.js;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.mozilla.javascript.NativeJavaObject;
-import ste.xtest.net.StubURL;
+import ste.xtest.net.StubStreamHandler;
+import ste.xtest.net.StubURLConnection;
 
 /**
  *
  * @author ste
  */
 public class BugFreeConnectionContentType {
+    
+    @Rule
+    public final ProvideSystemProperty PACKAGE_HANDLERS
+	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
     
     @Test
     public void retrieve_content_type_from_connection() throws Exception {
@@ -43,9 +50,11 @@ public class BugFreeConnectionContentType {
     private void thenContentTypeIs(final String type) throws Exception {
         BugFreeJavaScript test = new BugFreeJavaScript(){};
         
-        StubURL b = new StubURL();
-        URL url = b.set("http://a.url.com/home").status(200).type(type).build();
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        StubURLConnection c = new StubURLConnection(new URL("http://a.url.com/home")); 
+        StubStreamHandler.URLMap.add(c);
+        c.status(200).type(type);
+        HttpURLConnection connection = 
+            (HttpURLConnection)new URL("http://a.url.com/home").openConnection();
         test.set("c", connection);
         
         NativeJavaObject o = (NativeJavaObject)test.exec("Envjs.contentType(c);");

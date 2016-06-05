@@ -21,20 +21,16 @@
  */
 package ste.xtest.net;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.assertj.core.util.Lists;
+import sun.net.www.protocol.file.FileURLConnection;
+import sun.net.www.protocol.http.HttpURLConnection;
+import sun.net.www.protocol.https.HttpsURLConnectionImpl;
 
 /**
  *
@@ -42,18 +38,77 @@ import org.assertj.core.util.Lists;
  */
 public class StubStreamHandler extends URLStreamHandler {
     
-    public StubStreamHandler() {
-    }
-    
-    public static StubStreamHandler add(String url) {
-        return new StubStreamHandler();
-    }
-    
-    
     @Override
     protected URLConnection openConnection(URL url) throws IOException {
-        return new StubURLConnection(url);
+        StubURLConnection stub = URLMap.get(url.toString());
+        
+        return (stub != null) ? stub
+                              : getDefaultConnection(url);
     }
     
-    // -------------------------------------------------------------------------
+    // ------------------------------------------------------------ class URLMap
+    
+    public static class URLMap {
+    
+        private static final Map<String, StubURLConnection> map = new HashMap<>();
+
+        public static Map<String, StubURLConnection> getMapping() {
+            return map;
+        }
+
+        /**
+         * 
+         * @param url the url to be used to select a mock - NOT NULL
+         * 
+         * @return the selected mock 
+         * 
+         * @throws IllegalArgumentException if url is malformed or null
+         * 
+         */
+        public static StubURLConnection get(String url) {
+            if (url == null) {
+                throw new IllegalArgumentException("url can not be null");
+            }
+
+            return map.get(url);
+        }
+
+        public static void add(StubURLConnection stub) {
+            map.put(stub.getURL().toString(), stub);
+        }
+    }
+
+    // --------------------------------------------------------- private methods
+    
+    private URLConnection getDefaultConnection(URL url) throws IOException {
+        String protocol = url.getProtocol();
+        
+        int port = url.getPort();
+        
+        URLConnection c = null;
+        
+        if (protocol.equalsIgnoreCase("http")) {
+            c = new HttpURLConnection(url, url.getHost(), (port < 0) ? 80 : port);
+        } else if (protocol.equalsIgnoreCase("https")) {
+            c = new HttpsURLConnectionWrapper(url); 
+        } else if (protocol.equalsIgnoreCase("ftp")) {
+            c = new sun.net.www.protocol.ftp.FtpURLConnection(url);
+        } else if (protocol.equalsIgnoreCase("file")) {
+            c = new FileURLConnectionWrapper(url);
+        } 
+        
+        return c;
+    }
+
+    private class HttpsURLConnectionWrapper extends HttpsURLConnectionImpl {
+        public HttpsURLConnectionWrapper(URL url) throws IOException {
+            super(url);
+        }
+    }
+    
+    private class FileURLConnectionWrapper extends FileURLConnection {
+        public FileURLConnectionWrapper(URL url) throws IOException {
+            super(url, new File(url.getFile()));
+        }
+    }
 }

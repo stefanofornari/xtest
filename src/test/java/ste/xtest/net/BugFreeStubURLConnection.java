@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
@@ -37,46 +38,44 @@ import org.junit.Test;
 
 /**
  *
- * @author ste
+ * @TODO: sanity check for the following methods: header, status
  */
 public class BugFreeStubURLConnection {
     
     private static final String TEST_URL_DUMMY = "http://url.com";
     
-    private StubStreamHandler H;
     private StubURLConnection C;
     
     @Before
-    public void before() {
-        H = new StubStreamHandler();
-        C = new StubURLConnection(H);
+    public void before() throws Exception {
+        C = new StubURLConnection(new URL(TEST_URL_DUMMY));
+        StubStreamHandler.URLMap.add(C);
     }
     
     @Test
     public void default_status_200() throws Exception {
-        H.status(HttpURLConnection.HTTP_OK);
-        then(C.getResponseCode()).isEqualTo(HttpURLConnection.HTTP_OK);        
+        then(C.getStatus()).isEqualTo(HttpURLConnection.HTTP_OK);
     }
     
     @Test
     public void set_status() throws Exception {
-        H.status(HttpURLConnection.HTTP_ACCEPTED);
-        then(C.getResponseCode()).isEqualTo(HttpURLConnection.HTTP_ACCEPTED);
+        then(C.status(HttpURLConnection.HTTP_ACCEPTED)).isSameAs(C);
+        then(C.getStatus()).isEqualTo(HttpURLConnection.HTTP_ACCEPTED);
         
-        H.status(HttpURLConnection.HTTP_FORBIDDEN);
-        then(C.getResponseCode()).isEqualTo(HttpURLConnection.HTTP_FORBIDDEN);
+        then(C.status(HttpURLConnection.HTTP_FORBIDDEN)).isSameAs(C);
+        then(C.getStatus()).isEqualTo(HttpURLConnection.HTTP_FORBIDDEN);
     }
     
     @Test
     public void set_message() throws Exception {
-        H.message("ok");
-        then(C.getResponseMessage()).isEqualTo("ok");
+        then(C.message("ok")).isSameAs(C);
+        then(C.getMessage()).isEqualTo("ok");
         
-        H.message("this is the response message");
-        then(C.getResponseMessage()).isEqualTo("this is the response message");
+        then(C.message("this is the response message")).isSameAs(C);
+        then(C.getMessage()).isEqualTo("this is the response message");
         
-        H.message(null);
-        then(C.getResponseMessage()).isEqualTo(null);
+        then(C.message(null)).isSameAs(C);
+        then(C.getMessage()).isEqualTo(null);
     }
     
     @Test
@@ -84,20 +83,224 @@ public class BugFreeStubURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        H.content(TEST_CONTENT1.getBytes());
+        C.getHeaders().clear(); 
+        then(C.content(TEST_CONTENT1.getBytes())).isSameAs(C);
         then(C.getContent()).isEqualTo(TEST_CONTENT1.getBytes());
-        then(C.getContentType()).isEqualTo("application/octet-stream");
-        then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT1.length());
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT1.length());
         
-        H.content(TEST_CONTENT2.getBytes());
+        C.getHeaders().clear(); 
+        then(C.content(TEST_CONTENT2.getBytes())).isSameAs(C);
         then(C.getContent()).isEqualTo(TEST_CONTENT2.getBytes());
-        then(C.getContentType()).isEqualTo("application/octet-stream");
-        then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT2.length());
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT2.length());
         
-        H.content((byte[])null);
-        then(C.getContent()).isEqualTo(null);
-        then(C.getContentType()).isEqualTo("application/octet-stream");
-        then(C.getContentLengthLong()).isZero();
+        C.getHeaders().clear(); 
+        then(C.content((byte[])null)).isSameAs(C);
+        then(C.getContent()).isNull();
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isZero();
+    }
+    
+    @Test
+    public void set_content_as_plain_text() throws Exception {
+        final String TEST_CONTENT1 = "hello world";
+        final String TEST_CONTENT2 = "welcome on board";
+        
+        C.getHeaders().clear(); 
+        then(C.text(TEST_CONTENT1)).isSameAs(C);
+        then(C.getContent()).isEqualTo(TEST_CONTENT1);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT1.length());
+        
+        C.getHeaders().clear(); 
+        then(C.text(TEST_CONTENT2)).isSameAs(C);
+        then(C.getContent()).isEqualTo(TEST_CONTENT2);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT2.length());
+        
+        C.getHeaders().clear(); 
+        then(C.text(null)).isSameAs(C);
+        then(C.getContent()).isNull();
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isZero();
+    }
+
+    @Test
+    public void set_content_as_html() throws Exception {
+        final String TEST_CONTENT1 = "<html><body>hello world</body></html>";
+        final String TEST_CONTENT2 = "<html><body>welcome on board</html></body>";
+        
+        C.getHeaders().clear(); 
+        then(C.html(TEST_CONTENT1)).isSameAs(C);
+        then(C.getContent()).isEqualTo(TEST_CONTENT1);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT1.length());
+        
+        C.getHeaders().clear(); 
+        then(C.html(TEST_CONTENT2)).isSameAs(C);
+        then(C.getContent()).isEqualTo(TEST_CONTENT2);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT2.length());
+        
+        C.getHeaders().clear(); 
+        then(C.html(null)).isSameAs(C);
+        then(C.getContent()).isNull();
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isZero();
+    }
+    
+    @Test
+    public void set_content_as_json() throws Exception {
+        final String TEST_CONTENT1 = "{ 'msg': 'hello world' }";
+        final String TEST_CONTENT2 = "{ 'msg': 'welcome on board' }";
+        
+        C.getHeaders().clear(); C.json(TEST_CONTENT1);
+        then(C.getContent()).isEqualTo(TEST_CONTENT1);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("application/json");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT1.length());
+        
+        C.getHeaders().clear(); C.json(TEST_CONTENT2);
+        then(C.getContent()).isEqualTo(TEST_CONTENT2);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("application/json");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isEqualTo(TEST_CONTENT2.length());
+        
+        C.getHeaders().clear(); C.json(null);
+        then(C.getContent()).isNull();
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("application/json");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isZero();
+    }
+    
+    @Test
+    public void set_content_as_path() {
+        
+        final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
+        final String TEST_FILE2 = "src/test/resources/images/6096.png";
+        final String TEST_FILE3 = "src/test/resources/notexisting.unknown";
+        
+        then(C.file(TEST_FILE1)).isSameAs(C);
+        then(String.valueOf(C.getContent())).isEqualTo(TEST_FILE1);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
+        then(C.getHeaders().get("content-length").get(0)).isEqualTo("142");
+        
+        
+        then(C.file(TEST_FILE2)).isSameAs(C);
+        then(String.valueOf(C.getContent())).isEqualTo(TEST_FILE2);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("image/png");
+        then(C.getHeaders().get("content-length").get(0)).isEqualTo("1516957");
+        
+        then(C.file(TEST_FILE3)).isSameAs(C);
+        then(String.valueOf(C.getContent())).isEqualTo(TEST_FILE3);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
+        then(C.getHeaders().get("content-length").get(0)).isEqualTo("-1");
+        
+        then(C.file(null)).isSameAs(C);
+        then(C.getContent()).isNull();
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("application/octet-stream");
+        then(
+            Long.parseLong(C.getHeaders().get("content-length").get(0))
+        ).isZero();
+    }
+    
+    @Test
+    public void headers_defatuls_to_empty_map() {
+        then(C.getHeaders()).isNotNull().hasSize(0);
+    }
+    
+    @Test
+    public void set_single_header_adds_to_headers() {
+        then(C.header("key1", "value1")).isSameAs(C);
+        then(C.getHeaders().keySet()).containsExactly("key1");
+        then(C.getHeaders().get("key1").get(0)).isEqualTo("value1");
+        then(C.header("key2", "value2")).isSameAs(C);
+        then(C.getHeaders().keySet()).containsExactly("key1", "key2");
+        then(C.getHeaders().get("key1").get(0)).isEqualTo("value1");
+        then(C.getHeaders().get("key2").get(0)).isEqualTo("value2");
+        then(C.header("key3", "value3")).isSameAs(C);
+        then(C.getHeaders().keySet()).containsExactly("key1", "key2", "key3");
+        then(C.getHeaders().get("key1").get(0)).isEqualTo("value1");
+        then(C.getHeaders().get("key2").get(0)).isEqualTo("value2");
+        then(C.getHeaders().get("key3").get(0)).isEqualTo("value3");
+    }
+    
+    @Test
+    public void set_header_with_multiple_values() {
+        then(C.header("key1", "value1", "value2")).isSameAs(C);
+        then(C.getHeaders().keySet()).containsExactly("key1");
+        then(C.getHeaders().get("key1")).containsExactly("value1", "value2");
+        
+        then(C.header("key2", "value3", "value4", "value5")).isSameAs(C);
+        then(C.getHeaders().keySet()).containsExactly("key1", "key2");
+        then(C.getHeaders().get("key2")).containsExactly("value3", "value4", "value5");
+    }
+    
+    @Test
+    public void set_headers_replace_all_headers() {
+        final Map<String, List<String>> MAP1 = new HashMap<>(), MAP2 = new HashMap<>();
+        
+        MAP1.put("key1", Lists.newArrayList("value1"));
+        MAP1.put("key2", Lists.newArrayList("value2"));
+        
+        MAP2.put("key3", Lists.newArrayList("value3"));
+        MAP2.put("key4", Lists.newArrayList("value4"));
+        
+        then(C.headers(MAP1)).isSameAs(C);
+        then(C.getHeaders()).containsOnlyKeys(MAP1.keySet().toArray(new String[0]));
+        
+        then(C.headers(MAP2)).isSameAs(C);
+        then(C.getHeaders()).containsOnlyKeys(MAP2.keySet().toArray(new String[0]));
+    }
+    
+    @Test
+    public void set_type_sets_content_type() {
+        then(C.type("text/html")).isSameAs(C);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/html");
+        
+        then(C.type("text/plain")).isSameAs(C);
+        then(C.getHeaders().get("content-type").get(0)).isEqualTo("text/plain");
+    }
+    
+    @Test
+    public void set_type_to_null_removes_content_type() {
+        then(C.type("text/html")).isSameAs(C);
+        then(C.getHeaders()).containsKey("content-type");
+        
+        then(C.type(null)).isSameAs(C);
+        then(C.getHeaders()).doesNotContainKey("content-type");
+    }  
+    
+    @Test
+    public void set_output_stream_for_posted_data() throws Exception {
+        ByteArrayOutputStream out1 = new ByteArrayOutputStream();
+        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        
+        then(C.out(out1)).isSameAs(C);
+        then(C.getOutputStream()).isSameAs(out1);
+        
+        then(C.out(out2)).isSameAs(C);
+        then(C.getOutputStream()).isSameAs(out2);
     }
     
     @Test
@@ -105,17 +308,17 @@ public class BugFreeStubURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        H.text(TEST_CONTENT1);
+        C.text(TEST_CONTENT1);
         then(C.getContent()).isEqualTo(TEST_CONTENT1);
         then(C.getContentType()).isEqualTo("text/plain");
         then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT1.length());
         
-        H.text(TEST_CONTENT2);
+        C.text(TEST_CONTENT2);
         then(C.getContent()).isEqualTo(TEST_CONTENT2);
         then(C.getContentType()).isEqualTo("text/plain");
         then(C.getContentLengthLong()).isEqualTo(TEST_CONTENT2.length());
         
-        H.text((String)null);
+        C.text((String)null);
         then(C.getContent()).isEqualTo(null);
         then(C.getContentType()).isEqualTo("text/plain");
         then(C.getContentLengthLong()).isZero();
@@ -126,25 +329,25 @@ public class BugFreeStubURLConnection {
         final String TEST_CONTENT1 = "hello world";
         final String TEST_CONTENT2 = "welcome on board";
         
-        H.text(TEST_CONTENT1);
+        C.text(TEST_CONTENT1);
         then(IOUtils.toString(C.getInputStream())).isEqualTo(TEST_CONTENT1);
         
-        H.text(TEST_CONTENT2);
+        C.text(TEST_CONTENT2);
         then(IOUtils.toString(C.getInputStream())).isEqualTo(TEST_CONTENT2);
         
-        H.text(null);
+        C.text(null);
         then(C.getInputStream()).isEqualTo(null);
     }
     
     @Test
     public void get_stream_from_byte_array() throws Exception {
-        H.content("some".getBytes());
+        C.content("some".getBytes());
         then(IOUtils.toString(C.getInputStream())).isEqualTo("some");
     }
     
     @Test
     public void get_stream_from_string() throws Exception {
-        H.text("some");
+        C.text("some");
         then(IOUtils.toString(C.getInputStream())).isEqualTo("some");
     }
     
@@ -153,13 +356,13 @@ public class BugFreeStubURLConnection {
         final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
         final String TEST_FILE2 = "src/test/resources/js/test1.js";
         
-        H.file(TEST_FILE1);
+        C.file(TEST_FILE1);
         then(IOUtils.toString(C.getInputStream()))
             .isEqualTo(IOUtils.toString(new File(TEST_FILE1).getAbsoluteFile().toURI()));
         then(C.getContentType()).isEqualTo("text/html");
         then(C.getContentLength()).isEqualTo(142);
         
-        H.file(TEST_FILE2);
+        C.file(TEST_FILE2);
         then(IOUtils.toString(C.getInputStream()))
             .isEqualTo(IOUtils.toString(new File(TEST_FILE2).getAbsoluteFile().toURI()));
         then(C.getContentType()).isEqualTo("application/javascript");
@@ -183,7 +386,7 @@ public class BugFreeStubURLConnection {
             //
         }
         
-        H.type("text/plain"); headers = C.getHeaderFields();
+        C.type("text/plain"); headers = C.getHeaderFields();
         then(headers).hasSize(1).containsOnlyKeys("content-type");
         try {
             headers.put("key", Lists.newArrayList("value"));
@@ -207,10 +410,10 @@ public class BugFreeStubURLConnection {
     
     @Test
     public void get_header_with_single_value() throws Exception {
-        H.text(""); // sets Content-Type
+        C.text(""); // sets Content-Type
         then(C.getHeaderField("content-type")).isEqualTo("text/plain");
         
-        H.header("name", "value");
+        C.header("name", "value");
         then(C.getHeaderField("name")).isEqualTo("value");
     }
     
@@ -222,10 +425,10 @@ public class BugFreeStubURLConnection {
      */
     @Test
     public void get_header_with_multiple_values() throws Exception {
-        H.header("name1", "value1", "value2", "value3");
+        C.header("name1", "value1", "value2", "value3");
         then(C.getHeaderField("name1")).isEqualTo("value3");
         
-        H.header("name2", "valueA", "valueB");
+        C.header("name2", "valueA", "valueB");
         then(C.getHeaderField("name2")).isEqualTo("valueB");
     }
     
@@ -239,10 +442,10 @@ public class BugFreeStubURLConnection {
         ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
         
-        H.out(out1);
+        C.out(out1);
         then(C.getOutputStream()).isSameAs(out1);
         
-        H.out(out2);
+        C.out(out2);
         then(C.getOutputStream()).isSameAs(out2);
         
     }

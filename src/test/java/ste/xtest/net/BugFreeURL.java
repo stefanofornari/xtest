@@ -21,7 +21,10 @@
  */
 package ste.xtest.net;
 
+import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
+import org.apache.commons.io.IOUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,14 +39,14 @@ public class BugFreeURL {
     public final ProvideSystemProperty PACKAGE_HANDLERS
 	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
     
-    
     @Test
     public void using_stub_when_connecting_to_a_URL() throws Exception {
         final String[] PROTOCOLS = new String[] {
-            "http", "https", "ftp", "file", "jar"
+            "http", "https", "ftp", "file"
         };
         
         for (String PROTOCOL: PROTOCOLS) {
+            StubStreamHandler.URLMap.add(new StubURLConnection(new URL(PROTOCOL + "://a.url.com")));
             then(new URL(PROTOCOL + "://a.url.com").openConnection()).isInstanceOf(StubURLConnection.class);
         }
     }
@@ -53,15 +56,22 @@ public class BugFreeURL {
         final String TEST_URL1 = "http://a.url/index.html";
         final String TEST_URL2 = "http://another.url/index.html";
         
-        StubURL u1 = new StubURL(), u2 = new StubURL();
-        u1.text(String.valueOf(u1.hashCode()));
-        u2.text(String.valueOf(u2.hashCode()));
+        StubURLConnection c1 = new StubURLConnection(new URL("http://a.url/index.html")), 
+                          c2 = new StubURLConnection(new URL("http://another.url/index.html"));
+        c1.text(String.valueOf(c1.hashCode()));
+        c2.text(String.valueOf(c2.hashCode()));
         
-        URLStubMap.put(TEST_URL1, u1);
-        URLStubMap.put(TEST_URL2, u2);
+        StubStreamHandler.URLMap.add(c1);
+        StubStreamHandler.URLMap.add(c2);
         
-        then(new URL(TEST_URL1).getContent()).isEqualTo(String.valueOf(u1.hashCode()));
-        then(new URL(TEST_URL2).getContent()).isEqualTo(String.valueOf(u2.hashCode()));
+        then(new URL(TEST_URL1).getContent()).isEqualTo(String.valueOf(c1.hashCode()));
+        then(new URL(TEST_URL2).getContent()).isEqualTo(String.valueOf(c2.hashCode()));
+    }
+    
+    @Test
+    public void use_default_handler_for_not_stubbed_urls() throws Exception {
+        URL u = new File("src/test/resources/html/documentlocation.html").toURI().toURL();
         
+        then(IOUtils.toString((InputStream)u.getContent())).contains("TODO write content");
     }
 }

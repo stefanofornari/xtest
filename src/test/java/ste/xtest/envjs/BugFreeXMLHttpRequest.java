@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.net.StubURL;
+import ste.xtest.net.StubURLConnection;
 
 /**
  *
@@ -41,9 +41,9 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     
     @Test
     public void retrieve_mocked_html() throws Exception {
-        StubURL b = prepareUrlStupBuilders("http://a.url.com/home.html")[0];
+        StubURLConnection b = prepareUrlStupBuilders("http://a.url.com/home.html")[0];
         
-        b.status(200).html("<html><head><title>hello world</title></head></html>").build();
+        b.status(200).html("<html><head><title>hello world</title></head></html>");
         
         //
         // let's just trigger the process for now...
@@ -83,10 +83,10 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
             "http://a.url.com/home.html",
             "http://a.url.com/home.jpg"
         };
-        StubURL[] builders = prepareUrlStupBuilders(urls);
-        builders[0].status(200).text("hello").build();
-        builders[1].status(200).html("<html><body>hello</body></html>").build();
-        builders[2].status(200).content(new byte[] {0}).type("image/jpg").build();
+        StubURLConnection[] builders = prepareUrlStupBuilders(urls);
+        builders[0].status(200).text("hello");
+        builders[1].status(200).html("<html><body>hello</body></html>");
+        builders[2].status(200).content(new byte[] {0}).type("image/jpg");
         
         //
         // text/plain
@@ -134,10 +134,10 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
             "http://a.url.com/home.html",
             "file:///afile.txt"
         };
-        StubURL[] builders = prepareUrlStupBuilders(urls);
+        StubURLConnection[] builders = prepareUrlStupBuilders(urls);
         
         for (int i=0; i<urls.length; ++i) {
-            builders[i].text("not found").status(404).build();
+            builders[i].text("not found").status(404);
             
             exec(
                 "var xhr = new XMLHttpRequest();" + 

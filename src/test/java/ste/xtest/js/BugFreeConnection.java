@@ -23,11 +23,12 @@ package ste.xtest.js;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashMap;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mozilla.javascript.NativeJavaObject;
-import ste.xtest.net.StubURL;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import ste.xtest.net.StubStreamHandler.URLMap;
+import ste.xtest.net.StubURLConnection;
 
 /**
  *
@@ -35,24 +36,24 @@ import ste.xtest.net.StubURL;
  */
 public class BugFreeConnection extends BugFreeJavaScript {
     
+    @Rule
+    public final ProvideSystemProperty PACKAGE_HANDLERS
+	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
+    
     public BugFreeConnection() throws Exception {
-        loadScript("/js/envjs.urlstubber.js");
     }
     
     @Test
     public void retrieve_stubbed_html() throws Exception {
-        StubURL b = new StubURL();
-        URL url = b.set("http://a.url.com/home.html")
-                   .html("<html><head><title>hello world</title></head></html>").build();
+        final String TEST_URL = "http://a.url.com/home.html";
         
-        NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");
-        HashMap map = (HashMap)o.unwrap();
-        map.put(url.toExternalForm(), url);
+        StubURLConnection c = new StubURLConnection(new URL(TEST_URL)); URLMap.add(c);
+        c.html("<html><head><title>hello world</title></head></html>");
         
         //
         // let's just trigger the process for now...
         //
-        exec("window.location='http://a.url.com/home.html';\n");
+        exec("window.location='" + TEST_URL + "';\n");
         
         then(exec("document.title;")).isEqualTo("hello world");
     }
@@ -67,14 +68,12 @@ public class BugFreeConnection extends BugFreeJavaScript {
     
     @Test
     public void get_error_status() throws Exception {
-        StubURL b = new StubURL();
-        URL url = b.set("http://a.url.com/home.html").status(0).text("").build();
+        final String TEST_URL = "http://a.url.com/home.html";
         
-        NativeJavaObject o = (NativeJavaObject)exec("Envjs.map;");
-        HashMap map = (HashMap)o.unwrap();
-        map.put(url.toExternalForm(), url);
+        StubURLConnection c = new StubURLConnection(new URL(TEST_URL)); URLMap.add(c);
+        c.status(0).text("");
         
-        exec("window.location='http://a.url.com/home.html';\n");
+        exec("window.location='" + TEST_URL + "';\n");
         
         then(exec("document.title;")).isEqualTo("Untitled Document");
     }

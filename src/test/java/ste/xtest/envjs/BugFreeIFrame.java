@@ -22,56 +22,59 @@
 
 package ste.xtest.envjs;
 
-import java.util.Map;
+import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.mozilla.javascript.NativeJavaObject;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import ste.xtest.js.BugFreeJavaScript;
-import ste.xtest.net.StubURL;
+import ste.xtest.net.StubURLConnection;
+import ste.xtest.net.StubStreamHandler.URLMap;
 
 /**
- *
+ * TODO: make it inherit from BugFreeEnvjs
  */
 public class BugFreeIFrame extends BugFreeJavaScript {
     
+    @Rule
+    public final ProvideSystemProperty PACKAGE_HANDLERS
+	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
+    
     public BugFreeIFrame() throws Exception {
         super();
-        loadScript("/js/envjs.urlstubber.js");
     }
     
     @Before
     public void before() throws Exception {
-        Map stubs = (Map)((NativeJavaObject)exec("Envjs.map;")).unwrap();
-        StubURL b1 = new StubURL();
-        b1.set("http://noserver.com/hello1.txt").text("1. hello world!");
-        stubs.put(b1.getUrl().toExternalForm(), b1.build());
+        StubURLConnection s1 = new StubURLConnection(new URL("http://noserver.com/hello1.txt"));
+        s1.text("1. hello world!");
+        URLMap.add(s1);
         
-        StubURL b2 = new StubURL();
-        b2.set("http://noserver.com/hello2.txt").text("2. hello world!");
-        stubs.put(b2.getUrl().toExternalForm(), b2.build());
+        StubURLConnection s2 = new StubURLConnection(new URL("http://noserver.com/hello2.txt"));
+        s2.text("2. hello world!");
+        URLMap.add(s2);
         
-        StubURL b3 = new StubURL();
-        b3.set("http://noserver.com/hello1.html").html("<html><head/><body>hello world 1</body></html>");
-        stubs.put(b3.getUrl().toExternalForm(), b3.build());
+        StubURLConnection s3 = new StubURLConnection(new URL("http://noserver.com/hello1.html"));
+        s3.html("<html><head/><body>hello world 1</body></html>");
+        URLMap.add(s3);
         
-        StubURL b4 = new StubURL();
-        b4.set("http://noserver.com/hello2.html").html("<html><head/><body>hello world 2</body></html>");
-        stubs.put(b4.getUrl().toExternalForm(), b4.build());
+        StubURLConnection s4 = new StubURLConnection(new URL("http://noserver.com/hello2.html"));
+        s4.html("<html><head/><body>hello world 2</body></html>");
+        URLMap.add(s4);
         
-        StubURL b5 = new StubURL();
-        b5.set("http://noserver.com/hello1.jpg").content(new byte[] {0}).type("image/jpg");
-        stubs.put(b5.getUrl().toExternalForm(), b5.build());
+        StubURLConnection s5 = new StubURLConnection(new URL("http://noserver.com/hello1.jpg"));
+        s5.content(new byte[] {0}).type("image/jpg");
+        URLMap.add(s5);
         
-        StubURL b6 = new StubURL();
-        b6.set("http://noserver.com/hello2.png").content(new byte[] {0}).type("image/png");
-        stubs.put(b6.getUrl().toExternalForm(), b6.build());
+        StubURLConnection b6 = new StubURLConnection(new URL("http://noserver.com/hello2.png"));
+        b6.content(new byte[] {0}).type("image/png");
+        URLMap.add(b6);
         
-        StubURL b7 = new StubURL();
-        b7.set("http://noserver.com/hello.html").html("<html><body>hello world!</body></html>");
-        stubs.put(b7.getUrl().toExternalForm(), b7.build());
+        StubURLConnection s7 = new StubURLConnection(new URL("http://noserver.com/hello.html"));
+        s7.html("<html><body>hello world!</body></html>");
+        URLMap.add(s7);
         
-        exec("Envjs.DEBUG=false;");
         exec("window.location='src/test/resources/html/iframe.html';");
     }
     
