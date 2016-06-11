@@ -24,10 +24,10 @@ package ste.xtest.js;
 import java.io.File;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Rule;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import ste.xtest.net.StubStreamHandler.URLMap;
+import ste.xtest.net.StubStreamHandlerFactory;
 import ste.xtest.net.StubURLConnection;
 
 /**
@@ -36,11 +36,12 @@ import ste.xtest.net.StubURLConnection;
  */
 public class BugFreeConnection extends BugFreeJavaScript {
     
-    @Rule
-    public final ProvideSystemProperty PACKAGE_HANDLERS
-	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
-    
     public BugFreeConnection() throws Exception {
+    }
+    
+    @BeforeClass
+    public static void before_class() throws Exception {
+        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
     }
     
     @Test

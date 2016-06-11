@@ -24,11 +24,11 @@ package ste.xtest.js;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Rule;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.net.StubStreamHandler;
+import ste.xtest.net.StubStreamHandlerFactory;
 import ste.xtest.net.StubURLConnection;
 
 /**
@@ -37,9 +37,10 @@ import ste.xtest.net.StubURLConnection;
  */
 public class BugFreeConnectionContentType {
     
-    @Rule
-    public final ProvideSystemProperty PACKAGE_HANDLERS
-	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
+    @BeforeClass
+    public static void before_class() throws Exception {
+        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
+    }
     
     @Test
     public void retrieve_content_type_from_connection() throws Exception {

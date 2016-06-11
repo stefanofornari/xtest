@@ -22,9 +22,12 @@
 package ste.xtest.envjs;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import ste.xtest.js.BugFreeEnvjs;
+import ste.xtest.net.StubStreamHandlerFactory;
 import ste.xtest.net.StubURLConnection;
 
 /**
@@ -35,6 +38,11 @@ public class BugFreeCookie extends BugFreeEnvjs {
     
     public BugFreeCookie() throws Exception {
         super();
+    }
+    
+    @BeforeClass
+    public static void before_class() throws Exception {
+        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
     }
     
     @Test

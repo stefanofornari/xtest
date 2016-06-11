@@ -42,6 +42,8 @@ public class StubStreamHandler extends URLStreamHandler {
     protected URLConnection openConnection(URL url) throws IOException {
         StubURLConnection stub = URLMap.get(url.toString());
         
+        System.out.println("url: " + url);
+        System.out.println(URLMap.getMapping());
         return (stub != null) ? stub
                               : getDefaultConnection(url);
     }

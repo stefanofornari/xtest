@@ -19,13 +19,20 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.net.ftp;
+package ste.xtest.net;
 
-import ste.xtest.net.StubStreamHandler;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
 
 /**
  *
  * @author ste
  */
-public class Handler extends StubStreamHandler {
+public class StubStreamHandlerFactory implements URLStreamHandlerFactory {
+
+    @Override
+    public URLStreamHandler createURLStreamHandler(String protocol) {
+        return new StubStreamHandler();
+    }
+    
 }

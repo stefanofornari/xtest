@@ -21,11 +21,14 @@
  */
 package ste.xtest.envjs;
 
+import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.js.BugFreeEnvjs;
+import ste.xtest.net.StubStreamHandlerFactory;
 import ste.xtest.net.StubURLConnection;
 
 /**
@@ -37,6 +40,11 @@ import ste.xtest.net.StubURLConnection;
 public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     
     public BugFreeXMLHttpRequest() throws Exception {
+    }
+    
+    @BeforeClass
+    public static void before_class() throws Exception {
+        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
     }
     
     @Test

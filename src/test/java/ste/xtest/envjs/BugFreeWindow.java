@@ -21,13 +21,16 @@
  */
 package ste.xtest.envjs;
 
+import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.mozilla.javascript.NativeArray;
 import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
+import ste.xtest.net.StubStreamHandlerFactory;
 import ste.xtest.net.StubURLConnection;
 
 /**
@@ -38,6 +41,11 @@ public class BugFreeWindow extends BugFreeEnvjs {
     
     public BugFreeWindow() throws Exception {
         super();
+    }
+    
+    @BeforeClass
+    public static void before_class() throws Exception {
+        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
     }
     
     @Test

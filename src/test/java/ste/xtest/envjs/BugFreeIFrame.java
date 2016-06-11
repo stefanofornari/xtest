@@ -25,24 +25,26 @@ package ste.xtest.envjs;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import ste.xtest.js.BugFreeJavaScript;
 import ste.xtest.net.StubURLConnection;
 import ste.xtest.net.StubStreamHandler.URLMap;
+import ste.xtest.net.StubStreamHandlerFactory;
 
 /**
  * TODO: make it inherit from BugFreeEnvjs
  */
 public class BugFreeIFrame extends BugFreeJavaScript {
     
-    @Rule
-    public final ProvideSystemProperty PACKAGE_HANDLERS
-	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
     
     public BugFreeIFrame() throws Exception {
         super();
+    }
+    
+    @BeforeClass
+    public static void before_class() throws Exception {
+        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
     }
     
     @Before
