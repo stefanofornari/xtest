@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.script.ScriptException;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import ste.xtest.net.StubURLConnection;
 import ste.xtest.net.StubStreamHandler.URLMap;
 
@@ -34,10 +32,6 @@ import ste.xtest.net.StubStreamHandler.URLMap;
  * @author ste
  */
 public class BugFreeEnvjs extends BugFreeJavaScript {
-    @Rule
-    public final ProvideSystemProperty PACKAGE_HANDLERS
-	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net");
-    
     public BugFreeEnvjs() throws ScriptException, IOException {
         super();
         loadScript("/js/ecma5-adapter.js");
