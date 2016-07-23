@@ -133,6 +133,34 @@ public class BugFreeListLogHandler {
     }
     
     @Test
+    public void get_messages_at_a_given_level() {
+        ListLogHandler h = new ListLogHandler();
+
+        //
+        // Initially the loger shall be empty
+        //
+        List<String> messages = h.getMessages(Level.ALL);
+        then(messages).isNotNull();
+        then(messages).isEmpty();
+        
+        
+        h.publish(LOG1); h.publish(LOG2); h.publish(LOG3);
+        
+        //
+        // Use Level.ALL for all messages at any level. 
+        //
+        then(h.getMessages(Level.ALL)).hasSize(3)
+                      .containsSequence(LOG1.getMessage(), LOG2.getMessage(), LOG3.getMessage());
+        
+        //
+        // Otherwise return only the messages at the given level
+        //
+        then(h.getMessages(Level.INFO)).hasSize(1).containsExactly(LOG1.getMessage());
+        then(h.getMessages(Level.SEVERE)).hasSize(1).containsExactly(LOG2.getMessage());
+        then(h.getMessages(Level.FINE)).hasSize(1).containsExactly(LOG3.getMessage());
+    }
+    
+    @Test
     public void flush() {
        ListLogHandler h = new ListLogHandler();
 
@@ -168,7 +196,8 @@ public class BugFreeListLogHandler {
         h.publish(LOG1); then(h.size()).isZero();
         h.publish(LOG3); then(h.size()).isZero();
         h.publish(LOG2); then(h.size()).isEqualTo(1);
-        
     }
+    
+    
 
 }

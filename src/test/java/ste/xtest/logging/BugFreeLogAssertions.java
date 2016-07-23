@@ -21,6 +21,7 @@
  */
 package ste.xtest.logging;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -36,6 +37,7 @@ public class BugFreeLogAssertions {
     public void get_log_assert_with_LogRecord_argument() {
         then(LogAssertions.then(new LogRecord(Level.OFF, null))).isInstanceOf(LogRecordAssert.class);
         then(LogAssertions.then(new SubLogRecord())).isInstanceOf(LogRecordAssert.class);
+        then(LogAssertions.then(new ArrayList<LogRecord>())).isInstanceOf(LogRecordListAssert.class);
     }
     
     // ------------------------------------------------------------ SubLogRecord

@@ -24,6 +24,7 @@ package ste.xtest.logging;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 /**
@@ -112,10 +113,21 @@ public class ListLogHandler extends Handler {
      * @return the record messages as a List<String>
      */
     public synchronized List<String> getMessages() {
+        return getMessages(Level.ALL);
+    }
+    
+    /**
+     * Returns the record messages logged at the given level as a List<String>
+     *
+     * @return the record messages logged at the given level as a List<String>
+     */
+    public synchronized List<String> getMessages(Level level) {
         List<String> messages = new ArrayList<>();
         
         for (LogRecord r: records) {
-            messages.add(r.getMessage());
+            if ((level == Level.ALL) || (level == r.getLevel())) {
+                messages.add(r.getMessage());
+            }
         }
 
         return messages;

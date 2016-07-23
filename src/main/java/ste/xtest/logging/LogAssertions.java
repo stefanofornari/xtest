@@ -21,6 +21,7 @@
  */
 package ste.xtest.logging;
 
+import java.util.List;
 import java.util.logging.LogRecord;
 import org.assertj.core.api.Assertions;
 
@@ -37,5 +38,9 @@ public class LogAssertions {
     
     public static LogRecordAssert then(final LogRecord o) {
         return new LogRecordAssert(o);
+    }
+    
+    public static LogRecordListAssert then(final List<LogRecord> l) {
+        return new LogRecordListAssert(l);
     }
 }
