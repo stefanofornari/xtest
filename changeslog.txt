@@ -1,3 +1,12 @@
+20160730
+- released v1.16.0
+
+20160720
+- added assertions like then(list of records).containsAtINFO(message)
+- added ste.xtest.logging.LoggingByteArrayOutputStream, a ByteArrayOutputStream
+  that logs in the given logger, at the given level, all stream activity
+- added logging to ste.xtest.net URL stubbing classes
+
 20160611
 - better java.net stubbing technique
 - release v1.15.0

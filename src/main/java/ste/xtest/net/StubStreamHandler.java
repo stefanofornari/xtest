@@ -28,6 +28,8 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import sun.net.www.protocol.file.FileURLConnection;
 import sun.net.www.protocol.http.HttpURLConnection;
 import sun.net.www.protocol.https.HttpsURLConnectionImpl;
@@ -38,11 +40,18 @@ import sun.net.www.protocol.https.HttpsURLConnectionImpl;
  */
 public class StubStreamHandler extends URLStreamHandler {
     
+    private final Logger LOG = Logger.getLogger("ste.xtest.net");
+    
     @Override
     protected URLConnection openConnection(URL url) throws IOException {
         StubURLConnection stub = URLMap.get(url.toString());
         
-        System.out.println(((stub != null) ? "stubbed" : "default") + " url: " + url);
+        if (LOG.isLoggable(Level.INFO)) {
+            LOG.info(
+                ((stub != null) ? "stubbed" : "default") + " url: " + url
+            );
+        }
+        
         return (stub != null) ? stub
                               : getDefaultConnection(url);
     }

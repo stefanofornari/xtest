@@ -34,8 +34,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.output.NullOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.assertj.core.util.Lists;
+import ste.xtest.logging.LoggingByteArrayOutputStream;
 
 /**
  *
@@ -46,16 +48,27 @@ import org.assertj.core.util.Lists;
  */
 public class StubURLConnection extends HttpURLConnection {
     
+    private final Logger LOG = Logger.getLogger("ste.xtest.net");
+    
     public StubURLConnection(URL url) {
         super(url);
         
         status = HttpURLConnection.HTTP_OK;
         headers = new HashMap<>();
-        out = null;
+        
+        Level level = LOG.getLevel();
+        out = new LoggingByteArrayOutputStream(
+            LOG, (level == null) ? Level.INFO : level, 2500
+        );
     }
 
     @Override
     public void connect() throws IOException {
+        if (LOG.isLoggable(Level.INFO)) {
+            LOG.info("connecting to " + url);
+            LOG.info("request headers: " + getRequestProperties());
+            LOG.info("response headers: " + headers);
+        }
     }
 
     @Override
@@ -89,17 +102,26 @@ public class StubURLConnection extends HttpURLConnection {
         }
         
         if (content instanceof String) {
+            if (LOG.isLoggable(Level.INFO)) {
+                LOG.info("returning input stream from provided text");
+            }
             return new ByteArrayInputStream(((String)content).getBytes());
         } else if (content instanceof Path) {
+            if (LOG.isLoggable(Level.INFO)) {
+                LOG.info("returning input stream from file " + ((Path)content).toAbsolutePath());
+            }
             return Files.newInputStream((Path)content);
         }
         
+        if (LOG.isLoggable(Level.INFO)) {
+            LOG.info("returning input stream from provided data");
+        }
         return new ByteArrayInputStream((byte[])content);
     }
     
     @Override
     public OutputStream getOutputStream() throws IOException {
-        return (out == null) ? NullOutputStream.NULL_OUTPUT_STREAM : out;
+        return out;
     }
     
     @Override
@@ -129,7 +151,7 @@ public class StubURLConnection extends HttpURLConnection {
     private String message;
     private Object content;
     private Map<String, List<String>> headers;
-    private OutputStream out;
+    private LoggingByteArrayOutputStream out;
     
     /**
      * Sets the HTTP(s) status
@@ -269,17 +291,6 @@ public class StubURLConnection extends HttpURLConnection {
         this.headers = headers; return this;
     }
     
-    /**
-     * Sets the output stream content can be written to
-     * 
-     * @param out the output stream - MAY BE NULL
-     * 
-     * @return this
-     */
-    public StubURLConnection out(final OutputStream out) {
-        this.out = out; return this;
-    }
-    
     public int getStatus() {
         return status;
     }
@@ -322,5 +333,14 @@ public class StubURLConnection extends HttpURLConnection {
         }
         
         return String.valueOf(len);
+    }
+    
+    private String logData() {
+        String log = out.toString();
+        if (log.length() == 0) {
+            return "<no data>";
+        }
+        
+        return log;
     }
 }

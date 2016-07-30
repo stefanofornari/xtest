@@ -21,7 +21,6 @@
  */
 package ste.xtest.net;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,12 +28,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.assertj.core.util.Lists;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
+import ste.xtest.logging.LoggingByteArrayOutputStream;
 
 /**
  *
@@ -290,19 +289,7 @@ public class BugFreeStubURLConnection {
         then(C.type(null)).isSameAs(C);
         then(C.getHeaders()).doesNotContainKey("content-type");
     }  
-    
-    @Test
-    public void set_output_stream_for_posted_data() throws Exception {
-        ByteArrayOutputStream out1 = new ByteArrayOutputStream();
-        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
         
-        then(C.out(out1)).isSameAs(C);
-        then(C.getOutputStream()).isSameAs(out1);
-        
-        then(C.out(out2)).isSameAs(C);
-        then(C.getOutputStream()).isSameAs(out2);
-    }
-    
     @Test
     public void set_content_as_string() throws Exception {
         final String TEST_CONTENT1 = "hello world";
@@ -433,21 +420,7 @@ public class BugFreeStubURLConnection {
     }
     
     @Test
-    public void null_output_stream_by_default() throws Exception {
-        then(C.getOutputStream()).isInstanceOf(NullOutputStream.class);
+    public void baos_by_default() throws Exception {
+        then(C.getOutputStream()).isInstanceOf(LoggingByteArrayOutputStream.class);
     }
-    
-    @Test
-    public void use_given_output_stream() throws Exception {
-        ByteArrayOutputStream out1 = new ByteArrayOutputStream();
-        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-        
-        C.out(out1);
-        then(C.getOutputStream()).isSameAs(out1);
-        
-        C.out(out2);
-        then(C.getOutputStream()).isSameAs(out2);
-        
-    }
-    
 }

@@ -114,6 +114,20 @@ public class LoggingByteArrayOutputStream extends ByteArrayOutputStream {
             logger.log(level, "output stream closed");
         }
     }
+    
+    @Override
+    public synchronized void reset() {
+        if (logger.isLoggable(level)) {
+            logger.log(level, "output stream reset");
+        }
+    }
+    
+    @Override
+    public synchronized void flush() {
+        if (logger.isLoggable(level)) {
+            logger.log(level, "output stream flushed");
+        }
+    }
 
     /**
      *@return the maximum number of bytes to log.

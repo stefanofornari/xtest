@@ -103,6 +103,30 @@ public class BugFreeLoggingByteArrayOutputStream {
     }
     
     @Test
+    public void log_stream_resetting() throws Exception {
+        Logger log = getLog();
+        LoggingByteArrayOutputStream o = 
+            new LoggingByteArrayOutputStream(log, Level.INFO, 1000);
+        
+        o.reset();
+        
+        ListLogHandler h = (ListLogHandler)log.getHandlers()[0];
+        LogAssertions.then(h.getRecords()).containsINFO("output stream reset");
+    }
+    
+    @Test
+    public void log_stream_flushing() throws Exception {
+        Logger log = getLog();
+        LoggingByteArrayOutputStream o = 
+            new LoggingByteArrayOutputStream(log, Level.INFO, 1000);
+        
+        o.flush();
+        
+        ListLogHandler h = (ListLogHandler)log.getHandlers()[0];
+        LogAssertions.then(h.getRecords()).containsINFO("output stream flushed");
+    }
+    
+    @Test
     public void log_text_within_max_size() throws Exception {
         Logger log = getLog();
         LoggingByteArrayOutputStream o = 
