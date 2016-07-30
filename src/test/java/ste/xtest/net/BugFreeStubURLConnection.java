@@ -22,8 +22,11 @@
 package ste.xtest.net;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -422,5 +425,28 @@ public class BugFreeStubURLConnection {
     @Test
     public void baos_by_default() throws Exception {
         then(C.getOutputStream()).isInstanceOf(LoggingByteArrayOutputStream.class);
+    }
+    
+    @Test
+    public void throw_a_network_error() throws Exception {
+        IOException e = new UnknownHostException("a.host.com");
+        then(C.error(e)).isSameAs(C);
+        
+        try {
+            C.connect();
+            fail("error not thrown");
+        } catch (IOException x) {
+            then(x).isSameAs(e);
+        }
+        
+        e = new SocketException();
+        then(C.error(e)).isSameAs(C);
+        
+        try {
+            C.connect();
+            fail("error not thrown");
+        } catch (IOException x) {
+            then(x).isSameAs(e);
+        }
     }
 }

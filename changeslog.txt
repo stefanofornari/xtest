@@ -1,4 +1,6 @@
 20160730
+- added StubURLConnection.error(IOException e) to simulate a network error
+- released v1.16.1
 - released v1.16.0
 
 20160720

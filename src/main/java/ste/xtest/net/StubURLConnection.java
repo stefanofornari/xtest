@@ -69,6 +69,9 @@ public class StubURLConnection extends HttpURLConnection {
             LOG.info("request headers: " + getRequestProperties());
             LOG.info("response headers: " + headers);
         }
+        if (error != null) {
+            throw error;
+        }
     }
 
     @Override
@@ -152,6 +155,7 @@ public class StubURLConnection extends HttpURLConnection {
     private Object content;
     private Map<String, List<String>> headers;
     private LoggingByteArrayOutputStream out;
+    private IOException error;
     
     /**
      * Sets the HTTP(s) status
@@ -289,6 +293,15 @@ public class StubURLConnection extends HttpURLConnection {
      */
     public StubURLConnection headers(final Map<String, List<String>> headers) {
         this.headers = headers; return this;
+    }
+    
+    /**
+     * Tells the stub to throw the given error on connection
+     * 
+     * @param error the error to rise
+     */
+    public StubURLConnection error(final IOException error) {
+        this.error = error; return this;
     }
     
     public int getStatus() {
