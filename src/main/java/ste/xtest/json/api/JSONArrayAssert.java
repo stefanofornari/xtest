@@ -22,6 +22,7 @@
 package ste.xtest.json.api;
 
 import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.error.ShouldContainExactly;
 import static org.assertj.core.error.ShouldHaveSize.shouldHaveSize;
 import org.assertj.core.internal.Failures;
 import org.json.JSONArray;
@@ -63,6 +64,58 @@ public class JSONArrayAssert extends AbstractAssert<JSONArrayAssert, JSONArray> 
                 shouldHaveSize(actual, actual.length(), size)
             );
         }
+        return this;
+    }
+    
+    /**
+     * Verifies that the actual group contains only the given values and nothing 
+     * else, in order. This assertion should only be used with group that have a
+     * consistent iteration order (i.e. don't use it with HashSet, prefer 
+     * ObjectEnumerableAssert.containsOnly(Object...) in that case). 
+     * <p>
+     * Example :
+     *     
+     * <pre>
+     * JSONArray a1 = new JSONArray();
+     * a1.put("value1");
+     * a1.put("value2");
+     * a1.put("value3");
+     * 
+     * then(a1).constainsExactly("value1", "value2", "value3");
+     *     
+     * @param size the expected size
+     * 
+     * @return {@code this} assertion object.
+     * 
+     * @throws AssertionError if the given size is not in the current JSONArray length
+     */
+    public JSONArrayAssert containsExactly(String... elements) {
+        int actualLength = actual.length();
+        
+        if (actualLength != elements.length) {
+            throw Failures.instance().failure(
+                info, 
+                ShouldContainExactly.shouldHaveSameSize(actual, elements, actualLength, elements.length, null)
+            );
+        }
+        
+        for (int i=0; i<actualLength; ++i) {
+            Object o = actual.opt(i);
+            if (o == null) {
+                if (elements[i] != null) {
+                    throw Failures.instance().failure(
+                        info, 
+                        ShouldContainExactly.elementsDifferAtIndex(actual, elements, i)
+                    );
+                }
+            } else if (!o.equals(elements[i])) {
+                throw Failures.instance().failure(
+                    info, 
+                    ShouldContainExactly.elementsDifferAtIndex(actual, elements, i)
+                );
+            }
+        }
+        
         return this;
     }
 

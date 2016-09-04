@@ -1,3 +1,12 @@
+20160904
+- changed the behaviour of StubStreamHandler.URLMap() so that get now creates a 
+  clone of the entry as opposed to returning the instance itself
+- fixed wrong behaviour in StubURLConnection
+- added StubURLConnection.exex() to execute arbitrarily code on connection
+
+20160817
+- added assertion JSONAssertions.containsExactly(String ...)
+
 20160730
 - added StubURLConnection.error(IOException e) to simulate a network error
 - released v1.16.1

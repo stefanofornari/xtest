@@ -1603,7 +1603,7 @@ Envjs.connection = function(xhr, responseHandler, data){
     } else {
         connection = url.openConnection();
         connection.setRequestMethod( xhr.method );
-        
+                
         // Add headers to Java connection
         for (header in xhr.headers){
             connection.addRequestProperty(header+'', xhr.headers[header]+'');
@@ -1796,6 +1796,7 @@ Envjs.loadFrame = function(frame, url){
             frame.contentWindow.location = url;
         }
     } catch(e) {
+//        e.javaException.printStackTrace();
         console.log("failed to load frame content: from %s %s", url, e);
     }
 };

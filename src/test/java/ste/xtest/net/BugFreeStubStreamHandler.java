@@ -84,6 +84,13 @@ public class BugFreeStubStreamHandler {
             .containsOnly(entry("file://value1", c1), entry("file://value2", c2));
     }
 
+    /**
+     * Note that <code>get()</code> returns a new instance cloning the object 
+     * added with <code>add()</code>. This is to make sure multiple threads 
+     * can use each its own version of the the stub.
+     * 
+     * @throws Exception 
+     */
     @Test
     public void selects_the_proper_URL_based_on_url_with_hash() throws Exception {
         StubURLConnection c1 = new StubURLConnection(new URL("http://server1/index.html#/fragment")), 
@@ -92,8 +99,10 @@ public class BugFreeStubStreamHandler {
         StubStreamHandler.URLMap.add(c2);
         
         then(StubStreamHandler.URLMap.get("http://server1/index.html#something")).isNull();
-        then(StubStreamHandler.URLMap.get("http://server1/index.html#/fragment")).isSameAs(c1);
-        then(StubStreamHandler.URLMap.get("http://server2/index.html#something?else")).isSameAs(c2);
+        then(StubStreamHandler.URLMap.get("http://server1/index.html#/fragment"))
+            .isInstanceOf(c1.getClass()).isNotSameAs(c1);
+        then(StubStreamHandler.URLMap.get("http://server2/index.html#something?else"))
+            .isInstanceOf(c1.getClass()).isNotSameAs(c2);
         then(StubStreamHandler.URLMap.get(TEST_URL1)).isNull();
         then(StubStreamHandler.URLMap.get(TEST_URL2)).isNull();
     }

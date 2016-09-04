@@ -112,7 +112,7 @@ public class BugFreeStubLog {
         StubStreamHandler sh = new StubStreamHandler();
         StubURLConnection c = StubStreamHandler.URLMap.get(TEST_URL1);
         
-        Map<String, List<String>> headers = new HashMap<>();
+        HashMap<String, List<String>> headers = new HashMap<>();
         headers.put("resheader1", Lists.newArrayList("value11"));
         headers.put("resheader2", Lists.newArrayList("value21", "value22"));
         
@@ -174,9 +174,8 @@ public class BugFreeStubLog {
         StubStreamHandler sh = new StubStreamHandler();
         StubURLConnection c = StubStreamHandler.URLMap.get(TEST_URL1);
         
-        OutputStream out = c.getOutputStream();
-        
         c.setDoInput(true);
+        OutputStream out = c.getOutputStream();
         
         ListLogHandler lh = getLogHandler();
         

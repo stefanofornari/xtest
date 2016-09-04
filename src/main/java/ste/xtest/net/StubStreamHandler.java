@@ -23,6 +23,7 @@ package ste.xtest.net;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.SerializationUtils;
 import sun.net.www.protocol.file.FileURLConnection;
 import sun.net.www.protocol.http.HttpURLConnection;
 import sun.net.www.protocol.https.HttpsURLConnectionImpl;
@@ -79,8 +81,10 @@ public class StubStreamHandler extends URLStreamHandler {
             if (url == null) {
                 throw new IllegalArgumentException("url can not be null");
             }
+            
+            StubURLConnection stub = map.get(url);
 
-            return map.get(url);
+            return (stub == null) ? null : (StubURLConnection)map.get(url).clone();
         }
 
         public static void add(StubURLConnection stub) {

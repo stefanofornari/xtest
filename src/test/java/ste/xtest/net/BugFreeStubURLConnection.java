@@ -24,12 +24,11 @@ package ste.xtest.net;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.SocketException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import org.apache.commons.io.IOUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.assertj.core.util.Lists;
@@ -37,6 +36,7 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import ste.xtest.logging.LoggingByteArrayOutputStream;
+import ste.xtest.reflect.PrivateAccess;
 
 /**
  *
@@ -196,7 +196,7 @@ public class BugFreeStubURLConnection {
     }
     
     @Test
-    public void set_content_as_path() {
+    public void set_content_as_path() throws IOException {
         
         final String TEST_FILE1 = "src/test/resources/html/documentlocation.html";
         final String TEST_FILE2 = "src/test/resources/images/6096.png";
@@ -260,7 +260,7 @@ public class BugFreeStubURLConnection {
     
     @Test
     public void set_headers_replace_all_headers() {
-        final Map<String, List<String>> MAP1 = new HashMap<>(), MAP2 = new HashMap<>();
+        final HashMap<String, List<String>> MAP1 = new HashMap<>(), MAP2 = new HashMap<>();
         
         MAP1.put("key1", Lists.newArrayList("value1"));
         MAP1.put("key2", Lists.newArrayList("value2"));
@@ -428,25 +428,35 @@ public class BugFreeStubURLConnection {
     }
     
     @Test
-    public void throw_a_network_error() throws Exception {
-        IOException e = new UnknownHostException("a.host.com");
-        then(C.error(e)).isSameAs(C);
+    public void error_sets_exec() throws Exception {
+        final IOException E = new IOException("this is an exception");
+        C.error(E);
         
         try {
             C.connect();
-            fail("error not thrown");
+            fail("missing IOExecption!");
         } catch (IOException x) {
-            then(x).isSameAs(e);
+            then(x).hasNoCause().hasMessage(E.getMessage());
         }
         
-        e = new SocketException();
-        then(C.error(e)).isSameAs(C);
+        //
+        // setting to null resets the "exec" acllable
+        //
+        C.error(null);
+        then(PrivateAccess.getInstanceValue(C, "exec")).isNull();
+    }
+    
+    @Test
+    public void exec_executes_a_task_on_connection() throws Exception {
         
-        try {
-            C.connect();
-            fail("error not thrown");
-        } catch (IOException x) {
-            then(x).isSameAs(e);
-        }
+        C.exec(new StubConnectionCall() {
+            @Override
+            public Object call() throws Exception {
+                C.status(401); return null;
+            }
+        });
+        
+        C.getContent();
+        then(C.getStatus()).isEqualTo(401);
     }
 }

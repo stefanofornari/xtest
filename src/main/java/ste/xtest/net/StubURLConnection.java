@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -36,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.commons.lang3.exception.CloneFailedException;
 import org.assertj.core.util.Lists;
 import ste.xtest.logging.LoggingByteArrayOutputStream;
 
@@ -46,36 +50,47 @@ import ste.xtest.logging.LoggingByteArrayOutputStream;
  * @TODO: getInputStream shall return a correct input stream accordingly to the 
  *        content type
  */
-public class StubURLConnection extends HttpURLConnection {
-    
-    private final Logger LOG = Logger.getLogger("ste.xtest.net");
+public class      StubURLConnection 
+       extends    HttpURLConnection 
+       implements Cloneable {
     
     public StubURLConnection(URL url) {
         super(url);
         
         status = HttpURLConnection.HTTP_OK;
         headers = new HashMap<>();
-        
-        Level level = LOG.getLevel();
-        out = new LoggingByteArrayOutputStream(
-            LOG, (level == null) ? Level.INFO : level, 2500
-        );
+        connected = false;
     }
 
     @Override
     public void connect() throws IOException {
+        if (connected) {
+            throw new IllegalStateException("Already connected");
+        }
+        
+        Logger LOG = Logger.getLogger("ste.xtest.net");
         if (LOG.isLoggable(Level.INFO)) {
             LOG.info("connecting to " + url);
             LOG.info("request headers: " + getRequestProperties());
             LOG.info("response headers: " + headers);
         }
-        if (error != null) {
-            throw error;
+        if (exec != null) {
+            try {
+                LOG.info("executing connection code");
+                exec.call();
+            } catch (IOException x) {
+                throw x;
+            } catch (Exception x) {
+                throw new IOException(x.getMessage(), x);
+            }
         }
+        
+        connected = true;
     }
 
     @Override
     public void disconnect() {
+        connected = false;
     }
 
     @Override
@@ -94,15 +109,20 @@ public class StubURLConnection extends HttpURLConnection {
     }
     
     @Override
-    public Object getContent() {
+    public Object getContent() throws IOException {
+        connectIfNeeded();
         return content;
     }
     
     @Override
     public InputStream getInputStream() throws IOException {
+        connectIfNeeded();
+        
         if (content == null) {
             return null;
         }
+        
+        Logger LOG = Logger.getLogger("ste.xtest.net");
         
         if (content instanceof String) {
             if (LOG.isLoggable(Level.INFO)) {
@@ -124,7 +144,12 @@ public class StubURLConnection extends HttpURLConnection {
     
     @Override
     public OutputStream getOutputStream() throws IOException {
-        return out;
+        Logger LOG = Logger.getLogger("ste.xtest.net");
+        Level level = LOG.getLevel();
+        
+        return new LoggingByteArrayOutputStream(
+            LOG, (level == null) ? Level.INFO : level, 2500
+        );
     }
     
     @Override
@@ -148,14 +173,69 @@ public class StubURLConnection extends HttpURLConnection {
         return Collections.unmodifiableMap(copy);
     }
     
+    @Override
+    public void setRequestMethod(String m) throws ProtocolException {
+        super.setRequestMethod(m);
+    }
+    
+    // --------------------------------------------------------------- Cloneable
+    
+    @Override
+    public Object clone() {
+        try {
+            URL clonedURL = new URL(getURL().toString());
+            StubURLConnection C = new StubURLConnection(clonedURL);
+            
+            if (message != null) {
+                C.message(new String(message));
+            }
+            
+            C.status(status);
+            
+            //
+            // we need to preserve the content type if changed (setting content
+            // sets also the type)
+            //
+            String originalType = getContentType();
+            if (content != null) {
+                
+                if (content instanceof byte[]) {
+                    byte[] original = (byte[])content;
+                    byte[] clonedContent = new byte[original.length];
+                    System.arraycopy(original, 0, clonedContent, 0, original.length);
+                    C.content(clonedContent);
+                } else if (content instanceof String) {
+                    C.text(new String((String)content));
+                } else if (content instanceof Path) {
+                    C.file(new String(((Path)content).toString()));
+                }
+            }
+            C.type(originalType);
+            
+            C.headers(SerializationUtils.clone(headers));
+            C.exec(SerializationUtils.clone(exec));
+            
+            return C;
+        } catch (MalformedURLException x) {
+            //
+            // This should never happen because the URL is sanitized when given
+            // to the constructor
+            //
+            throw new IllegalStateException("unexpected malformed url " + getURL());
+        } catch (Throwable x) {
+            x.printStackTrace();
+            throw x;
+        }
+    }
+    
     // -------------------------------------------------------------------------
     
     private int status;
     private String message;
     private Object content;
-    private Map<String, List<String>> headers;
-    private LoggingByteArrayOutputStream out;
+    private HashMap<String, List<String>> headers;
     private IOException error;
+    private StubConnectionCall exec;
     
     /**
      * Sets the HTTP(s) status
@@ -291,17 +371,51 @@ public class StubURLConnection extends HttpURLConnection {
      * 
      * @return this
      */
-    public StubURLConnection headers(final Map<String, List<String>> headers) {
+    public StubURLConnection headers(final HashMap<String, List<String>> headers) {
         this.headers = headers; return this;
     }
     
     /**
-     * Tells the stub to throw the given error on connection
+     * Tells the stub to throw the given error on connection. This is a shortcut
+     * to use <code>exec()</code> and throw the desired exception. A side effect
+     * i sthat <code>error()</code> and <code>exec()</code> should not use 
+     * together (each overrides the other).
      * 
      * @param error the error to rise
+     * 
+     * @return this
      */
     public StubURLConnection error(final IOException error) {
-        this.error = error; return this;
+        exec = (error == null) 
+             ? null
+             : new StubConnectionCall() {
+                 @Override
+                 public Object call() throws Exception {
+                     throw error;
+                 }
+             };
+        
+        return this;
+    }
+    
+    /**
+     * A Callable that will be executed upon connection. This procedure can 
+     * perform any action on content, headers or status of the request and is
+     * intended to add a bit of intelligence when the stub is used. It may be 
+     * used to check conditions or change the status or the content based on
+     * some criteria.
+     * 
+     * If the execution of the Callable throws an exception a IOException will
+     * be thrown unless overridden by <code>error()</code>.
+     * 
+     * @param exec the parameter task to call upon connection - MAY BE NULL
+     * 
+     * @return this
+     * 
+     * 
+     */
+    public StubURLConnection exec(final StubConnectionCall exec) {
+        this.exec = exec; return this;
     }
     
     public int getStatus() {
@@ -314,6 +428,10 @@ public class StubURLConnection extends HttpURLConnection {
     
     public Map<String, List<String>> getHeaders() {
         return headers;
+    }
+    
+    public boolean isConnected() {
+        return connected;
     }
     
     // --------------------------------------------------------- private methods
@@ -348,12 +466,9 @@ public class StubURLConnection extends HttpURLConnection {
         return String.valueOf(len);
     }
     
-    private String logData() {
-        String log = out.toString();
-        if (log.length() == 0) {
-            return "<no data>";
+    private void connectIfNeeded() throws IOException {
+        if (!isConnected()) {
+            connect();
         }
-        
-        return log;
     }
 }
