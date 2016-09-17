@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.lang3.exception.CloneFailedException;
 import org.assertj.core.util.Lists;
 import ste.xtest.logging.LoggingByteArrayOutputStream;
 
@@ -62,6 +61,13 @@ public class      StubURLConnection
         connected = false;
     }
 
+    /**
+     * Stubs the connection action to the resource. It also execute the provided
+     * <code>StubConnectionCall</code> if any.
+     * 
+     * @throws IOException in case of connection errors
+     * @throws IllegalStateException if already connected
+     */
     @Override
     public void connect() throws IOException {
         if (connected) {
@@ -74,10 +80,11 @@ public class      StubURLConnection
             LOG.info("request headers: " + getRequestProperties());
             LOG.info("response headers: " + headers);
         }
+        
         if (exec != null) {
             try {
                 LOG.info("executing connection code");
-                exec.call();
+                exec.call(this);
             } catch (IOException x) {
                 throw x;
             } catch (Exception x) {
@@ -142,14 +149,25 @@ public class      StubURLConnection
         return new ByteArrayInputStream((byte[])content);
     }
     
+    /**
+     * Returns the resource output stream.
+     * 
+     */
     @Override
     public OutputStream getOutputStream() throws IOException {
-        Logger LOG = Logger.getLogger("ste.xtest.net");
-        Level level = LOG.getLevel();
+        if (out == null) {
+            //
+            // create the output stream
+            //
+            Logger LOG = Logger.getLogger("ste.xtest.net");
+
+            Level level = LOG.getLevel();
+            out = new LoggingByteArrayOutputStream(
+                LOG, (level == null) ? Level.INFO : level, 2500
+            );
+        }
         
-        return new LoggingByteArrayOutputStream(
-            LOG, (level == null) ? Level.INFO : level, 2500
-        );
+        return out;
     }
     
     @Override
@@ -213,7 +231,7 @@ public class      StubURLConnection
             C.type(originalType);
             
             C.headers(SerializationUtils.clone(headers));
-            C.exec(SerializationUtils.clone(exec));
+            C.exec(exec);
             
             return C;
         } catch (MalformedURLException x) {
@@ -233,9 +251,9 @@ public class      StubURLConnection
     private int status;
     private String message;
     private Object content;
-    private HashMap<String, List<String>> headers;
-    private IOException error;
+    private HashMap<String, List<String>> headers; // TO BE REMOVED IN FAVOUR OF SUPERCLASS' FIELD
     private StubConnectionCall exec;
+    private LoggingByteArrayOutputStream out;  // this will not be cloned
     
     /**
      * Sets the HTTP(s) status
@@ -388,12 +406,7 @@ public class      StubURLConnection
     public StubURLConnection error(final IOException error) {
         exec = (error == null) 
              ? null
-             : new StubConnectionCall() {
-                 @Override
-                 public Object call() throws Exception {
-                     throw error;
-                 }
-             };
+             : new ErrorThrower(error);
         
         return this;
     }
@@ -407,6 +420,9 @@ public class      StubURLConnection
      * 
      * If the execution of the Callable throws an exception a IOException will
      * be thrown unless overridden by <code>error()</code>.
+     * 
+     * Note that <code>StubConnectionCall</code> will not be cloned, which means
+     * that all clone will use the same value.
      * 
      * @param exec the parameter task to call upon connection - MAY BE NULL
      * 

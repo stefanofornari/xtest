@@ -21,14 +21,24 @@
  */
 package ste.xtest.net;
 
-import java.io.Serializable;
+import java.net.URL;
+import org.junit.Test;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.then;
 
 /**
- *
- * @author ste
+ * 
  */
-public interface StubConnectionCall extends Serializable {
-    
-    public void call(StubURLConnection c) throws Exception;
-    
+public class BugFreeConnectionHolderCall {
+
+    @Test
+    public void grab_connection_on_call() throws Exception {
+        final StubURLConnection C = new StubURLConnection(new URL("http://somewhere.com"));
+        
+        ConnectionHolder holder = new ConnectionHolder();
+        
+        holder.call(C);
+        
+        then(holder.getConnection()).isSameAs(C);
+    }
 }

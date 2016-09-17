@@ -21,14 +21,22 @@
  */
 package ste.xtest.net;
 
-import java.io.Serializable;
+import java.net.HttpURLConnection;
 
 /**
  *
  * @author ste
  */
-public interface StubConnectionCall extends Serializable {
+public class ConnectionHolder implements StubConnectionCall {
+    private HttpURLConnection connection;
     
-    public void call(StubURLConnection c) throws Exception;
+    @Override
+    public void call(StubURLConnection connection) throws Exception {
+        this.connection = connection;
+    }
+    
+    public HttpURLConnection getConnection() {
+        return connection;
+    }
     
 }

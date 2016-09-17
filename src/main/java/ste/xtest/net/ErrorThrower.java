@@ -21,14 +21,23 @@
  */
 package ste.xtest.net;
 
-import java.io.Serializable;
-
 /**
  *
  * @author ste
  */
-public interface StubConnectionCall extends Serializable {
+public class ErrorThrower implements StubConnectionCall {
     
-    public void call(StubURLConnection c) throws Exception;
+    final private Exception error;
+
+    public ErrorThrower(Exception error) {
+        this.error = error;
+    }
+
+    @Override
+    public void call(StubURLConnection connection) throws Exception {
+        if (error != null) {
+            throw error;
+        }
+    }
     
 }

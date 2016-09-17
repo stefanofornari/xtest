@@ -22,10 +22,10 @@
 package ste.xtest.net;
 
 public class MyStubConnectionCall implements StubConnectionCall {
-    int value = 10;
+    public int value = 10;
 
     @Override
-    public Object call() throws Exception {
-        return value;
+    public void call(StubURLConnection C) throws Exception {
+        value = 0;
     }
 }

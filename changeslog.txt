@@ -1,3 +1,6 @@
+20160917
+- added utility StubConnectionCall BasicAuthenticationChecker, ConnectionHolder
+
 20160904
 - changed the behaviour of StubStreamHandler.URLMap() so that get now creates a 
   clone of the entry as opposed to returning the instance itself

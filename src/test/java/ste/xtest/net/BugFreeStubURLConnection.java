@@ -23,12 +23,12 @@ package ste.xtest.net;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import org.apache.commons.io.IOUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.assertj.core.util.Lists;
@@ -424,11 +424,17 @@ public class BugFreeStubURLConnection {
     
     @Test
     public void baos_by_default() throws Exception {
-        then(C.getOutputStream()).isInstanceOf(LoggingByteArrayOutputStream.class);
+        OutputStream out = C.getOutputStream();
+        then(out).isInstanceOf(LoggingByteArrayOutputStream.class);
+        
+        //
+        // called twice returns the same output stream
+        //
+        then(C.getOutputStream()).isSameAs(out);
     }
     
     @Test
-    public void error_sets_exec() throws Exception {
+    public void error_throws_an_error_on_connect() throws Exception {
         final IOException E = new IOException("this is an exception");
         C.error(E);
         
@@ -440,7 +446,7 @@ public class BugFreeStubURLConnection {
         }
         
         //
-        // setting to null resets the "exec" acllable
+        // setting to null resets the "exec" callable
         //
         C.error(null);
         then(PrivateAccess.getInstanceValue(C, "exec")).isNull();
@@ -448,11 +454,10 @@ public class BugFreeStubURLConnection {
     
     @Test
     public void exec_executes_a_task_on_connection() throws Exception {
-        
         C.exec(new StubConnectionCall() {
             @Override
-            public Object call() throws Exception {
-                C.status(401); return null;
+            public void call(StubURLConnection connection) throws Exception {
+                connection.status(401);
             }
         });
         

@@ -21,9 +21,11 @@
  */
 package ste.xtest.net;
 
+import java.io.IOException;
 import java.net.URL;
 import org.apache.commons.lang3.ObjectUtils;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import ste.xtest.reflect.PrivateAccess;
 
@@ -36,10 +38,9 @@ public class BugFreeStubURLConnectionCloneable {
     private static final String TEST_URL_DUMMY = "http://url.com";
     
     @Test
-    public void default_status_200() throws Exception {
+    public void all_cloned_values() throws Exception {
         StubURLConnection C = new StubURLConnection(new URL(TEST_URL_DUMMY));
         StubURLConnection c;
-        
         
         c = ObjectUtils.cloneIfPossible(C);
         then(c).isInstanceOf(C.getClass()).isNotSameAs(C);
@@ -90,11 +91,25 @@ public class BugFreeStubURLConnectionCloneable {
         then(c.getStatus()).isEqualTo(C.getStatus());
         then(c.getContent()).isNotSameAs(C.getContent()).isEqualTo(C.getContent());
         then(c.getContentType()).isNotSameAs(C.getContentType()).isEqualTo(C.getContentType());
+    }
+    
+    @Test
+    public void all_not_cloned_values() throws Exception {
+        StubURLConnection C = new StubURLConnection(new URL(TEST_URL_DUMMY));
+        StubURLConnection c;
         
         StubConnectionCall call = new MyStubConnectionCall();
         C.exec(call); c = ObjectUtils.cloneIfPossible(C);
         StubConnectionCall clonedCall = (StubConnectionCall)PrivateAccess.getInstanceValue(c, "exec");
-        then(clonedCall).isNotSameAs(call);
-        then(clonedCall.call()).isEqualTo(clonedCall.call());
+        then(clonedCall).isSameAs(call);
+        clonedCall.call(c);
+        then(((MyStubConnectionCall)clonedCall).value).isZero();
+        
+        C.exec(null);
+        C.error(new IOException("an IO error")); c = ObjectUtils.cloneIfPossible(C);
+        call = (StubConnectionCall)PrivateAccess.getInstanceValue(C, "exec");
+        clonedCall = (StubConnectionCall)PrivateAccess.getInstanceValue(c, "exec");
+        then(clonedCall).isSameAs(call);
     }
+    
 }

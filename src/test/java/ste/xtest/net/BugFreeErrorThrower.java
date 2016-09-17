@@ -21,14 +21,36 @@
  */
 package ste.xtest.net;
 
-import java.io.Serializable;
+import java.net.URL;
+import java.util.Base64;
+import org.apache.http.HttpHeaders;
+import org.junit.Test;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.Assert.fail;
 
 /**
- *
- * @author ste
+ * A BasicCredentialsChecker is meant to be used with StubURLConnection.exec()
+ * to check that the requests's credentials match a given key and secret.
  */
-public interface StubConnectionCall extends Serializable {
+public class BugFreeErrorThrower {
+
+    @Test
+    public void throws_the_given_error() throws Exception {
+        ErrorThrower et = new ErrorThrower(new Exception("an error"));
+        try {
+            et.call(null);
+            fail("not throwing the expected error");
+        } catch (Exception x) {
+            then(x).hasMessage("an error");
+        }
+    }
     
-    public void call(StubURLConnection c) throws Exception;
-    
+    @Test
+    public void do_not_throw_any_error_if_null() throws Exception {
+        ErrorThrower et = new ErrorThrower(null);
+        et.call(null);
+        //
+        // all good here...
+        //
+    }
 }
