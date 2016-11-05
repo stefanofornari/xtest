@@ -40,7 +40,7 @@ public class BugFreeBugFreeBeanShell {
     public static final String  TEST_VAR3 = "notexisting";
 
     @Test
-    public void getVariableAsString() throws Exception {
+    public void get_variable_as_string() throws Exception {
         BugFreeBeanShell test = new BugFreeBeanShell() {
             @Override
             public void beanshellSetup() throws Exception {
@@ -56,7 +56,7 @@ public class BugFreeBugFreeBeanShell {
     }
     
     @Test
-    public void throwIOErrorIfProvidedScriptDoesNotExist() throws Exception {
+    public void throw_IOError_if_provided_script_does_not_exist() throws Exception {
         BugFreeBeanShell test = new BugFreeBeanShell() {
             @Override
             public void beanshellSetup() throws Exception {
@@ -74,7 +74,7 @@ public class BugFreeBugFreeBeanShell {
     }
     
     @Test
-    public void throwParseExceptionIfScriptHasErrors() throws Exception {
+    public void throw_parse_exception_if_script_has_errors() throws Exception {
         BugFreeBeanShell test = new BugFreeBeanShell() {
             @Override
             public void beanshellSetup() throws Exception {
@@ -95,7 +95,7 @@ public class BugFreeBugFreeBeanShell {
     }
     
     @Test
-    public void addErrorInformation() throws Exception {
+    public void add_error_information() throws Exception {
         final String SCRIPT = "src/test/resources/bsh/test2.bsh";
         
         BugFreeBeanShell test = new BugFreeBeanShell() {
@@ -120,7 +120,7 @@ public class BugFreeBugFreeBeanShell {
     }
     
     @Test
-    public void ifTargetExceptionSetCause() throws Exception {
+    public void if_target_exception_set_cause() throws Exception {
         BugFreeBeanShell test = new BugFreeBeanShell() {
             @Override
             public void beanshellSetup() throws Exception {
