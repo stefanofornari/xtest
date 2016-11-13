@@ -76,14 +76,18 @@ public abstract class BugFreeBeanShell extends BugFree {
     /**
      * The beanshell file to test
      */
-    private String fileName;
+    private String[] fileNames;
 
-    public String getBshFileName() {
-        return fileName;
+    public String[] getBshFileName() {
+        return fileNames;
+    }
+    
+    public void setBshFileName(String bshFileName) {
+        setBshFileNames(bshFileName);
     }
 
-    public void setBshFileName(String bshFileName) {
-        this.fileName = bshFileName;
+    public void setBshFileNames(String... bshFileNames) {
+        this.fileNames = bshFileNames;
     }
 
     /**
@@ -113,7 +117,7 @@ public abstract class BugFreeBeanShell extends BugFree {
 
     // ---------------------------------------------------------- Public methods
     public BugFreeBeanShell() {
-        fileName = null;
+        fileNames = null;
         commandsDirectory = null;
     }
 
@@ -175,8 +179,10 @@ public abstract class BugFreeBeanShell extends BugFree {
         Object ret = null;
 
         try {
-            if (fileName != null) {
-                ret = beanshell.source(fileName);
+            if (fileNames != null) {
+                for (String fileName: fileNames) {
+                    ret = beanshell.source(fileName);
+                }
             }
             bshThis = (bsh.This) beanshell.eval(";return this;");
         } catch (TargetError x) {

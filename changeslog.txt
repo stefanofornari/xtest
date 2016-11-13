@@ -1,3 +1,7 @@
+20161113
+- added the ability to load more scripts in one call in BugFreeBeanShell
+- released v1.16.3
+
 20160917
 - added utility StubConnectionCall BasicAuthenticationChecker, ConnectionHolder
 

@@ -136,4 +136,23 @@ public class BugFreeBugFreeBeanShell {
             then(x.getCause()).isNotNull().isInstanceOf(NullPointerException.class);
         }
     }
+    
+        
+    @Test
+    public void load_more_scripts() throws Exception {
+        BugFreeBeanShell test = new BugFreeBeanShell() {
+            @Override
+            public void beanshellSetup() throws Exception {
+                setBshFileNames(
+                    "src/test/resources/bsh/test4.bsh",
+                    "src/test/resources/bsh/test5.bsh"
+                );
+            }
+        };
+        test.setUp();
+        test.exec();
+        
+        then(test.getAsString("first")).isEqualTo("one");
+        then(test.getAsString("second")).isEqualTo("two");
+    }
 }
