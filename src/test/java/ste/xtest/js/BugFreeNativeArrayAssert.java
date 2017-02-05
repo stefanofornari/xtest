@@ -68,4 +68,10 @@ public class BugFreeNativeArrayAssert {
         noa = JSAssertions.then(new NativeArray(l));
         then(noa.hasSize(l)).isSameAs(noa); // and do not throw any assertions
     }
+    
+    @Test
+    public void contains_exactly_with_empty_array() throws Exception {
+        NativeArray a = new NativeArray(new Object[0]);
+        
+    }
 }

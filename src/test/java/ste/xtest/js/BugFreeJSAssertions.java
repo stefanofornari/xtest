@@ -33,6 +33,10 @@ import org.mozilla.javascript.NativeObject;
  */
 public class BugFreeJSAssertions {
     
+    private static final String[] TEST_ARRAY1 = 
+        new String[] { "one", "two", "three"};
+    
+    
     @Test
     public void get_js_assert_with_NativeObject_argument() {
         then(JSAssertions.then(new NativeObject())).isInstanceOf(NativeObjectAssert.class);
@@ -59,6 +63,46 @@ public class BugFreeJSAssertions {
         then(JSAssertions.then(new NativeArray(0))).isInstanceOf(NativeArrayAssert.class);
         then(JSAssertions.then(new SubNativeArray())).isInstanceOf(NativeArrayAssert.class);
         NativeArrayAssert naa = JSAssertions.then(new NativeArray(0));
+    }
+    
+    @Test
+    public void contains_exactly() {
+        final NativeArray A1 = array(TEST_ARRAY1);
+        
+        JSAssertions.then(A1).containsExactly(TEST_ARRAY1);
+        try {
+            JSAssertions.then(A1).containsExactly();
+            fail("no same size error ignored");
+        } catch (AssertionError e) {
+            then(e).hasMessageStartingWith("\nActual and expected should have same size");
+        }
+        
+        try {
+            JSAssertions.then(A1).containsExactly("one");
+            fail("no same size error ignored");
+        } catch (AssertionError e) {
+            then(e).hasMessageStartingWith("\nActual and expected should have same size");
+        }
+        
+        try {
+            JSAssertions.then(A1).containsExactly("one", "two", "four");
+            fail("no same array error ignored");
+        } catch (AssertionError e) {
+            then(e).hasMessageStartingWith("\nExpecting:\n  <[\"one\", \"two\", \"three\"]>\nto contain exactly (and in same order):\n  <[\"one\", \"two\", \"four\"]>");
+        }
+        
+        try {
+            JSAssertions.then(A1).containsExactly("one", "four", "three");
+            fail("no same array error ignored");
+        } catch (AssertionError e) {
+            then(e).hasMessageStartingWith("\nExpecting:\n  <[\"one\", \"two\", \"three\"]>\nto contain exactly (and in same order):\n  <[\"one\", \"four\", \"three\"]>");
+        }
+    }
+    
+    // --------------------------------------------------------- private methods
+    
+    private static NativeArray array(String... values) {
+        return new NativeArray(values);
     }
     
     // --------------------------------------------------------- SubNativeObject

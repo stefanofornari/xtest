@@ -1,3 +1,6 @@
+20170205
+- added assertion JSAssertions.containsExactly(String ...)
+
 20161113
 - added the ability to load more scripts in one call in BugFreeBeanShell
 - released v1.16.3

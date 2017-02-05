@@ -22,6 +22,8 @@
 package ste.xtest.js;
 
 import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.error.ShouldContainExactly;
+import org.assertj.core.internal.Failures;
 import org.assertj.core.internal.ObjectArrays;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeObject;
@@ -53,9 +55,77 @@ public class NativeArrayAssert extends AbstractAssert<NativeArrayAssert, NativeA
         arrays.assertHasSize(info, javaArray, expected); return myself;
     }
     
+    /**
+     * Verifies that the actual group contains only the given values and nothing 
+     * else, in order. This assertion should only be used with group that have a
+     * consistent iteration order (i.e. don't use it with HashSet, prefer 
+     * ObjectEnumerableAssert.containsOnly(Object...) in that case). 
+     * <p>
+     * Example :
+     *     
+     * <pre>
+     * JSONArray a1 = new JSONArray();
+     * a1.put("value1");
+     * a1.put("value2");
+     * a1.put("value3");
+     * 
+     * then(a1).constainsExactly("value1", "value2", "value3");
+     *
+     * @param elements the expected sequence of values
+     * 
+     * @return {@code this} assertion object.
+     * 
+     * @throws AssertionError if the given size is not in the current JSONArray length
+     */
+    public NativeArrayAssert containsExactly(String... elements) {
+        long actualLength = actual.getLength();
+        
+        if (actualLength != elements.length) {
+            throw Failures.instance().failure(
+                info, 
+                ShouldContainExactly.shouldHaveSameSize(
+                    actual, 
+                    elements, 
+                    (actualLength > Integer.MAX_VALUE) ? -1 : (int)actualLength, 
+                    elements.length, 
+                    null
+                )
+            );
+        }
+        
+        for (int i=0; i<actualLength; ++i) {
+            Object o = actual.get(i, null);
+            if (o == null) {
+                if (elements[i] != null) {
+                    throw Failures.instance().failure(
+                        info, 
+                        ShouldContainExactly.shouldContainExactly(array(actual), elements[i], elements, i)
+                    );
+                }
+            } else if (!o.equals(elements[i])) {
+                throw Failures.instance().failure(
+                    info, 
+                    ShouldContainExactly.shouldContainExactly(array(actual), elements, elements[i], i)
+                );
+            }
+        }
+        
+        return this;
+    }
+    
     // --------------------------------------------------------- private methods
     
     private NativeObject[] toJavaArray(NativeArray actual) {
         return new NativeObject[(int)actual.getLength()];
+    }
+    
+    private String[] array(NativeArray a) {
+        String[] ret = new String[(int)a.getLength()];
+        
+        for(int i=0; i<ret.length; ++i) {
+            ret[i] = String.valueOf(a.get(i, null));
+        }
+        
+        return ret;
     }
 }
