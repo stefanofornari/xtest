@@ -1,3 +1,7 @@
+201700409
+- https connections do not pass-through easily in StubStreamHandler; this is due
+  to the use of package private methods and classes; replaced with an exception
+
 20170205
 - added assertion JSAssertions.containsExactly(String ...)
 

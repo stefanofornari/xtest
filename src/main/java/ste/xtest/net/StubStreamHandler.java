@@ -23,7 +23,6 @@ package ste.xtest.net;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -31,10 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.lang3.SerializationUtils;
 import sun.net.www.protocol.file.FileURLConnection;
 import sun.net.www.protocol.http.HttpURLConnection;
-import sun.net.www.protocol.https.HttpsURLConnectionImpl;
 
 /**
  *
@@ -104,7 +101,7 @@ public class StubStreamHandler extends URLStreamHandler {
         if (protocol.equalsIgnoreCase("http")) {
             c = new HttpURLConnection(url, url.getHost(), (port < 0) ? 80 : port);
         } else if (protocol.equalsIgnoreCase("https")) {
-            c = new HttpsURLConnectionWrapper(url); 
+            throw new IOException("https pass-through not implemented yet; mock https calls or use http");
         } else if (protocol.equalsIgnoreCase("ftp")) {
             c = new sun.net.www.protocol.ftp.FtpURLConnection(url);
         } else if (protocol.equalsIgnoreCase("file")) {
@@ -114,11 +111,13 @@ public class StubStreamHandler extends URLStreamHandler {
         return c;
     }
 
+    /*
     private class HttpsURLConnectionWrapper extends HttpsURLConnectionImpl {
         public HttpsURLConnectionWrapper(URL url) throws IOException {
             super(url);
         }
     }
+    */
     
     private class FileURLConnectionWrapper extends FileURLConnection {
         public FileURLConnectionWrapper(URL url) throws IOException {

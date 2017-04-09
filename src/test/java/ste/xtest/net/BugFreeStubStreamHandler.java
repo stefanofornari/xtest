@@ -21,6 +21,7 @@
  */
 package ste.xtest.net;
 
+import java.io.IOException;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.data.MapEntry.entry;
@@ -62,8 +63,11 @@ public class BugFreeStubStreamHandler {
         
         then(b.openConnection(new URL(TEST_URL2)))
             .isNotNull().isInstanceOf(sun.net.www.protocol.http.HttpURLConnection.class);
-        then(b.openConnection(new URL(TEST_URL3)))
-            .isNotNull().isInstanceOf(sun.net.www.protocol.https.HttpsURLConnectionImpl.class);
+        try {
+            b.openConnection(new URL(TEST_URL3));
+        } catch (IOException x) {
+            then(x).hasMessageContaining("https pass-through not implemented yet; mock https calls or use http");
+        }
         then(b.openConnection(new URL(TEST_URL4)))
             .isNotNull().isInstanceOf(sun.net.www.protocol.ftp.FtpURLConnection.class);
         then(b.openConnection(new URL(TEST_URL5)))
