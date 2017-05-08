@@ -106,7 +106,12 @@ public class      StubURLConnection
     }
     
     @Override
-    public int getResponseCode() {
+    public int getResponseCode() throws IOException {
+        //
+        // Like in <code>java.net.HttpURLConnection</code>, ensure that we 
+        // have connected to the server calling getInputStream()
+        //
+        getInputStream();
         return getStatus();
     }
     
@@ -141,6 +146,11 @@ public class      StubURLConnection
                 LOG.info("returning input stream from file " + ((Path)content).toAbsolutePath());
             }
             return Files.newInputStream((Path)content);
+        } else if (content instanceof InputStream) {
+            if (LOG.isLoggable(Level.INFO)) {
+                LOG.info("returning input stream from reader");
+            }
+            return ((InputStream)content);
         }
         
         if (LOG.isLoggable(Level.INFO)) {
@@ -152,6 +162,7 @@ public class      StubURLConnection
     /**
      * Returns the resource output stream.
      * 
+     * @return the connection output stream
      */
     @Override
     public OutputStream getOutputStream() throws IOException {
@@ -168,6 +179,11 @@ public class      StubURLConnection
         }
         
         return out;
+    }
+    
+    @Override
+    public InputStream getErrorStream() {
+        return new ByteArrayInputStream(new byte[0]);
     }
     
     @Override

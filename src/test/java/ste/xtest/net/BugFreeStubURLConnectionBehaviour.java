@@ -100,4 +100,21 @@ public class BugFreeStubURLConnectionBehaviour {
             then(x).hasMessage("Already connected");
         }
     }
+    
+    @Test
+    public void getResponseCode_ensures_connection() throws Exception {
+        StubURLConnection C = new StubURLConnection(new URL(TEST_URL_DUMMY));
+        C.getResponseCode();
+        then(C.isConnected()).isTrue();
+    }
+    
+    /**
+     * As per HttpURLConnection, getErrorStream() may return null. However, 
+     * to prevent NPEs, we want to return an empty InputStream(). 
+     */
+    @Test
+    public void getErrorStream_returns_an_InputStream() throws Exception {
+        StubURLConnection C = new StubURLConnection(new URL(TEST_URL_DUMMY));
+        then(C.getErrorStream()).isNotNull();
+    }
 }
