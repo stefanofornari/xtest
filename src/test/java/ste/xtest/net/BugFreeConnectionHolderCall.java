@@ -24,7 +24,6 @@ package ste.xtest.net;
 import java.net.URL;
 import org.junit.Test;
 import static org.assertj.core.api.BDDAssertions.then;
-import static org.assertj.core.api.BDDAssertions.then;
 
 /**
  * 
