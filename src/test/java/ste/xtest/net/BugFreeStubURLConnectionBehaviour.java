@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import org.apache.commons.io.IOUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -110,11 +111,15 @@ public class BugFreeStubURLConnectionBehaviour {
     
     /**
      * As per HttpURLConnection, getErrorStream() may return null. However, 
-     * to prevent NPEs, we want to return an empty InputStream(). 
+     * to prevent NPEs, we want to return an inputstream, so we return the same
+     * as getInputStream(). 
      */
     @Test
     public void getErrorStream_returns_an_InputStream() throws Exception {
+        final String TEXT = "hello error stream!";
+        
         StubURLConnection C = new StubURLConnection(new URL(TEST_URL_DUMMY));
-        then(C.getErrorStream()).isNotNull();
+        C.text(TEXT);
+        then(IOUtils.toString(C.getErrorStream())).isEqualTo(TEXT);
     }
 }

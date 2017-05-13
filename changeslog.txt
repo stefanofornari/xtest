@@ -1,3 +1,6 @@
+20170513
+- overridden StubURLConnection.getErrorStream();
+
 20170429
 - released v1.16.4
 

@@ -183,7 +183,11 @@ public class      StubURLConnection
     
     @Override
     public InputStream getErrorStream() {
-        return new ByteArrayInputStream(new byte[0]);
+        try {
+            return getInputStream();
+        } catch (IOException x) {
+            return null;
+        }
     }
     
     @Override
