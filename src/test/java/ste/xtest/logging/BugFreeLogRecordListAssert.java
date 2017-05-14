@@ -42,6 +42,7 @@ public class BugFreeLogRecordListAssert {
         TEST_LIST.add(new LogRecord(Level.INFO, "message one"));
         TEST_LIST.add(new LogRecord(Level.FINE, "message two"));
         TEST_LIST.add(new LogRecord(Level.CONFIG, "message three"));
+        TEST_LIST.add(new LogRecord(Level.SEVERE, "message four"));
     }
     
     //
@@ -68,6 +69,13 @@ public class BugFreeLogRecordListAssert {
                     then(x).hasMessageContaining("expected can not be null");
                 }
                 then(a.containsFINE(r.getMessage())).isSameAs(a);
+            } else if (r.getLevel() == Level.SEVERE) {
+                try {
+                    a.containsSEVERE(null);
+                } catch (IllegalArgumentException x) {
+                    then(x).hasMessageContaining("expected can not be null");
+                }
+                then(a.containsSEVERE(r.getMessage())).isSameAs(a);
             }
         }
     }
@@ -76,19 +84,40 @@ public class BugFreeLogRecordListAssert {
     public void list_does_not_contains_message_at_a_certain_level() {
         LogRecordListAssert a = new LogRecordListAssert(TEST_LIST);
         
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (LogRecord r: TEST_LIST) {
+            if (first) {
+                first = false;
+                sb.append('[');
+            } else {
+                sb.append(", ");
+            }
+            sb.append(String.format("<%s: %s>", r.getLevel(), r.getMessage()));
+        }
+        sb.append(']');
+        
         try {
-            then(a.containsINFO("message"));
+            a.containsINFO("message");
             fail("assertion not rised");
         } catch (AssertionError e) {
-            then(e).hasMessage("expecting message <message> at level INFO in [<INFO: message one>, <FINE: message two>, <CONFIG: message three>]");
+            then(e).hasMessage("expecting message <message> at level INFO in " + sb);
         }
         
         try {
-            then(a.containsFINE("message"));
+            a.containsFINE("message");
             fail("assertion not rised");
         } catch (AssertionError e) {
-            then(e).hasMessage("expecting message <message> at level FINE in [<INFO: message one>, <FINE: message two>, <CONFIG: message three>]");
+            //then(e).hasMessage("expecting message <message> at level FINE in [<INFO: message one>, <FINE: message two>, <CONFIG: message three>]");
+            then(e).hasMessage("expecting message <message> at level FINE in " + sb);
         }
+        try{
+            a.containsSEVERE("message");
+            fail("assertion not rised");
+        } catch (AssertionError e) {
+            then(e).hasMessage("expecting message <message> at level SEVERE in " + sb);
+        }
+                
     }
 
 }

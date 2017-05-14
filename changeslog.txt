@@ -1,3 +1,6 @@
+20170514
+- added LogRecordListAssert.containsSEVERE()
+
 20170513
 - overridden StubURLConnection.getErrorStream();
 

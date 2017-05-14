@@ -49,6 +49,11 @@ public class LogRecordListAssert extends AbstractAssert<LogRecordListAssert, Lis
         contains(expected, Level.FINE); return this;
     }
     
+        
+    public LogRecordListAssert containsSEVERE(String expected) {
+        contains(expected, Level.SEVERE); return this;
+    }
+    
     // -------------------------------------------------------- private methods
     
     private void contains(String message, Level level) {
