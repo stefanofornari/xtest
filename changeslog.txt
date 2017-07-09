@@ -1,3 +1,9 @@
+20170709
+- Envjs: added trim() to the String object
+
+20170531
+- released v1.16.5
+
 20170514
 - added LogRecordListAssert.containsSEVERE()
 

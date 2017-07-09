@@ -1849,6 +1849,17 @@ Envjs.proxy = function(scope, parent) {
 //CLOSURE_END
 }());
 
+
+/**
+ * 
+ * @returns {undefined}Extending String with trim()
+ */
+(function() {
+    String.prototype.trim = function () {
+        return Envjs.trim(this);
+    };
+}());
+
 /**
  * @author envjs team
  */
