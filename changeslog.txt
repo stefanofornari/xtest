@@ -1,3 +1,9 @@
+20170802
+- released v1.16.7
+
+20170801
+- FileTransport: now multiple messages are appended to the same output file
+
 20170709
 - Envjs: added trim() to the String object
 

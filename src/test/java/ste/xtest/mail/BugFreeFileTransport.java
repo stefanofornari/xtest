@@ -116,6 +116,22 @@ public class BugFreeFileTransport {
     }
     
     @Test
+    public void multiple_messages_are_appended() throws Exception {
+        sendSimpleMessage();
+        sendSimpleMessage("newfrom@a.com", "newto@b.com", "another one", "hello again");
+        
+        then(FileUtils.readFileToString(new File(TMP.getRoot(), "message")))
+            .contains("From: from@domain.com\r")
+            .contains("To: to@domain.com\r")
+            .contains("Subject: the subject\r")
+            .contains("hello world")
+            .contains("From: newfrom@a.com\r")
+            .contains("To: newto@b.com\r")
+            .contains("Subject: another one\r")
+            .contains("hello again");
+    }
+    
+    @Test
     public void missing_path_throws_an_error() throws Exception {
         config.remove(FileTransport.MAIL_FILE_PATH);
         try {
@@ -433,13 +449,17 @@ public class BugFreeFileTransport {
     // ----------------------------------------------------------------- private
     
     private void sendSimpleMessage() throws Exception {
+        sendSimpleMessage("from@domain.com", "to@domain.com", "the subject", "hello world");
+    }
+    
+    private void sendSimpleMessage(String from, String to, String subject, String body) throws Exception {
         Session session = Session.getInstance(config);
                 
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("from@domain.com"));
-        message.addRecipient(Message.RecipientType.TO, new InternetAddress("to@domain.com"));
-        message.setSubject("the subject");
-        message.setText("hello world");
+        message.setFrom(new InternetAddress(from));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+        message.setSubject(subject);
+        message.setText(body);
         
         session.getTransport().sendMessage(message, message.getAllRecipients());
     }

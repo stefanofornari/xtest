@@ -57,7 +57,10 @@ public class FileTransport extends Transport {
             );
         }
         
-        try (FileOutputStream out = new FileOutputStream(path)) {
+        //
+        // We append multiple messages to the same output file
+        //
+        try (FileOutputStream out = new FileOutputStream(path, true)) {
             message.writeTo(out);
         } catch (IOException x) {
             throw new MessagingException(
