@@ -53,7 +53,7 @@ public class FileTransport extends Transport {
         //
         if (StringUtils.isEmpty(path)) {
             throw new MessagingException(
-                String.format("missing message path; make sure %s is set in either teh session or System properties", MAIL_FILE_PATH)
+                String.format("missing message path; make sure %s is set in either the session or System properties", MAIL_FILE_PATH)
             );
         }
         
