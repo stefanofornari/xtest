@@ -104,6 +104,11 @@
             <artifactId>assertj-core</artifactId>
             <version>3.5.2</version>
         </dependency>
+        <dependency>
+            <groupId>ste.web</groupId>
+            <artifactId>webtoolkitlib</artifactId>
+            <version>1.7.2</version>
+        </dependency>
     </dependencies>
 
     <build>

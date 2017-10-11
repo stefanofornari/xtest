@@ -1,3 +1,6 @@
+20171011
+- basic support for URLSearchParams (https://developer.mozilla.org/it/docs/Web/API/URLSearchParams)
+
 20170802
 - released v1.16.7
 
