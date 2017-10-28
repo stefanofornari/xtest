@@ -120,6 +120,4 @@ public class BugFreeArrayRandomStub {
         bar.nextInt(); bar.reset();
         then(numbers).isEqualTo(new byte[] {10, 54, 123});
     }
-    
-    
 }
