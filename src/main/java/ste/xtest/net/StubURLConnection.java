@@ -62,8 +62,8 @@ public class      StubURLConnection
     }
 
     /**
-     * Stubs the connection action to the resource. It also execute the provided
-     * <code>StubConnectionCall</code> if any.
+     * Stubs the connection action to the resource. It also executes the 
+     * provided <code>StubConnectionCall</code> if any.
      * 
      * @throws IOException in case of connection errors
      * @throws IllegalStateException if already connected
