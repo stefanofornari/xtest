@@ -19,8 +19,9 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.net;
+package ste.xtest.net.calls;
 
+import ste.xtest.net.calls.ErrorThrower;
 import java.net.URL;
 import java.util.Base64;
 import org.apache.http.HttpHeaders;

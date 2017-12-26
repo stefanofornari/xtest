@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.SerializationUtils;
 import org.assertj.core.util.Lists;
 import ste.xtest.logging.LoggingByteArrayOutputStream;
+import ste.xtest.net.calls.ErrorThrower;
 
 /**
  *

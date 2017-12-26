@@ -19,26 +19,27 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.net;
+package ste.xtest.net.calls;
 
-import ste.xtest.net.calls.ConnectionHolder;
-import java.net.URL;
-import org.junit.Test;
-import static org.assertj.core.api.BDDAssertions.then;
+import ste.xtest.net.StubConnectionCall;
+import ste.xtest.net.StubURLConnection;
 
 /**
- * 
+ *
  */
-public class BugFreeConnectionHolderCall {
+public class ErrorThrower implements StubConnectionCall {
+    
+    final private Exception error;
 
-    @Test
-    public void grab_connection_on_call() throws Exception {
-        final StubURLConnection C = new StubURLConnection(new URL("http://somewhere.com"));
-        
-        ConnectionHolder holder = new ConnectionHolder();
-        
-        holder.call(C);
-        
-        then(holder.getConnection()).isSameAs(C);
+    public ErrorThrower(Exception error) {
+        this.error = error;
     }
+
+    @Override
+    public void call(StubURLConnection connection) throws Exception {
+        if (error != null) {
+            throw error;
+        }
+    }
+    
 }

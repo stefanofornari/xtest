@@ -19,25 +19,26 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.net;
+package ste.xtest.net.calls;
+
+import java.util.ArrayList;
+import java.util.List;
+import ste.xtest.net.StubConnectionCall;
+import ste.xtest.net.StubURLConnection;
 
 /**
  *
- * @author ste
  */
-public class ErrorThrower implements StubConnectionCall {
+public class ConnectionCollector implements StubConnectionCall {
     
-    final private Exception error;
-
-    public ErrorThrower(Exception error) {
-        this.error = error;
-    }
-
+    public final List<StubURLConnection> connections = new ArrayList<>();
+        
     @Override
-    public void call(StubURLConnection connection) throws Exception {
-        if (error != null) {
-            throw error;
+    public void call(StubURLConnection c) throws Exception {
+        if (c == null) {
+            throw new IllegalArgumentException("c can not be null");
         }
+        connections.add(c);
     }
     
 }

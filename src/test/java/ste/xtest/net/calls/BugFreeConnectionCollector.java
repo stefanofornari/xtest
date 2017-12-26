@@ -19,26 +19,42 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.net;
+package ste.xtest.net.calls;
 
-import ste.xtest.net.calls.ConnectionHolder;
-import java.net.URL;
 import org.junit.Test;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.Assert.fail;
+import ste.xtest.net.StubURLConnection;
 
 /**
- * 
+ * A BasicCredentialsChecker is meant to be used with StubURLConnection.exec()
+ * to check that the requests's credentials match a given key and secret.
  */
-public class BugFreeConnectionHolderCall {
+public class BugFreeConnectionCollector {
 
     @Test
-    public void grab_connection_on_call() throws Exception {
-        final StubURLConnection C = new StubURLConnection(new URL("http://somewhere.com"));
+    public void collect_ko() throws Exception {
+        ConnectionCollector cc = new ConnectionCollector();
+        try {
+            cc.call(null);
+            fail("not throwing the expected error");
+        } catch (Exception x) {
+            then(x).hasMessage("c can not be null");
+        }
+    }
+    
+    @Test
+    public void collect_ok() throws Exception {
+        ConnectionCollector cc = new ConnectionCollector();
+        then(cc.connections).isEmpty();
         
-        ConnectionHolder holder = new ConnectionHolder();
+        StubURLConnection c1 = new StubURLConnection(null) {};
+        StubURLConnection c2 = new StubURLConnection(null) {};
         
-        holder.call(C);
+        cc.call(c1); then(cc.connections).hasSize(1);
+        cc.call(c2); then(cc.connections).hasSize(2);
         
-        then(holder.getConnection()).isSameAs(C);
+        then(cc.connections.get(0)).isSameAs(c1);
+        then(cc.connections.get(1)).isSameAs(c2);
     }
 }

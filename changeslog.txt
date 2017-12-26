@@ -1,3 +1,8 @@
+20171225
+- refactored all ConnectionStubCall classes in package ste.xtest.net.calls
+- added ste.xtest.net.calls.ConnectionCollector
+- released v1.18.1
+
 20171028
 - released v1.17.1
 
