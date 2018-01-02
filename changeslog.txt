@@ -1,3 +1,13 @@
+20180102
+- ste.math.ArrayRandomStub.nextBoolean()
+- released v1.18.2
+
+20171231
+- added some common values (e.g. positive integers, not negative integers... ) to Constants
+
+20171230
+- implemented ste.math.ArrayRandomStub.nextInt(bound)
+
 20171225
 - refactored all ConnectionStubCall classes in package ste.xtest.net.calls
 - added ste.xtest.net.calls.ConnectionCollector
