@@ -36,4 +36,19 @@ public class Constants {
         "", " ", "   ", "\n\t " 
     };
     
+    public static final int[] POSITIVES_1_25_389_4567 = new int[] {
+        1, 25, 389, 4567
+    };
+    
+    public static final int[] NOT_NEGATIVES_0_1_25_389_4567 = new int[] {
+        0, 1, 25, 389, 4567
+    };
+    
+    public static final int[] NEGATIVES_1_25_389_4567 = new int[] {
+        -1, -25, -389, -4567
+    };
+    
+    public static final int[] NOT_POSITIVES_0_1_25_389_4567 = new int[] {
+        0, -1, -25, -389, -4567
+    };
 }
