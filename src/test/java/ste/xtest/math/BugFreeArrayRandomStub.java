@@ -59,6 +59,21 @@ public class BugFreeArrayRandomStub {
     }
     
     @Test
+    public void nextInt_returns_the_given_sequence_modulus_buond() {
+        int[] numbers = new int[] {10, 54, 590};
+        
+        ArrayRandomStub bar = new ArrayRandomStub(numbers);
+        for(int i=0; i<numbers.length; ++i) {
+            then(bar.nextInt(15)).isEqualTo(numbers[i] % 15);
+        }
+        
+        bar = new ArrayRandomStub(numbers);
+        for(int i=0; i<numbers.length; ++i) {
+            then(bar.nextInt(3)).isEqualTo(numbers[i] % 3);
+        }
+    }
+    
+    @Test
     public void nextBytes_returns_the_given_sequence_with_overflow() {
         int[] numbers = new int[] {10, 54, 123};
         
@@ -77,6 +92,18 @@ public class BugFreeArrayRandomStub {
                 (byte)numbers[0]
             }
         );
+    }
+    
+    @Test
+    public void nextBoolean_returns_results_of_greater_than() {
+        int[] numbers = new int[] {-1, 4, 5, 0};
+        
+        ArrayRandomStub bar = new ArrayRandomStub(numbers);
+        
+        then(bar.nextBoolean()).isFalse();
+        then(bar.nextBoolean()).isTrue();
+        then(bar.nextBoolean()).isTrue();
+        then(bar.nextBoolean()).isFalse();
     }
     
     @Test 

@@ -62,7 +62,7 @@ public class ArrayRandomStub extends Random {
     
     @Override
     public boolean nextBoolean() {
-        throw new RuntimeException("not implemented");
+        return (nextInt() > 0);
     }
     
     @Override
@@ -94,7 +94,7 @@ public class ArrayRandomStub extends Random {
     
     @Override
     public int nextInt(int bound) {
-        throw new RuntimeException("not implemented");
+        return nextInt() % bound;
     }
     
     @Override
