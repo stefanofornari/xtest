@@ -36,6 +36,7 @@ public class FileTransport extends Transport {
     
     public static final String MAIL_FILE_PATH = "mail.file.path";
     public static final String MAIL_FILE_REQUIRE_SSL = "mail.file.require.ssl";
+    public static final String MAIL_FILE_ALLOWED = "mail.file.allowed";
 
     public FileTransport(Session session, URLName urlname) {
         super(session, urlname);
@@ -122,6 +123,22 @@ public class FileTransport extends Transport {
     // ---------------------------------------------------------- private methos
     
     private String getAllowedPassword(final String username) {
+        //
+        // check if new style (mail.file.allowed=user:password)
+        //
+        String allowedUsers = getProperty(MAIL_FILE_ALLOWED);
+        if (allowedUsers != null) {
+            String[] users = StringUtils.split(allowedUsers, ",");
+            for (String user: users) {
+                if (user.startsWith(username + ':')) {
+                    return user.substring(username.length()+1);
+                }
+            }
+        }
+        
+        //
+        // old style (mail.file.allowed.user=password)
+        //
         return getProperty("mail.file.allowed."+ username);
     }
     

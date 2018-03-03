@@ -1,3 +1,11 @@
+20180303
+- released v1.19.0
+
+20180227
+- added a new style to specify allowed users for ste.xtest.mail.FileTransport:
+  now they can be provided as
+    mail.file.allowed=user1:password1[,user2=password2]
+
 20180102
 - ste.math.ArrayRandomStub.nextBoolean()
 - released v1.18.2
