@@ -1,3 +1,7 @@
+20180312
+- upgraded to latest org.apache.httpcomponents
+- released v1.19.1
+
 20180303
 - released v1.19.0
 
