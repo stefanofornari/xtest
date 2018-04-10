@@ -31,6 +31,9 @@ import org.junit.Before;
  * @author ste
  *
  * TODO: exec object's method
+ * TODO: fix env.rhino.1.2.js between lines 13259 and 13266:
+ *       1. if status is not 200 we should assume it is text/plain and show just an error message/page
+ *       2. responseType may be not provided, we should default to text/plain
  */
 public class BugFreeEnvRhino {
     
