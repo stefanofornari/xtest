@@ -29,56 +29,59 @@ import org.junit.Test;
  *
  */
 public class BugFreeWaitFor {
-    
+
     @Test(timeout = 500)
     public void wait_until_finished() {
-        
+
         final Counter c = new Counter();
-        
+
         Thread t = new Thread(c);
         t.start();
-        
+
         new WaitFor(new Condition() {
             @Override
             public boolean check() {
                 return (c.counter == 3);
             }
         });
-        
+
         then(c.finished).isTrue();
         then(c.counter).isEqualTo(3);
     }
-    
+
     @Test(timeout = 500)
     public void wait_until_finisched_with_timeout_ok() {
         final Counter c = new Counter();
-        
+
         new Thread(c).start();
-        
+
+        long now = System.currentTimeMillis();
         try {
             new WaitFor(200, new Condition() {
                 @Override
                 public boolean check() {
-                    return (c.counter > 3);
+                    return false;
                 }
             });
             fail("no timeout chek...");
         } catch (AssertionError x) {
             then(x).hasMessageStartingWith("task expected to complete in 200 milliseconds, but it did not finished in ");
         }
+
+        then(System.currentTimeMillis()-now).isGreaterThan(200);
     }
-    
+
     // ----------------------------------------------------------------- Counter
-    
+
     private static class Counter implements Runnable {
-        
+
         public int counter = 0;
         public boolean finished = false;
-        
+
         @Override
         public void run() {
             finished = false;
-            
+
             for (int i = 0; i < 3; ++i) {
                 ++counter;
                 try {
@@ -87,7 +90,7 @@ public class BugFreeWaitFor {
                     break;
                 }
             }
-            
+
             finished = true;
         }
     }

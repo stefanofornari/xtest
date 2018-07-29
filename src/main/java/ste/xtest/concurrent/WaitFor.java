@@ -25,39 +25,41 @@ package ste.xtest.concurrent;
  *
  */
 public class WaitFor {
-    
+
     /**
      * Wait that the condition is true for the given timeout. Timeout = -1 means
      * forever.
-     * 
+     *
      * @param timeout millisecond to wait or -1 for ever
      * @param c the condition
-     * 
+     *
      * @throws AssertionError if the condition does not become true in the given
      *                        timeout.
      */
     public WaitFor(long timeout, Condition c) throws AssertionError {
         long start = System.currentTimeMillis();
-        
+
         boolean cont;
         while (cont = !c.check()) {
-            if ((timeout >= 0) && (System.currentTimeMillis() <= (start + timeout))) {
+            long now = System.currentTimeMillis();
+            if ((timeout >= 0) && ( now > (start + timeout))) {
                 break;
             }
             try {
                 Thread.sleep(50);
             } catch (InterruptedException x) {
+                System.out.println("interrupted!");
                 break;
             }
         }
-        
+
         if (cont) {
             throw new AssertionError(
                 String.format("task expected to complete in %d milliseconds, but it did not finished in %d milliseconds", timeout, System.currentTimeMillis()-start)
             );
         }
     }
-    
+
     public WaitFor(Condition c) throws AssertionError {
         this(-1, c);
     }
