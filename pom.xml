@@ -17,9 +17,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ste.test</groupId>
+    <groupId>com.github.stefanofornari</groupId>
     <artifactId>xtest</artifactId>
-    <version>1.20.1-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
@@ -104,17 +104,6 @@
             <artifactId>assertj-core</artifactId>
             <version>3.5.2</version>
         </dependency>
-        <dependency>
-            <groupId>ste.web</groupId>
-            <artifactId>webtoolkitlib</artifactId>
-            <version>1.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-sns</artifactId>
-            <version>1.11.232</version>
-            <type>jar</type>
-        </dependency>
     </dependencies>
 
     <build>
@@ -147,7 +136,7 @@
                     <threadCountClasses>1</threadCountClasses>
                 </configuration>
             </plugin>
-            
+
             <!--
                Using release plugin 2.5 to avoid fix issue https://jira.codehaus.org/browse/MRELEASE-812
             -->

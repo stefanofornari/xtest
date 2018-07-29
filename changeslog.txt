@@ -1,5 +1,9 @@
+20180729
+- changed coordinates to: com.github.stefanofornari:xtest:2.0.0
+- released 2.0.0
+
 20180423
-- added new stub for AWS SNS 
+- added new stub for AWS SNS
 - released 1.20.0
 
 20180312
@@ -71,7 +75,7 @@
 - added utility StubConnectionCall BasicAuthenticationChecker, ConnectionHolder
 
 20160904
-- changed the behaviour of StubStreamHandler.URLMap() so that get now creates a 
+- changed the behaviour of StubStreamHandler.URLMap() so that get now creates a
   clone of the entry as opposed to returning the instance itself
 - fixed wrong behaviour in StubURLConnection
 - added StubURLConnection.exex() to execute arbitrarily code on connection
@@ -99,7 +103,7 @@
 - fixed implementaton of setInterval (did not seem to repeat the task...)
 
 20160402
-- removed obsolete jquery/angular mocking/stubbing 
+- removed obsolete jquery/angular mocking/stubbing
 
 20160319
 - upgraded beanshell to v2.0b6
@@ -111,14 +115,14 @@
 - adding support for authenticated sessions
 
 20160223
-- added StubURLBuilder.getConnection() to get access to connection data 
+- added StubURLBuilder.getConnection() to get access to connection data
   (even after connecting)
 
 20160215
 - added base class BugFreeEnvjs
 
 20160127
-- fixed an issue with the handling of file:/ URLs which was not using 
+- fixed an issue with the handling of file:/ URLs which was not using
   URLConnection.getResponseCode() (preventing to use a subs for file:/ urls)
 - released v1.12.6
 
@@ -155,8 +159,8 @@
 
 20151115
 - Envjs: added support for XMLHttpRequest.responseType
-- Envjs: implemented iframe loading of content, in particular special handling 
-         if the content is not html (trying to mimic what firefox and chrome 
+- Envjs: implemented iframe loading of content, in particular special handling
+         if the content is not html (trying to mimic what firefox and chrome
          do)
 - released v1.11.0
 
@@ -194,7 +198,7 @@
 
 20150726
 - added first fluent assertions for logging
-- fixed a bug in ListLogHandler.publish() so that messages are storedonly if 
+- fixed a bug in ListLogHandler.publish() so that messages are storedonly if
   loggable; note that this change may break something
 
 20150517
@@ -232,7 +236,7 @@
 
 20140829
 - released v 1.6.2
-- better error handling of bsh scripts 
+- better error handling of bsh scripts
 - added ste.xtest.net.TestSocket
 - added ste.xtest.Constants with some useful sample constants
 
