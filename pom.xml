@@ -211,6 +211,8 @@
                 <version>3.0.1</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
+                    <skip>false</skip>
+                    <failOnError>false</failOnError>
                 </configuration>
                 <executions>
                     <execution>
