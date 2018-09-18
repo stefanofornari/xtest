@@ -1,3 +1,7 @@
+20180918
+- added support to spec Desktop.open/edit/mail/browse
+- relase 2.1.0
+
 20180729
 - changed coordinates to: com.github.stefanofornari:xtest:2.0.0
 - released 2.0.0

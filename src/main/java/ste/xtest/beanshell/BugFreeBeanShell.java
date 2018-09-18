@@ -81,7 +81,7 @@ public abstract class BugFreeBeanShell extends BugFree {
     public String[] getBshFileName() {
         return fileNames;
     }
-    
+
     public void setBshFileName(String bshFileName) {
         setBshFileNames(bshFileName);
     }
