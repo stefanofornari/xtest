@@ -1,1 +1,2 @@
 protocol=file; type=transport; class=ste.xtest.mail.FileTransport; vendor=ste;
+protocol=xtest; type=store; class=ste.xtest.mail.DummyStore; vendor=ste;
