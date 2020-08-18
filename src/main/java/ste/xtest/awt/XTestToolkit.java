@@ -85,7 +85,7 @@ public class XTestToolkit extends SunToolkit  {
     public final XTestDesktopPeer peer = new XTestDesktopPeer();
 
     @Override
-    protected DesktopPeer createDesktopPeer(Desktop target) throws HeadlessException {
+    public DesktopPeer createDesktopPeer(Desktop target) throws HeadlessException {
         return peer;
     }
 
@@ -230,16 +230,6 @@ public class XTestToolkit extends SunToolkit  {
     }
 
     @Override
-    protected int getScreenWidth() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    protected int getScreenHeight() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     protected boolean syncNativeQueue(long l) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -362,6 +352,11 @@ public class XTestToolkit extends SunToolkit  {
     @Override
     public FontPeer getFontPeer(String string, int i) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isTaskbarSupported() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
