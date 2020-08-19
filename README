@@ -24,3 +24,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program; if not, see http://www.gnu.org/licenses or write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301 USA.
+
+RELEASE NOTES
+=============
+
+1. v3.x breaks backward compatibility to address the new mechanisms of 
+   preventing the use of internal APIs introduced with JDK9.
+   This involved the following xtest packages
+   
+   - ste.xtest.awt
+   - ste.xtest.net
+
+   If you need to use those packages without changes, use v2.x and JDK8
+
+   The following classes have been removed and will not be longer supported:
+
+   - ste.xtest.reflect.CodeInjector

@@ -61,6 +61,7 @@ public class BugFreeStubStreamHandler {
         StubStreamHandler.URLMap.add(new StubURLConnection(new URL(TEST_URL1)));
         StubStreamHandler b = new StubStreamHandler();
         
+
         then(b.openConnection(new URL(TEST_URL2)))
             .isNotNull().isInstanceOf(sun.net.www.protocol.http.HttpURLConnection.class);
         try {

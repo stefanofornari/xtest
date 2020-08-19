@@ -30,8 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sun.net.www.protocol.file.FileURLConnection;
 import sun.net.www.protocol.http.HttpURLConnection;
+import sun.net.www.protocol.file.FileURLConnection;
 
 /**
  *
@@ -50,7 +50,7 @@ public class StubStreamHandler extends URLStreamHandler {
                 ((stub != null) ? "stubbed" : "default") + " url: " + url
             );
         }
-        
+
         return (stub != null) ? stub
                               : getDefaultConnection(url);
     }
