@@ -19,7 +19,7 @@
 
     <groupId>com.github.stefanofornari</groupId>
     <artifactId>xtest</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
@@ -282,7 +282,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/xtest.git</connection>
         <url>https://github.com/stefanofornari/xtest</url>
-        <tag>HEAD</tag>
+        <tag>xtest-3.0.0</tag>
     </scm>
 
     <distributionManagement>
