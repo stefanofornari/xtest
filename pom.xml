@@ -123,13 +123,20 @@
                 <version>3.8.1</version>
                 <configuration>
                     <compilerArgs>
-                        <arg>--add-exports</arg><arg>java.desktop/java.awt.peer=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.desktop/java.awt.dnd.peer=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.desktop/sun.awt=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.desktop/sun.awt.datatransfer=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.base/sun.net.www.protocol.http=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.base/sun.net.www.protocol.ftp=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.base/sun.net.www.protocol.file=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.desktop/java.awt.peer=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.desktop/java.awt.dnd.peer=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.desktop/sun.awt=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.desktop/sun.awt.datatransfer=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.base/sun.net.www.protocol.http=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.base/sun.net.www.protocol.ftp=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.base/sun.net.www.protocol.file=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -158,6 +165,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5</version>
             </plugin-->
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -176,6 +184,19 @@
                         <version>1.9.5</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            -->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <goals>deploy</goals>
+                </configuration>
             </plugin>
 
             <plugin>
