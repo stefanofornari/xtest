@@ -19,7 +19,7 @@
 
     <groupId>com.github.stefanofornari</groupId>
     <artifactId>xtest</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
@@ -193,7 +193,6 @@
                 <version>2.5.3</version>
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <useReleaseProfile>false</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
                     <goals>deploy</goals>
                 </configuration>
@@ -272,13 +271,7 @@
     <profiles>
         <!-- GPG Signature on release -->
         <profile>
-            <id>release-sign-artifacts</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
+            <id>release</id>
             <build>
                 <plugins>
                     <plugin>
@@ -303,7 +296,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/xtest.git</connection>
         <url>https://github.com/stefanofornari/xtest</url>
-        <tag>xtest-3.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
