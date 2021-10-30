@@ -406,7 +406,7 @@ Envjs.setCookie = function(url, cookie){
     } else {
         return;
     }
-    
+
     //for now the strategy is to simply create a json object
     //and post it to a file in the .cookies.js file.  I hate parsing
     //dates so I decided not to implement support for 'expires'
@@ -420,7 +420,7 @@ Envjs.setCookie = function(url, cookie){
         if(index > -1){
             name = Envjs.trim(attrs[i].substring(0,index));
             value = Envjs.trim(attrs[i].substring(index+1));
-            
+
             Envjs.debug("cookie: {name: %s, value: %s}", name, value);
 
             if(name=='max-age'){
@@ -543,7 +543,7 @@ function __mergeCookie__(target, cookie, properties){
         var now = Envjs.clock.millis();
         var maxAge = (cookie['max-age'] || 0);
         var secure = (cookie.secure) ? true: false;
-        
+
         target[cookie.domain][cookie.path][name] = {
             "value": properties[name],
             "secure": secure,
@@ -924,6 +924,7 @@ urlparse.normalizepath = function(path)
         newparts.push('');
     }
 
+
     for (var i = 0; i < parts.length; ++i) {
         if (parts[i] === '..') {
             if (newparts.length > 1) {
@@ -1024,13 +1025,23 @@ urlparse.urlsplit = function(url, default_scheme, allow_fragments)
     }
     o.scheme = o.scheme.toLowerCase();
 
+    //
+    // if schame is file, net.loc may contain relative path notation ('.' or '..')
+    //
+    if (o.scheme == 'file') {
+        if (o.netloc.charAt(0) == '.') {
+            leftover = o.netloc + leftover;
+            o.netloc = '';
+        }
+    }
+
     parts = leftover.match(parse_leftovers);
 
     o.path =  parts[1] || '';
     o.query = parts[2] || '';
 
     if (allow_fragments) {
-        o.fragment = parts[3] || '';
+        o.fragment = parts[parts.length-1] || '';
     } else {
         o.fragment = '';
     }
@@ -1081,9 +1092,10 @@ urlparse.urljoin = function(base, url, allow_fragments)
 
     var url_parts = urlparse.urlsplit(url);
 
-    // if url parts has a scheme (i.e. absolute)
-    // then nothing to do
-    if (url_parts.scheme) {
+    // if url parts has a scheme and path does not start with '.' (i.e. absolute)
+    // then nothing to do;
+    if (url_parts.scheme && !(url_parts.path.charAt(0) == '.')) {
+        Envjs.debug("CHECK4.1");
         if (! allow_fragments) {
             return url;
         } else {
@@ -1097,8 +1109,8 @@ urlparse.urljoin = function(base, url, allow_fragments)
         base_parts.scheme = url_parts.scheme;
     }
 
-    // copy netloc, only if not present
-    if (!base_parts.netloc || !base_parts.hostname) {
+    // copy netloc, only if not present and scame is not file
+    if ((base_parts.scheme != 'file') && (!base_parts.netloc || !base_parts.hostname)) {
         base_parts.netloc = url_parts.netloc;
         base_parts.hostname = url_parts.hostname;
         base_parts.port = url_parts.port;
@@ -1140,14 +1152,6 @@ urlparse.urljoin = function(base, url, allow_fragments)
 };
 
 /**
- * getcwd - named after posix call of same name (see 'man 2 getcwd')
- *
- */
-Envjs.getcwd = function() {
-    return '.';
-};
-
-/**
  * resolves location relative to doc location
  *
  * @param {Object} path  Relative or absolute URL
@@ -1163,9 +1167,11 @@ Envjs.uri = function(path, base) {
     }
 
     // if path is absolute, then just normalize and return
-    if (path.match('^[a-zA-Z]+://')) {
+    if (path.match('^[a-zA-Z]+://[^.]')) {
+        Envjs.debug("CHECK1");
         return urlparse.urlnormalize(path);
     }
+    Envjs.debug("CHECK2");
 
     // interesting special case, a few very large websites use
     // '//foo/bar/' to mean 'http://foo/bar'
@@ -1185,15 +1191,25 @@ Envjs.uri = function(path, base) {
         base = '';
     }
 
+    Envjs.debug("CHECK3");
+
     // if base is still empty, then we are in QA mode loading local
     // files.  Get current working directory
     if (!base) {
         base = 'file://' +  Envjs.getcwd() + '/';
     }
-    
+
+    var joinedurl = urlparse.urljoin(base, path, true);
+
+    Envjs.debug("base: " + base);
+    Envjs.debug("path: " + path);
+    Envjs.debug("join: " + joinedurl);
+
     // handles all cases if path is abosulte or relative to base
     // 3rd arg is "false" --> remove fragments
-    var newurl = urlparse.urlnormalize(urlparse.urljoin(base, path, true));
+    var newurl = urlparse.urlnormalize(joinedurl);
+
+    Envjs.debug("newurl: " + newurl);
 
     return newurl;
 };
@@ -1354,8 +1370,8 @@ Envjs.loadInlineScript = function(script){
     }
     Envjs.debug(
         'evaluated at scope ' +
-        script.ownerDocument.ownerWindow.guid + 
-        '\n' + 
+        script.ownerDocument.ownerWindow.guid +
+        '\n' +
         script.text
     );
 };
@@ -1578,10 +1594,10 @@ Envjs.connection = function(xhr, responseHandler, data){
                     console.log('failed to load response headers',e);
                 }
                 /** **/
-                
+
                 //
                 // some implementation of URLConnection may not have getResponseCode()
-                // 
+                //
                 if (!connection.responseCode) {
                     xhr.status = 200;
                 }
@@ -1603,7 +1619,7 @@ Envjs.connection = function(xhr, responseHandler, data){
     } else {
         connection = url.openConnection();
         connection.setRequestMethod( xhr.method );
-                
+
         // Add headers to Java connection
         for (header in xhr.headers){
             connection.addRequestProperty(header+'', xhr.headers[header]+'');
@@ -1639,7 +1655,7 @@ Envjs.connection = function(xhr, responseHandler, data){
             throw e;
         }
     }
-    
+
     if(connection){
         try{
             var headers = connection.getHeaderFields();
@@ -1647,7 +1663,7 @@ Envjs.connection = function(xhr, responseHandler, data){
             // Stick the response headers into responseHeaders
             Envjs.debug("reading headers...");
             for (i=0; i<names.length; ++i) {
-                value = (headers.get(names[i]).size() == 1) 
+                value = (headers.get(names[i]).size() == 1)
                       ? (headers.get(names[i]).get(0))
                       : headers.get(names[i]).toArray();
                 if (names[i]) {
@@ -1668,7 +1684,7 @@ Envjs.connection = function(xhr, responseHandler, data){
         Envjs.debug("connection response status: %d", xhr.status);
         xhr.responseType = connection.getContentType();
         xhr.onreadystatechange();
-        
+
         contentEncoding = connection.getContentEncoding() || "utf-8";
         instream = null;
         responseXML = null;
@@ -1705,7 +1721,7 @@ Envjs.connection = function(xhr, responseHandler, data){
 
         outstream.close();
         instream.close();
-        
+
         xhr.readyState = 4;
 
         if(binary){
@@ -1736,33 +1752,33 @@ Envjs.lang           = java.lang.System.getProperty("user.lang");
 Envjs.screen = {
     $width: 800,
     $height: 600,
-    
+
     get width() {
         return this.$width;
     },
-    
+
     set width(w) {
         if (w < 0) {
             throw java.lang.IllegalArgumentException("screen width can not be < 0");
         }
         this.$width = w;
     },
-    
+
     get height() {
         return this.$height;
     },
-    
+
     set height(h) {
         if (h < 0) {
             throw java.lang.IllegalArgumentException("screen height can not be < 0");
         }
         this.$height = h;
     },
-    
+
     get availWidth() {
         return this.$width;
     },
-    
+
     get availHeight() {
         return this.$height-32; // taskbar of 32 pixel
     }
@@ -1851,7 +1867,7 @@ Envjs.proxy = function(scope, parent) {
 
 
 /**
- * 
+ *
  * @returns {undefined}Extending String with trim()
  */
 (function() {
@@ -5738,7 +5754,7 @@ EventTarget.prototype.dispatchEvent = function(event, bubbles){
 
 //
 // getEventListeners is not defined by the standard and not implemented directly
-//  in real browsers. however, it is pretty useful to require an event handler 
+//  in real browsers. however, it is pretty useful to require an event handler
 //  is really attached to an element.
 //
 EventTarget.prototype.getEventListeners = function(type){
@@ -5747,7 +5763,7 @@ EventTarget.prototype.getEventListeners = function(type){
             return $events[this.uuid][type]['BUBBLING'];
         }
     }
-    
+
     return [];
 };
 
@@ -6241,7 +6257,7 @@ MutationEvent.REMOVAL = 2;
 CustomEvent = function(type, options) {
     this._type = type;
     this._detail = "";
-    
+
     if (options) {
         if (options.detail) {
             this._detail = options.detail;
@@ -7106,23 +7122,23 @@ __extend__(HTMLDocument.prototype, {
     },
     /**
      * document.querySelector
-     * 
+     *
      * NOTE: this is a partial implementation to allow some basic functionality
-     * 
+     *
      * Mozilla MDC:
      * https://developer.mozilla.org/en-US/docs/Web/API/document.querySelector
-     * 
+     *
      * W3C:
      * http://www.w3.org/TR/selectors-api/
-     * 
+     *
      */
     querySelector : function(selectors) {
         Envjs.debug('querySelector ' + selectors);
         ret = $(selectors);
-        
+
         return (ret.length == 0) ? null : ret[0];
     },
-    
+
     toString: function(){
         return "[object HTMLDocument]";
     },
@@ -9433,7 +9449,7 @@ __extend__(HTMLInputElement.prototype, {
         // force to boolean value
         this._checked = (value) ? true : false;
     },
-    
+
     /**
      * 'defaultChecked' actually reflects if the 'checked' attribute
      * is present or not
@@ -9463,7 +9479,7 @@ __extend__(HTMLInputElement.prototype, {
     set value(newvalue) {
         this._value = newvalue;
     },
-    
+
     /**
      * Height is a string
      */
@@ -13321,11 +13337,11 @@ Envjs.createSimpleDocument = function(doc, src, title, type) {
     var html =    doc.createElement('html');
     var head =    doc.createElement('head');
     var body =    doc.createElement('body');
-    
+
     //doc = new HTMLDocument(new DOMImplementation(), doc.ownerWindow);
-    
+
     head.innerHTML = '<title>' + title + '</title>';
-    
+
     if ((type.length() > 6) && type.startsWith('image/')) {
         body.innerHTML = "<img src='" + src + "'>";
     } else {
@@ -13334,7 +13350,7 @@ Envjs.createSimpleDocument = function(doc, src, title, type) {
     html.appendChild(head);
     html.appendChild(body);
     doc.appendChild(html);
-    
+
     //DOMContentLoaded event
     if (doc.createEvent) {
         event = doc.createEvent('Event');
@@ -13476,9 +13492,9 @@ XMLHttpRequest.prototype = {
             throw new Error("INVALID_STATE_ERR");
         } else {
             if (this.responseHeaders[key]) {
-                var v = (this.responseHeaders[key] instanceof Array) 
-                      ? this.responseHeaders[key].join(";") 
-                      : this.responseHeaders[key]; 
+                var v = (this.responseHeaders[key] instanceof Array)
+                      ? this.responseHeaders[key].join(";")
+                      : this.responseHeaders[key];
                 return v;
             }
         }
@@ -13942,19 +13958,19 @@ Envjs.windows = {
                 return this[p];
             }
         };
-        
+
         return null;
     },
-    
+
     getAll: function() {
         var ret = [];
-        
+
         for(p in this) {
             if(this[p].document) {
                 ret.push(p);
             }
         };
-        
+
         return ret;
     }
 };
@@ -14056,7 +14072,7 @@ Window = function(scope, parent, opener){
 
     // a read/write string that specifies the current status line.
     var $status = '';
-    
+
     //
     // default window size: 800x600
     //
@@ -14183,7 +14199,7 @@ Window = function(scope, parent, opener){
         get innerHeight() {
             return this.outerHeight-50; // toolbars/scrollbars height: 50px
         },
-        
+
         moveBy : function(dx,dy){
             //TODO - modify $locals to reflect change
         },
@@ -14209,7 +14225,7 @@ Window = function(scope, parent, opener){
         scrollTo : function(x,y){
             //TODO - modify $locals to reflect change
         },
-        
+
         toString : function(){
             return '[Window]';
         },

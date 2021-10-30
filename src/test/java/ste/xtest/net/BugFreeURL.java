@@ -26,53 +26,54 @@ import java.io.InputStream;
 import java.net.URL;
 import org.apache.commons.io.IOUtils;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 
 /**
  *
  * @author ste
  */
 public class BugFreeURL {
-    
-    @BeforeClass
-    public static void before_class() throws Exception {
-        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
-    }
-    
+
+    @Rule
+    public final ProvideSystemProperty PROTOCOL_PATH_PROP
+	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net.protocol");
+
     @Test
     public void using_stub_when_connecting_to_a_URL() throws Exception {
         final String[] PROTOCOLS = new String[] {
             "http", "https", "ftp", "file"
         };
-        
+
+
         for (String PROTOCOL: PROTOCOLS) {
             StubStreamHandler.URLMap.add(new StubURLConnection(new URL(PROTOCOL + "://a.url.com")));
             then(new URL(PROTOCOL + "://a.url.com").openConnection()).isInstanceOf(StubURLConnection.class);
         }
     }
-    
+
     @Test
     public void use_a_given_url_stub() throws Exception {
         final String TEST_URL1 = "http://a.url/index.html";
         final String TEST_URL2 = "http://another.url/index.html";
-        
-        StubURLConnection c1 = new StubURLConnection(new URL("http://a.url/index.html")), 
+
+        StubURLConnection c1 = new StubURLConnection(new URL("http://a.url/index.html")),
                           c2 = new StubURLConnection(new URL("http://another.url/index.html"));
         c1.text(String.valueOf(c1.hashCode()));
         c2.text(String.valueOf(c2.hashCode()));
-        
+
         StubStreamHandler.URLMap.add(c1);
         StubStreamHandler.URLMap.add(c2);
-        
+
         then(new URL(TEST_URL1).getContent()).isEqualTo(String.valueOf(c1.hashCode()));
         then(new URL(TEST_URL2).getContent()).isEqualTo(String.valueOf(c2.hashCode()));
     }
-    
+
     @Test
     public void use_default_handler_for_not_stubbed_urls() throws Exception {
         URL u = new File("src/test/resources/html/documentlocation.html").toURI().toURL();
-        
+
         then(IOUtils.toString((InputStream)u.getContent())).contains("TODO write content");
     }
 }
