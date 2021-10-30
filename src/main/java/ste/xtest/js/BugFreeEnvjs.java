@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.script.ScriptException;
-import ste.xtest.net.StubURLConnection;
 import ste.xtest.net.StubStreamHandler.URLMap;
+import ste.xtest.net.StubURLConnection;
 
 /**
  * @author ste
@@ -37,29 +37,29 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
         loadScript("/js/ecma5-adapter.js");
         loadScript("/js/angular-rhino.js");
     }
-    
+
     /**
      * This methods prepares Envjs.map urls mock builders with the given URLs.
-     * It returns the created builder so that the caller can add the wanted 
+     * It returns the created builder so that the caller can add the wanted
      * behaviour.
-     * 
+     *
      * @param urls - for each url a builer will be built and added to Envjs.map
-     * 
+     *
      * @return the created builders
-     * 
+     *
      * @throws MalformedURLException if any of the urls is incorrect
      */
-    protected StubURLConnection[] prepareUrlStupBuilders(final String... urls) throws MalformedURLException {
+    protected StubURLConnection[] prepareUrlSetupBuilders(final String... urls) throws MalformedURLException {
         StubURLConnection[] builders = new StubURLConnection[urls.length];
-        
+
         int i = 0;
         while(i<builders.length) {
             builders[i] = new StubURLConnection(new URL(urls[i]));
             URLMap.add(builders[i]);
             ++i;
         }
-        
+
         return builders;
     }
-    
+
 }

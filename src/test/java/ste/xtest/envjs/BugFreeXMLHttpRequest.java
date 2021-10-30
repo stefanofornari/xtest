@@ -49,7 +49,7 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
     
     @Test
     public void retrieve_mocked_html() throws Exception {
-        StubURLConnection b = prepareUrlStupBuilders("http://a.url.com/home.html")[0];
+        StubURLConnection b = prepareUrlSetupBuilders("http://a.url.com/home.html")[0];
         
         b.status(200).html("<html><head><title>hello world</title></head></html>");
         
@@ -91,7 +91,7 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
             "http://a.url.com/home.html",
             "http://a.url.com/home.jpg"
         };
-        StubURLConnection[] builders = prepareUrlStupBuilders(urls);
+        StubURLConnection[] builders = prepareUrlSetupBuilders(urls);
         builders[0].status(200).text("hello");
         builders[1].status(200).html("<html><body>hello</body></html>");
         builders[2].status(200).content(new byte[] {0}).type("image/jpg");
@@ -142,7 +142,7 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
             "http://a.url.com/home.html",
             "file:///afile.txt"
         };
-        StubURLConnection[] builders = prepareUrlStupBuilders(urls);
+        StubURLConnection[] builders = prepareUrlSetupBuilders(urls);
         
         for (int i=0; i<urls.length; ++i) {
             builders[i].text("not found").status(404);

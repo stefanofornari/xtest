@@ -100,7 +100,7 @@ public class BugFreeCookie extends BugFreeEnvjs {
             "http://server.com/cookie/values1",
             "http://server.com/cookie/values2"
         };
-        StubURLConnection[] builders = prepareUrlStupBuilders(URLS);
+        StubURLConnection[] builders = prepareUrlSetupBuilders(URLS);
         
         int i=0;
         builders[i++].text("");

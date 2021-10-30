@@ -82,7 +82,7 @@ import ste.xtest.junit.BugFree;
  *
  */
 public abstract class BugFreeJavaScript extends BugFree {
-    
+
     //
     // TODO: extract common base class between JavaScriptTest and BeanShellTest
     //
@@ -91,7 +91,7 @@ public abstract class BugFreeJavaScript extends BugFree {
      * The JavaScript scope scripts are executed into
      */
     protected Scriptable scope;
-    
+
     // ------------------------------------------------------------ Constructors
     /**
      * Creates a new JavaScripttest
@@ -104,12 +104,12 @@ public abstract class BugFreeJavaScript extends BugFree {
         Context cx = Context.enter();
         scope = cx.initStandardObjects();
         cx.setOptimizationLevel(-1);
-        
+
         //
         // xtest initialization
         //
         loadResourceScripts(
-            cx, 
+            cx,
             new String[] {
                 "/js/xtest.init.js",
                 "/js/env.rhino.1.2.js",
@@ -143,10 +143,10 @@ public abstract class BugFreeJavaScript extends BugFree {
 
         return ret;
     }
-    
+
     /**
      * Sets a variable in the current script scope with given name and value
-     * 
+     *
      * @param name the object name (variable, function, ...) - NOT BLANK
      * @param value the value - MAY BE NULL
      */
@@ -170,7 +170,7 @@ public abstract class BugFreeJavaScript extends BugFree {
         if (script == null) {
             throw new IllegalArgumentException("script cannot be null");
         }
-        
+
         //
         // let's try to read the script from the file system first; if an io
         // exception is thrown, then we try from the classpath
@@ -185,7 +185,7 @@ public abstract class BugFreeJavaScript extends BugFree {
             if (is == null) {
                 throw x;
             }
-            
+
             r = new InputStreamReader(is);
         } finally {
             if (r != null) {
@@ -226,7 +226,7 @@ public abstract class BugFreeJavaScript extends BugFree {
     }
 
     // ------------------------------------------------------- Protected methods
-    
+
     /**
      * Exec the given function assuming it is defined in the current script
      * scope
@@ -272,10 +272,10 @@ public abstract class BugFreeJavaScript extends BugFree {
 
         return result;
     }
-    
+
     // --------------------------------------------------------- Private methods
-    
-    private void loadResourceScripts(final Context cx, final String[] scripts) 
+
+    private void loadResourceScripts(final Context cx, final String[] scripts)
     throws ScriptException {
         InputStream is = null;
         try {

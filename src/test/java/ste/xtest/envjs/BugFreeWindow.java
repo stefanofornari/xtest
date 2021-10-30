@@ -24,9 +24,7 @@ package ste.xtest.envjs;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.mozilla.javascript.NativeArray;
 import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
@@ -38,27 +36,27 @@ import ste.xtest.net.StubURLConnection;
  * @author ste
  */
 public class BugFreeWindow extends BugFreeEnvjs {
-    
+
     public BugFreeWindow() throws Exception {
         super();
     }
-    
+
     @BeforeClass
     public static void before_class() throws Exception {
         URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
     }
-    
+
     @Test
     public void closing_window_set_closed() throws Exception {
         then(
             exec("var w = window.open('', 'test'); w.closed")
         ).isEqualTo(false);
-        
+
         then(
             exec("w.close(); w.closed")
         ).isEqualTo(true);
     }
-    
+
     @Test
     public void opening_and_closing_window() throws Exception {
         JSAssertions.then((NativeArray)exec("Envjs.windows.getAll();")).hasSize(1);  // default window
@@ -69,49 +67,49 @@ public class BugFreeWindow extends BugFreeEnvjs {
         exec("window.close();");
         JSAssertions.then((NativeArray)exec("Envjs.windows.getAll();")).isEmpty();
     }
-    
+
     @Test
     public void set_location_with_fragment() throws Exception {
         final String URL = "http://www.server.com/home.html#fragment";
-        StubURLConnection[] b = prepareUrlStupBuilders(URL);
+        StubURLConnection[] b = prepareUrlSetupBuilders(URL);
         b[0].status(200).text("");
-        
+
         exec("window.location = '" + URL + "'");
 
         then(
             exec("window.location.href;")
         ).isEqualTo(URL);
     }
-    
+
     @Test
     public void windows_with_same_name_do_not_open_new_windows() throws Exception {
         final String URL = "http://www.server.com/home.html";
-        StubURLConnection[] b = prepareUrlStupBuilders(URL);
-        b[0].status(200).text(""); 
-        
+        StubURLConnection[] b = prepareUrlSetupBuilders(URL);
+        b[0].status(200).text("");
+
         exec(
             String.format(
                 "w1 = window.open('%s', 'name1'); w2 = window.open('%s', 'name1');",
                 URL, URL
             )
         );
-        
+
         then((Boolean)exec("w1 === w2;")).isTrue();
     }
-    
+
     @Test
     public void windows_with_different_name_open_new_windows() throws Exception {
         final String URL = "http://www.server.com/home.html";
-        StubURLConnection[] b = prepareUrlStupBuilders(URL);
-        b[0].status(200).text(""); 
-        
+        StubURLConnection[] b = prepareUrlSetupBuilders(URL);
+        b[0].status(200).text("");
+
         exec(
             String.format(
                 "w1 = window.open('%s', 'name1'); w2 = window.open('%s', 'name2');",
                 URL, URL
             )
         );
-        
+
         then((Boolean)exec("w1 != w2;")).isTrue();
     }
 }
