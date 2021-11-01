@@ -22,60 +22,51 @@
 package ste.xtest.js;
 
 import java.io.File;
-import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import ste.xtest.net.StubStreamHandler.URLMap;
-import ste.xtest.net.StubStreamHandlerFactory;
 import ste.xtest.net.StubURLConnection;
 
 /**
  *
  * @author ste
  */
-public class BugFreeConnection extends BugFreeJavaScript {
-    
+public class BugFreeConnection extends BugFreeEnvjs {
+
     public BugFreeConnection() throws Exception {
     }
-    
-    @BeforeClass
-    public static void before_class() throws Exception {
-        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
-    }
-    
+
     @Test
     public void retrieve_stubbed_html() throws Exception {
         final String TEST_URL = "http://a.url.com/home.html";
-        
-        StubURLConnection c = new StubURLConnection(new URL(TEST_URL)); URLMap.add(c);
-        c.html("<html><head><title>hello world</title></head></html>");
-        
+
+        StubURLConnection[] stubs = prepareUrlSetupBuilders(TEST_URL);
+        stubs[0].html("<html><head><title>hello world</title></head></html>");
+
         //
         // let's just trigger the process for now...
         //
         exec("window.location='" + TEST_URL + "';\n");
-        
+
         then(exec("document.title;")).isEqualTo("hello world");
     }
-    
+
     @Test
     public void retrieve_file_url() throws Exception {
         File file = new File("src/test/resources/html/documentlocation.html");
         exec("window.location='file://" + file.getAbsolutePath() +"';");
-        
+
         then(exec("document.title;")).isEqualTo("TODO supply a title");
     }
-    
+
     @Test
     public void get_error_status() throws Exception {
         final String TEST_URL = "http://a.url.com/home.html";
-        
-        StubURLConnection c = new StubURLConnection(new URL(TEST_URL)); URLMap.add(c);
-        c.status(0).text("");
-        
+
+        StubURLConnection[] stubs = prepareUrlSetupBuilders(TEST_URL);
+        stubs[0].status(0).text("");
+
         exec("window.location='" + TEST_URL + "';\n");
-        
+
         then(exec("document.title;")).isEqualTo("Untitled Document");
     }
 }
