@@ -26,13 +26,19 @@ import java.net.URLStreamHandlerFactory;
 
 /**
  *
- * @author ste
+ * @deprecated use the following instead:
+ * <code>
+ * @Rule
+ * public final ProvideSystemProperty PROTOCOL_PATH_PROP
+ *	 = new ProvideSystemProperty("java.protocol.handler.pkgs", "ste.xtest.net.protocol");
+ * </code>
  */
+@Deprecated
 public class StubStreamHandlerFactory implements URLStreamHandlerFactory {
 
     @Override
     public URLStreamHandler createURLStreamHandler(String protocol) {
         return new StubStreamHandler();
     }
-    
+
 }
