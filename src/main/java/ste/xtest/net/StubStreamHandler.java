@@ -21,7 +21,6 @@
  */
 package ste.xtest.net;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,21 +29,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sun.net.www.protocol.http.HttpURLConnection;
-import sun.net.www.protocol.file.FileURLConnection;
+import ste.xtest.net.sun.protocol.file.FileURLConnection;
+import ste.xtest.net.sun.protocol.http.HttpURLConnection;
 
 /**
  *
  * @author ste
  */
 public class StubStreamHandler extends URLStreamHandler {
-    
+
     private final Logger LOG = Logger.getLogger("ste.xtest.net");
-    
+
     @Override
     protected URLConnection openConnection(URL url) throws IOException {
         StubURLConnection stub = URLMap.get(url.toString());
-        
+
         if (LOG.isLoggable(Level.INFO)) {
             LOG.info(
                 ((stub != null) ? "stubbed" : "default") + " url: " + url
@@ -54,11 +53,15 @@ public class StubStreamHandler extends URLStreamHandler {
         return (stub != null) ? stub
                               : getDefaultConnection(url);
     }
-    
+
+    public Map<String, StubURLConnection> getMapping() {
+        return URLMap.getMapping();
+    }
+
     // ------------------------------------------------------------ class URLMap
-    
+
     public static class URLMap {
-    
+
         private static final Map<String, StubURLConnection> map = new HashMap<>();
 
         public static Map<String, StubURLConnection> getMapping() {
@@ -66,19 +69,19 @@ public class StubStreamHandler extends URLStreamHandler {
         }
 
         /**
-         * 
+         *
          * @param url the url to be used to select a mock - NOT NULL
-         * 
-         * @return the selected mock 
-         * 
+         *
+         * @return the selected mock
+         *
          * @throws IllegalArgumentException if url is malformed or null
-         * 
+         *
          */
         public static StubURLConnection get(String url) {
             if (url == null) {
                 throw new IllegalArgumentException("url can not be null");
             }
-            
+
             StubURLConnection stub = map.get(url);
 
             return (stub == null) ? null : (StubURLConnection)map.get(url).clone();
@@ -90,38 +93,24 @@ public class StubStreamHandler extends URLStreamHandler {
     }
 
     // --------------------------------------------------------- private methods
-    
+
     private URLConnection getDefaultConnection(URL url) throws IOException {
         String protocol = url.getProtocol();
-        
+
         int port = url.getPort();
-        
+
         URLConnection c = null;
-        
+
         if (protocol.equalsIgnoreCase("http")) {
             c = new HttpURLConnection(url, url.getHost(), (port < 0) ? 80 : port);
         } else if (protocol.equalsIgnoreCase("https")) {
             throw new IOException("https pass-through not implemented yet; mock https calls or use http");
         } else if (protocol.equalsIgnoreCase("ftp")) {
-            c = new sun.net.www.protocol.ftp.FtpURLConnection(url);
+            throw new IOException("ftp pass-through not implemented yet; mock ftp calls");
         } else if (protocol.equalsIgnoreCase("file")) {
-            c = new FileURLConnectionWrapper(url);
-        } 
-        
-        return c;
-    }
+            c = new FileURLConnection(url);
+        }
 
-    /*
-    private class HttpsURLConnectionWrapper extends HttpsURLConnectionImpl {
-        public HttpsURLConnectionWrapper(URL url) throws IOException {
-            super(url);
-        }
-    }
-    */
-    
-    private class FileURLConnectionWrapper extends FileURLConnection {
-        public FileURLConnectionWrapper(URL url) throws IOException {
-            super(url, new File(url.getFile()));
-        }
+        return c;
     }
 }

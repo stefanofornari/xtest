@@ -24,20 +24,18 @@ package ste.xtest.envjs;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
-import ste.xtest.js.BugFreeJavaScript;
+import ste.xtest.js.BugFreeEnvjs;
 
 
 /**
  *
  * @author ste
  */
-public class BugFreeDocumentQuerySelector extends BugFreeJavaScript {
-    
-    private BugFreeJavaScript test = null;
-    
+public class BugFreeDocumentQuerySelector extends BugFreeEnvjs {
+
     public BugFreeDocumentQuerySelector() throws Exception {
     }
-    
+
     @Before
     public void setUp() throws Throwable {
         exec("window.location='src/test/resources/html/queryselector.html';");
@@ -47,7 +45,7 @@ public class BugFreeDocumentQuerySelector extends BugFreeJavaScript {
     public void noElementsSelectedWithNotExistingSelector() throws Throwable {
         then(exec("document.querySelector('[none]')")).isNull();
     }
-    
+
     @Test
     public void oneElementFound() throws Throwable {
         then(exec("document.querySelector('div').id")).isEqualTo("testdiv1");

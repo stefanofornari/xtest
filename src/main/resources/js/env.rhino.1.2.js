@@ -1095,7 +1095,6 @@ urlparse.urljoin = function(base, url, allow_fragments)
     // if url parts has a scheme and path does not start with '.' (i.e. absolute)
     // then nothing to do;
     if (url_parts.scheme && !(url_parts.path.charAt(0) == '.')) {
-        Envjs.debug("CHECK4.1");
         if (! allow_fragments) {
             return url;
         } else {
@@ -1168,10 +1167,8 @@ Envjs.uri = function(path, base) {
 
     // if path is absolute, then just normalize and return
     if (path.match('^[a-zA-Z]+://[^.]')) {
-        Envjs.debug("CHECK1");
         return urlparse.urlnormalize(path);
     }
-    Envjs.debug("CHECK2");
 
     // interesting special case, a few very large websites use
     // '//foo/bar/' to mean 'http://foo/bar'
@@ -1191,8 +1188,6 @@ Envjs.uri = function(path, base) {
         base = '';
     }
 
-    Envjs.debug("CHECK3");
-
     // if base is still empty, then we are in QA mode loading local
     // files.  Get current working directory
     if (!base) {
@@ -1201,15 +1196,9 @@ Envjs.uri = function(path, base) {
 
     var joinedurl = urlparse.urljoin(base, path, true);
 
-    Envjs.debug("base: " + base);
-    Envjs.debug("path: " + path);
-    Envjs.debug("join: " + joinedurl);
-
     // handles all cases if path is abosulte or relative to base
     // 3rd arg is "false" --> remove fragments
     var newurl = urlparse.urlnormalize(joinedurl);
-
-    Envjs.debug("newurl: " + newurl);
 
     return newurl;
 };
@@ -1538,7 +1527,9 @@ Envjs.deleteFile = function(url){
 };
 
 Envjs.buildURL = function (url) {
-    return new java.net.URL(url);
+    var uri = new java.net.URI(url);
+
+    return new java.net.URL(uri.scheme, uri.host, uri.port, uri.path + ((uri.query) ? ('?' + parts.query) : ''), URL_STREAM_HANDLER);
 }
 
 Envjs.contentType = function(connection) {

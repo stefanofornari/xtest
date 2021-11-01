@@ -82,7 +82,6 @@ import ste.xtest.junit.BugFree;
  *
  */
 public abstract class BugFreeJavaScript extends BugFree {
-
     //
     // TODO: extract common base class between JavaScriptTest and BeanShellTest
     //

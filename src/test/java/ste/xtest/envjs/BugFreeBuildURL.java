@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2014 Stefano Fornari
+ * Copyright (C) 2015 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -22,39 +22,27 @@
 package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Before;
 import org.junit.Test;
+import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.js.BugFreeEnvjs;
-
 
 /**
  *
- * @author ste
  */
-public class BugFreeGetElementStyles extends BugFreeEnvjs {
+public class BugFreeBuildURL extends BugFreeEnvjs {
 
-    public BugFreeGetElementStyles() throws Exception {
-
-    }
-
-    @Before
-    public void before() throws Throwable {
-        exec("window.location='src/test/resources/html/getstyles.html';");
+    public BugFreeBuildURL() throws Exception {
     }
 
     @Test
-    public void styles_from_element() throws Throwable {
-        then(exec("document.getElementById('testdiv').style.display;")).isEqualTo("none");
-        then(exec("document.getElementById('testdiv').style.position;")).isEqualTo("absolute");
-        then(exec("document.getElementById('testdiv').style.top;")).isEqualTo("0px");
-        then(exec("document.getElementById('testdiv').style.left;")).isEqualTo("0px");
+    public void build_URL_exixts() throws Exception {
+        final String TEST_HREF1 = "file://./src/test/resources/html/test1.html";
+        final String TEST_HREF2 = "file://./src/test/resources/html/test2.html";
+
+        NativeJavaObject o = (NativeJavaObject)exec("Envjs.buildURL('" + TEST_HREF1 +"');");
+        then(String.valueOf(o.unwrap())).isEqualTo("file:/src/test/resources/html/test1.html");
+
+        o = (NativeJavaObject)exec("Envjs.buildURL('" + TEST_HREF2 +"');");
+        then(String.valueOf(o.unwrap())).isEqualTo("file:/src/test/resources/html/test2.html");
     }
-
-    @Test
-    public void set_styles_programmatically() throws Throwable {
-        exec("document.getElementById('testdiv').style.display='block'");
-
-        then(exec("document.getElementById('testdiv').style.display;")).isEqualTo("block");
-    }
-
 }

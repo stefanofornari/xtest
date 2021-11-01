@@ -19,42 +19,29 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
+
 package ste.xtest.envjs;
 
+import java.io.File;
+import javax.script.ScriptException;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Before;
 import org.junit.Test;
-import ste.xtest.js.BugFreeEnvjs;
-
+import ste.xtest.js.BugFreeJavaScript;
 
 /**
  *
- * @author ste
  */
-public class BugFreeGetElementStyles extends BugFreeEnvjs {
+public class BugFreeSetUri extends BugFreeJavaScript {
 
-    public BugFreeGetElementStyles() throws Exception {
-
-    }
-
-    @Before
-    public void before() throws Throwable {
-        exec("window.location='src/test/resources/html/getstyles.html';");
+    public BugFreeSetUri() throws ScriptException {
     }
 
     @Test
-    public void styles_from_element() throws Throwable {
-        then(exec("document.getElementById('testdiv').style.display;")).isEqualTo("none");
-        then(exec("document.getElementById('testdiv').style.position;")).isEqualTo("absolute");
-        then(exec("document.getElementById('testdiv').style.top;")).isEqualTo("0px");
-        then(exec("document.getElementById('testdiv').style.left;")).isEqualTo("0px");
+    public void set_uri_with_relative_file() throws Exception {
+        final String PATH = "file://" + new File("a/path").getAbsolutePath();
+
+        then(exec("Envjs.uri('./a/path');")).isEqualTo(PATH);
+        then(exec("Envjs.uri('a/path');")).isEqualTo(PATH);
+        then(exec("Envjs.uri('file://./a/path');")).isEqualTo(PATH);
     }
-
-    @Test
-    public void set_styles_programmatically() throws Throwable {
-        exec("document.getElementById('testdiv').style.display='block'");
-
-        then(exec("document.getElementById('testdiv').style.display;")).isEqualTo("block");
-    }
-
 }

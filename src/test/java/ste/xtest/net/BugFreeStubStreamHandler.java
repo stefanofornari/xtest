@@ -25,64 +25,78 @@ import java.io.IOException;
 import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.data.MapEntry.entry;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
  *
  * @author ste
- * 
+ *
  * TODO: url in set can not be blank
  * TODO: getHeaderField and various headers
  */
 public class BugFreeStubStreamHandler {
-    
-    private static final String TEST_URL1 = "http://192.168.0.1/stubbed.html";
-    private static final String TEST_URL2 = "http://192.168.0.1/not_stubbed.html";
-    private static final String TEST_URL3 = "https://192.168.0.1/not_stubbed.html";
-    private static final String TEST_URL4 = "ftp://192.168.0.1/not_stubbed.html";
-    private static final String TEST_URL5 = "file://home/user/not_stubbed.html";
-    
+
+    private static final String TEST_URL_HTTP1 = "http://192.168.0.1/stubbed.html";
+    private static final String TEST_URL_HTTP2 = "http://192.168.0.1/not_stubbed.html";
+    private static final String TEST_URL_HTTPS = "https://192.168.0.1/not_stubbed.html";
+    private static final String TEST_URL_FTP = "ftp://192.168.0.1/not_stubbed.html";
+    private static final String TEST_URL_FILE = "file:///home/user/not_stubbed.html";
+
     @Before
     public void before() throws Exception {
         StubStreamHandler.URLMap.getMapping().clear();
     }
-    
+
     @Test
-    public void openConnection_returns_a_MockURLConnection() throws Exception {
-        StubStreamHandler.URLMap.add(new StubURLConnection(new URL(TEST_URL1)));
+    public void openConnection_returns_a_MockURLConnection_hhtp() throws Exception {
+        StubStreamHandler.URLMap.add(new StubURLConnection(new URL(TEST_URL_HTTP1)));
         StubStreamHandler b = new StubStreamHandler();
-        
-        then(b.openConnection(new URL(TEST_URL1))).isNotNull().isInstanceOf(StubURLConnection.class);
+
+        then(b.openConnection(new URL(TEST_URL_HTTP1))).isNotNull().isInstanceOf(StubURLConnection.class);
     }
-    
+
+    @Test
+    public void openConnection_returns_a_MockURLConnection_file() throws Exception {
+        StubStreamHandler.URLMap.add(new StubURLConnection(new URL(TEST_URL_FILE)));
+        StubStreamHandler b = new StubStreamHandler();
+
+        then(b.openConnection(new URL(TEST_URL_FILE))).isNotNull().isInstanceOf(StubURLConnection.class);
+    }
+
     @Test
     public void openConnection_does_not_return_a_MockURLConnection() throws Exception {
-        StubStreamHandler.URLMap.add(new StubURLConnection(new URL(TEST_URL1)));
+        StubStreamHandler.URLMap.add(new StubURLConnection(new URL(TEST_URL_HTTP1)));
         StubStreamHandler b = new StubStreamHandler();
-        
 
-        then(b.openConnection(new URL(TEST_URL2)))
-            .isNotNull().isInstanceOf(sun.net.www.protocol.http.HttpURLConnection.class);
+
+        then(b.openConnection(new URL(TEST_URL_HTTP2)))
+            .isNotNull().isInstanceOf(ste.xtest.net.sun.protocol.http.HttpURLConnection.class);
         try {
-            b.openConnection(new URL(TEST_URL3));
+            b.openConnection(new URL(TEST_URL_HTTPS));
+            fail("https not implemented!");
         } catch (IOException x) {
             then(x).hasMessageContaining("https pass-through not implemented yet; mock https calls or use http");
         }
-        then(b.openConnection(new URL(TEST_URL4)))
-            .isNotNull().isInstanceOf(sun.net.www.protocol.ftp.FtpURLConnection.class);
-        then(b.openConnection(new URL(TEST_URL5)))
-            .isNotNull().isInstanceOf(sun.net.www.protocol.file.FileURLConnection.class);
+        try {
+            b.openConnection(new URL(TEST_URL_FTP));
+            fail("ftp not implemented!");
+        } catch (IOException x) {
+            then(x).hasMessageContaining("ftp pass-through not implemented yet; mock ftp calls");
+        }
+        then(b.openConnection(new URL(TEST_URL_FILE)))
+            .isNotNull().isInstanceOf(ste.xtest.net.sun.protocol.file.FileURLConnection.class);
     }
-    
+
     @Test
     public void constructor_with_mapping() throws Exception {
         then(StubStreamHandler.URLMap.getMapping()).isNotNull().isEmpty();
-        
+
         StubURLConnection c1 = new StubURLConnection(new URL("file://value1"));
         StubStreamHandler.URLMap.add(c1);
         then(StubStreamHandler.URLMap.getMapping()).containsExactly(entry("file://value1", c1));
-        
+
         StubURLConnection c2 = new StubURLConnection(new URL("file://value2"));
         StubStreamHandler.URLMap.add(c2);
         then(StubStreamHandler.URLMap.getMapping())
@@ -90,25 +104,39 @@ public class BugFreeStubStreamHandler {
     }
 
     /**
-     * Note that <code>get()</code> returns a new instance cloning the object 
-     * added with <code>add()</code>. This is to make sure multiple threads 
+     * Note that <code>get()</code> returns a new instance cloning the object
+     * added with <code>add()</code>. This is to make sure multiple threads
      * can use each its own version of the the stub.
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void selects_the_proper_URL_based_on_url_with_hash() throws Exception {
-        StubURLConnection c1 = new StubURLConnection(new URL("http://server1/index.html#/fragment")), 
+        StubURLConnection c1 = new StubURLConnection(new URL("http://server1/index.html#/fragment")),
                           c2 = new StubURLConnection(new URL("http://server2/index.html#something?else"));
         StubStreamHandler.URLMap.add(c1);
         StubStreamHandler.URLMap.add(c2);
-        
+
         then(StubStreamHandler.URLMap.get("http://server1/index.html#something")).isNull();
         then(StubStreamHandler.URLMap.get("http://server1/index.html#/fragment"))
             .isInstanceOf(c1.getClass()).isNotSameAs(c1);
         then(StubStreamHandler.URLMap.get("http://server2/index.html#something?else"))
             .isInstanceOf(c1.getClass()).isNotSameAs(c2);
-        then(StubStreamHandler.URLMap.get(TEST_URL1)).isNull();
-        then(StubStreamHandler.URLMap.get(TEST_URL2)).isNull();
+        then(StubStreamHandler.URLMap.get(TEST_URL_HTTP1)).isNull();
+        then(StubStreamHandler.URLMap.get(TEST_URL_HTTP2)).isNull();
+    }
+
+    @Test
+    public void get_the_url_map() throws Exception {
+        StubURLConnection c1 = new StubURLConnection(new URL("http://server1/index.html#/fragment")),
+                          c2 = new StubURLConnection(new URL("http://server2/index.html#something?else"));
+        StubStreamHandler.URLMap.add(c1);
+        StubStreamHandler.URLMap.add(c2);
+
+        StubStreamHandler h = new StubStreamHandler();
+
+        then(h.getMapping()).isNotNull().hasSize(2)
+            .containsKeys("http://server1/index.html#/fragment", "http://server2/index.html#something?else");
+
     }
 }

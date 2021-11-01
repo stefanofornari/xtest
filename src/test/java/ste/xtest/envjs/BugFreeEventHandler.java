@@ -25,37 +25,40 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
-import ste.xtest.js.BugFreeJavaScript;
+import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
 
 
 /**
  * Note that we add a getEventListeners method to the DOM that is not defined
- * by the standard or implemented directly in real browsers. however, it is 
+ * by the standard or implemented directly in real browsers. however, it is
  * pretty useful to require an event handler is really attached to an element.
  */
-public class BugFreeEventHandler extends BugFreeJavaScript {
-    
+public class BugFreeEventHandler extends BugFreeEnvjs {
+
+
     public BugFreeEventHandler() throws Exception {
-        
+        super();
     }
-    
+
     @Before
-    public void before() throws Throwable {
-        exec("window.location='src/test/resources/html/eventhandler.html';");
+    public void before() throws Exception {
+        final String URL = "src/test/resources/html/eventhandler.html";
+
+        exec("window.location = '" + URL + "'");
     }
 
     @Test
     public void no_handlers_by_default() throws Throwable {
-        JSAssertions.then((NativeArray)exec("document.getElementById('one').getEventListeners();")).isEmpty();
+        JSAssertions.then((NativeArray)exec("Envjs.DEBUG = true; document.getElementById('one').getEventListeners();")).isEmpty();
         JSAssertions.then((NativeArray)exec("document.getElementById('two').getEventListeners();")).isEmpty();
         JSAssertions.then((NativeArray)exec("document.getElementById('three').getEventListeners();")).isEmpty();
     }
-    
+
     @Test
-    public void add_one_handler() throws Throwable {
-        String TEST_MSG = String.valueOf(System.nanoTime());
-        
+    public void add_one_handler() throws Exception {
+        final String TEST_MSG = String.valueOf(System.nanoTime());
+
         givenANewListener("one");
         fire("one", TEST_MSG);
         thenEventWasFired(TEST_MSG);
@@ -63,12 +66,12 @@ public class BugFreeEventHandler extends BugFreeJavaScript {
         thenNoListeners("two");
         thenNoListeners("three");
     }
-    
+
     // --------------------------------------------------------- private methods
-    
+
     private void givenANewListener(final String id) {
         exec(
-            "var msg = 'no message';" + 
+            "var msg = 'no message';" +
             "document.getElementById('" + id + "').addEventListener(" +
             "    'anEvent', function(e) { " +
             "         e.preventDefault();" +
@@ -76,22 +79,22 @@ public class BugFreeEventHandler extends BugFreeJavaScript {
             "});"
         );
     }
-    
+
     private void fire(final String id, final String msg) {
         exec(
             "var event = new CustomEvent('anEvent', {detail: '" + msg +"'});"+
             "document.getElementById('" + id + "').dispatchEvent(event, false);"
         );
     }
-    
+
     private void thenEventWasFired(final String message) {
         then(get("msg")).isEqualTo(message);
     }
-    
+
     private void thenListeners(final String id, int size) {
         JSAssertions.then((NativeArray)exec("document.getElementById('" + id + "').getEventListeners('anEvent');")).hasSize(size);
     }
-    
+
     private void thenNoListeners(final String id) {
         JSAssertions.then((NativeArray)exec("document.getElementById('" + id + "').getEventListeners('anEvent');")).isEmpty();
     }

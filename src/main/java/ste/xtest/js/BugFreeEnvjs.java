@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.script.ScriptException;
+import ste.xtest.net.StubStreamHandler;
 import ste.xtest.net.StubStreamHandler.URLMap;
 import ste.xtest.net.StubURLConnection;
 
@@ -32,10 +33,12 @@ import ste.xtest.net.StubURLConnection;
  * @author ste
  */
 public class BugFreeEnvjs extends BugFreeJavaScript {
+
     public BugFreeEnvjs() throws ScriptException, IOException {
         super();
         loadScript("/js/ecma5-adapter.js");
         loadScript("/js/angular-rhino.js");
+        set("URL_STREAM_HANDLER", new StubStreamHandler());
     }
 
     /**

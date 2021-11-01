@@ -23,8 +23,8 @@
 package ste.xtest.js;
 
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 
 /**
  *
@@ -35,58 +35,54 @@ import org.junit.Before;
  *       1. if status is not 200 we should assume it is text/plain and show just an error message/page
  *       2. responseType may be not provided, we should default to text/plain
  */
-public class BugFreeEnvRhino {
-    
-    private BugFreeJavaScript test = null;
-    
+public class BugFreeEnvRhino extends BugFreeEnvjs {
+
+    public BugFreeEnvRhino() throws Exception {}
+
     @Before
-    public void setUp() throws Exception {
-        test = new BugFreeJavaScript(){};
-        
-        test.exec("var __LOG__ = ''; Envjs.log = function(message) {__LOG__ = message; };");
+    public void before() throws Exception {
+        exec("var __LOG__ = ''; Envjs.log = function(message) {__LOG__ = message; };");
     }
 
     @Test
     public void getElementsByClassName() throws Exception {
-        test.exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
+        exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
 
-        test.exec("d = document.getElementById('0');");
+        exec("d = document.getElementById('0');");
 
-        then(test.exec("d.getElementsByClassName('none').length;")).isEqualTo(0.0);
-        then(test.exec("d.getElementsByClassName('c1').length;")).isEqualTo(1.0);
-        then(test.exec("d.getElementsByClassName('c121b').length;")).isEqualTo(1.0);
-        then(test.exec("d.getElementsByClassName('c11b').length;")).isEqualTo(2.0);
-        then(test.exec("d.getElementsByClassName('c').length;")).isEqualTo(4.0);
+        then(exec("d.getElementsByClassName('none').length;")).isEqualTo(0.0);
+        then(exec("d.getElementsByClassName('c1').length;")).isEqualTo(1.0);
+        then(exec("d.getElementsByClassName('c121b').length;")).isEqualTo(1.0);
+        then(exec("d.getElementsByClassName('c11b').length;")).isEqualTo(2.0);
+        then(exec("d.getElementsByClassName('c').length;")).isEqualTo(4.0);
     }
 
     @Test
     public void getSetStyle() throws Exception {
-        test.exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
+        exec("window.location='src/test/resources/html/getelementsbyclassname.html';");
 
-        test.exec("var div = document.createElement('DIV');");
-        test.exec("div.style.height = '10px';");
-        then(test.exec("div.style.height")).isEqualTo("10px");
-        test.exec("div.style.height = '20px';");
-        then(test.exec("div.style.height")).isEqualTo("20px");
+        exec("var div = document.createElement('DIV');");
+        exec("div.style.height = '10px';");
+        then(exec("div.style.height")).isEqualTo("10px");
+        exec("div.style.height = '20px';");
+        then(exec("div.style.height")).isEqualTo("20px");
     }
-    
+
     @Test
     public void debugOFF() throws Exception {
-        test.exec("Envjs.debug('debug is OFF');");
-        then(test.exec("__LOG__")).isEqualTo("");
+        exec("Envjs.debug('debug is OFF');");
+        then(exec("__LOG__")).isEqualTo("");
     }
-    
+
     @Test
     public void debugON() throws Exception {
         final String TEST1 = "debug is ON";
         final String TEST2 = "debug is %s";
-        
-        //test.exec("var __LOG__ = ''; Envjs.log = function(message) {__LOG__ = message; };");
-        
-        test.exec("Envjs.DEBUG = true;");
-        test.exec("Envjs.debug('" + TEST1 + "');");
-        then(test.exec("__LOG__")).isEqualTo("DEBUG: " + TEST1);
-        then(test.exec("Envjs.debug('" + TEST2 + "', 'ON'); __LOG__"))
+
+        exec("Envjs.DEBUG = true;");
+        exec("Envjs.debug('" + TEST1 + "');");
+        then(exec("__LOG__")).isEqualTo("DEBUG: " + TEST1);
+        then(exec("Envjs.debug('" + TEST2 + "', 'ON'); __LOG__"))
             .isEqualTo("DEBUG: " + TEST1);
     }
 

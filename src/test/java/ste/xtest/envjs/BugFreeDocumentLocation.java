@@ -26,17 +26,16 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.xtest.js.BugFreeJavaScript;
+import ste.xtest.js.BugFreeEnvjs;
 
 
 /**
  *
- * @author ste
  */
-public class BugFreeDocumentLocation extends BugFreeJavaScript {
-    
+public class BugFreeDocumentLocation extends BugFreeEnvjs {
+
     public BugFreeDocumentLocation() throws Exception {
-        
+
     }
 
     @Test
@@ -56,7 +55,7 @@ public class BugFreeDocumentLocation extends BugFreeJavaScript {
         then(exec("document.URL.pathname;"))
             .isEqualTo(new File(TEST_HREF).getAbsolutePath());
     }
-    
+
     @Test
     public void location_without_query() throws Throwable {
         final String TEST_URL = "src/test/resources/html/documentlocation.html";
@@ -71,7 +70,7 @@ public class BugFreeDocumentLocation extends BugFreeJavaScript {
         then(exec("document.URL.pathname;"))
             .isEqualTo(new File(TEST_URL).getAbsolutePath());
     }
-    
+
     @Test
     public void load_url() throws Throwable {
         exec("window.location='src/test/resources/html/documentlocation.html';");
@@ -83,7 +82,7 @@ public class BugFreeDocumentLocation extends BugFreeJavaScript {
                 )
             );
     }
-    
+
     @Test
     public void not_found_url() throws Throwable {
         File f = new File("src/test/resources/html/notfound.html");
