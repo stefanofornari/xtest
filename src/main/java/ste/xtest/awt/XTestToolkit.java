@@ -34,7 +34,6 @@ import java.awt.FileDialog;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
-import java.awt.GraphicsDevice;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Label;
@@ -44,7 +43,6 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.PrintJob;
-import java.awt.Robot;
 import java.awt.ScrollPane;
 import java.awt.Scrollbar;
 import java.awt.SystemTray;
@@ -78,7 +76,6 @@ import java.awt.peer.MenuBarPeer;
 import java.awt.peer.MenuItemPeer;
 import java.awt.peer.MenuPeer;
 import java.awt.peer.PopupMenuPeer;
-import java.awt.peer.RobotPeer;
 import java.awt.peer.ScrollPanePeer;
 import java.awt.peer.ScrollbarPeer;
 import java.awt.peer.SystemTrayPeer;
@@ -232,11 +229,6 @@ public class XTestToolkit extends SunToolkit  {
 
     @Override
     public boolean isTraySupported() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public RobotPeer createRobot(Robot robot, GraphicsDevice gd) throws AWTException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
