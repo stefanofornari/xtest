@@ -150,13 +150,6 @@
                         <arg>java.desktop/sun.awt=ALL-UNNAMED</arg>
                         <arg>--add-exports</arg>
                         <arg>java.desktop/sun.awt.datatransfer=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg>
-                        <arg>java.base/sun.net.www.protocol.http=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg>
-                        <arg>java.base/sun.net.www.protocol.ftp=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg>
-                        <arg>java.base/sun.net.www.protocol.file=ALL-UNNAMED</arg>
-                        <arg>--add-exports</arg><arg>java.base/sun.net=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
