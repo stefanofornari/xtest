@@ -1,3 +1,6 @@
+20211106
+- released 3.1.0
+
 20211101
 - Added Sun's code for connection handlers. With the modern JDKs normal code
   cannot natively access internal packages like sun.*** any more. To make xtest
@@ -6,6 +9,13 @@
   as ste.xtest sub packages.
 - Added URL stubbing to Envjs, which was not working with file:// urls
 
+202108xx
+- backward compatibility breaking to address the new mechanisms of preventing
+  the use of internal APIs introduced with JDK9. This involved the following
+  xtest packages
+   - ste.xtest.awt
+   - ste.xtest.net
+- released 3.0.0
 
 20180918
 - added support to spec Desktop.open/edit/mail/browse
