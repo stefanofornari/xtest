@@ -1,2 +1,3 @@
-# mcweather
-Weather plugin to change weather in MineCraft. Inspired by nasane/weatherIRL
+# MCWeather
+
+Makes the in-game weather match the weather in real life. Inspired by https://gitlab.com/klikini/weatherirl.
