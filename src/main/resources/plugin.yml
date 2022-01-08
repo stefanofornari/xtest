@@ -1,0 +1,8 @@
+name: MCWeather
+description: Makes the in-game weather match the weather in real life
+main: ste.mcweather.MCWeather
+version: 1.0.0-SNAPSHOT
+author: ste
+website: https://github.com/stefanofornari/mcweather
+api-version: 1.15
+load: POSTWORLD

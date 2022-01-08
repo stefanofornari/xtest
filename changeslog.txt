@@ -1,0 +1,5 @@
+20211212
+--------
+
+- added configuration parameter verbose to control the verbosity of the log
+- log weather fetching activity when verbose = true
