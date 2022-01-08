@@ -1,0 +1,7 @@
+# Used to generate a IO error connecting to open weather
+api_key: 'akey'
+interval: 5
+worlds:
+  - name: world
+    latitude: 45.678
+    longitude: 1.123

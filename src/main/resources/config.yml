@@ -1,0 +1,23 @@
+# OpenWeatherMap API key
+# See the wiki for help getting one (it's free!)
+api_key: ''
+
+# How often to load and apply weather data
+# This value is in minutes.
+# The suggested minimum value is 10,
+# which is how often OpenWeatherMap updates their data.
+interval: 10
+
+# Should log be verbose (i.e. debug)?
+verbose: false
+
+# List of worlds to control weather in
+# Worlds that are not listed will not be touched.
+# Each entry in this list should contain:
+#   - the name of the world
+#   - the latitude and longitude of the real-world
+#     location to base the weather on
+worlds:
+  - name: world
+    latitude: 51.50642
+    longitude: -0.12721

@@ -1,0 +1,9 @@
+20220108
+ - improved logging when verbose (error, payload from open weather, computed weather)
+ - released version 1.0.0
+
+20211212
+--------
+
+- added configuration parameter verbose to control the verbosity of the log
+- log weather fetching activity when verbose = true

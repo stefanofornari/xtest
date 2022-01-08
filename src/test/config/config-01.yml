@@ -1,0 +1,8 @@
+# OpenWeatherMap API key - test01
+api_key: 'akey'
+interval: 5
+worlds:
+  - name: world
+    latitude: 51.50642
+    longitude: -0.12721
+verbose: true
