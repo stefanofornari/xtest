@@ -1,3 +1,11 @@
+20220625
+- Added support convenient fluent methods to work with testfx (https://github.com/TestFX/TestFX):
+
+  then(lookup(selector)).hasOneWidget();
+  then(lookup(selector)).hasNWidgets();
+  then(lookup(selector)).hasNoWidgets();
+  then(lookup(selector)).hasWidgets();
+
 20211106
 - released 3.1.0
 
