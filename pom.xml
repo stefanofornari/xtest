@@ -250,6 +250,23 @@
                  Site
             -->
             <plugin>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.12.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-descriptor</id>
+                        <goals>
+                            <goal>attach-descriptor</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.2</version>
@@ -269,7 +286,7 @@
                 </configuration>
             </plugin>
         </plugins>
-    </build>
+    </reporting>
 
     <profiles>
         <!-- GPG Signature on release -->
