@@ -1,3 +1,6 @@
+20220815
+- release 3.2.0
+
 20220625
 - Added support convenient fluent methods to work with testfx (https://github.com/TestFX/TestFX):
 
