@@ -62,9 +62,9 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
         super.beforeExecute(t, r);
         if (latch != null) {
             try {
-                System.out.println("on hold " + new Date());
+                //System.out.println("on hold " + new Date());
                 latch.await(10, TimeUnit.SECONDS);
-                System.out.println("let's go " + new Date());
+                //System.out.println("let's go " + new Date());
             } catch (InterruptedException x) {
                 x.printStackTrace();
             } finally {
@@ -74,12 +74,12 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     public void hold() {
-        System.out.println("hold");
+        //System.out.println("hold");
         latch = new CountDownLatch(1);
     }
 
     public void go() {
-        System.out.println("go");
+        //System.out.println("go");
         latch.countDown();
     }
 }
