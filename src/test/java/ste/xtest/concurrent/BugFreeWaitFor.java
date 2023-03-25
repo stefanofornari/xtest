@@ -71,6 +71,15 @@ public class BugFreeWaitFor {
         then(System.currentTimeMillis()-now).isGreaterThan(200);
     }
 
+    @Test(timeout = 500)
+    public void without_condition_just_sleep() {
+        long start = System.currentTimeMillis();
+
+        new WaitFor(250);
+
+        then(System.currentTimeMillis()-start).isGreaterThanOrEqualTo(250);
+    }
+
     // ----------------------------------------------------------------- Counter
 
     private static class Counter implements Runnable {

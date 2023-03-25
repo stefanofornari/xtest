@@ -63,4 +63,12 @@ public class WaitFor {
     public WaitFor(Condition c) throws AssertionError {
         this(-1, c);
     }
+
+    public WaitFor(long millis) throws AssertionError {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException x) {
+            throw new AssertionError(x);
+        }
+    }
 }
