@@ -30,51 +30,51 @@ import java.lang.reflect.Modifier;
  * @author ste
  */
 public class PrivateAccess {
-    public static void setStaticValue(final Class c, final String field, final Object value) 
+    public static void setStaticValue(final Class c, final String field, final Object value)
     throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         getStaticField(c, field).set(null, value);
     }
 
-    public static Object getStaticValue(final Class c, final String field) 
+    public static Object getStaticValue(final Class c, final String field)
     throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         return getStaticField(c, field).get(null);
     }
-    
-    public static void setInstanceValue(final Object o, final String field, final Object value) 
+
+    public static void setInstanceValue(final Object o, final String field, final Object value)
     throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         getInstanceField(o, field).set(o, value);
     }
-    
-    public static Object getInstanceValue(final Object o, final String field) 
+
+    public static Object getInstanceValue(final Object o, final String field)
     throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         return getInstanceField(o, field).get(o);
     }
-    
+
     // --------------------------------------------------------- Private methods
-    
-    private static Field getStaticField(final Class c, final String field) 
+
+    private static Field getStaticField(final Class c, final String field)
     throws NoSuchFieldException {
         if (c == null) {
             throw new IllegalArgumentException("the class can not be null");
         }
-        
+
         Field f = c.getDeclaredField(field);
         if (!Modifier.isStatic(f.getModifiers())) {
             throw new NoSuchFieldException(field + " is not a static field");
         }
         f.setAccessible(true);
-        
+
         return f;
     }
-    
-    private static Field getInstanceField(final Object instance, final String field) 
+
+    private static Field getInstanceField(final Object instance, final String field)
     throws NoSuchFieldException {
         if (instance == null) {
             throw new IllegalArgumentException("the instance can not be null");
         }
-        
+
         Class c = instance.getClass();
-        
+
         Field f = null;
         try {
             f = c.getDeclaredField(field);
@@ -85,15 +85,15 @@ public class PrivateAccess {
             }
             f = superClass.getDeclaredField(field);
         }
-        
+
         if (Modifier.isStatic(f.getModifiers())) {
             throw new NoSuchFieldException(field + " is a static field");
         }
         f.setAccessible(true);
-        
+
         return f;
     }
-    
-    
-    
+
+
+
 }

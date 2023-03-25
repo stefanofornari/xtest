@@ -34,16 +34,16 @@ public class BugFreePrivateAccess {
 
     @Test
     public void set_and_get_static_field_ok() throws Exception {
-        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "StaticPrivateObject", null);
-        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "StaticPrivateObject")).isNull();
+        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "staticPrivateObject", null);
+        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "staticPrivateObject")).isNull();
 
         Object o = new Object();
-        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "StaticPrivateObject", o);
-        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "StaticPrivateObject")).isSameAs(o);
+        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "staticPrivateObject", o);
+        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "staticPrivateObject")).isSameAs(o);
 
         String s = "hello";
-        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "StaticPrivateString", s);
-        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "StaticPrivateString")).isSameAs(s);
+        PrivateAccess.setStaticValue(PrivateAccessHelper.class, "staticPrivateString", s);
+        then(PrivateAccess.getStaticValue(PrivateAccessHelper.class, "staticPrivateString")).isSameAs(s);
     }
 
     @Test
@@ -61,27 +61,27 @@ public class BugFreePrivateAccess {
     @Test
     public void set_static_field_ko_non_static_field() throws Exception {
         try {
-            PrivateAccess.setStaticValue(PrivateAccessHelper.class, "InstancePrivateObject", null);
+            PrivateAccess.setStaticValue(PrivateAccessHelper.class, "instancePrivateObject", null);
             fail("not static fields shall throw an exception");
         } catch (NoSuchFieldException x) {
-            then(x.getMessage()).contains("InstancePrivateObject").contains("not a static field");
+            then(x.getMessage()).contains("instancePrivateObject").contains("not a static field");
         }
     }
 
     @Test
     public void get_static_field_ko_non_static_field() throws Exception {
         try {
-            PrivateAccess.getStaticValue(PrivateAccessHelper.class, "InstancePrivateObject");
+            PrivateAccess.getStaticValue(PrivateAccessHelper.class, "instancePrivateObject");
             fail("not static fields shall throw an exception");
         } catch (NoSuchFieldException x) {
-            then(x.getMessage()).contains("InstancePrivateObject").contains("not a static field");
+            then(x.getMessage()).contains("instancePrivateObject").contains("not a static field");
         }
     }
 
     @Test
     public void get_instance_field_ko_null_class() throws Exception {
         try {
-            PrivateAccess.getStaticValue(null, "StaticPrivateObject");
+            PrivateAccess.getStaticValue(null, "staticPrivateObject");
             fail("null values shall be checked");
         } catch (IllegalArgumentException x) {
             then(x.getMessage()).contains("the class can not be null");
@@ -91,32 +91,32 @@ public class BugFreePrivateAccess {
     @Test
     public void get_set_instance_field_ok() throws Exception {
         PrivateAccessHelper h = new PrivateAccessHelper();
-        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", null);
-        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isNull();
+        PrivateAccess.setInstanceValue(h, "instancePrivateObject", null);
+        then(PrivateAccess.getInstanceValue(h, "instancePrivateObject")).isNull();
 
         Object o = new Object();
-        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", o);
-        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isSameAs(o);
+        PrivateAccess.setInstanceValue(h, "instancePrivateObject", o);
+        then(PrivateAccess.getInstanceValue(h, "instancePrivateObject")).isSameAs(o);
 
         String s = "hello";
-        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", s);
-        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isSameAs(s);
+        PrivateAccess.setInstanceValue(h, "instancePrivateObject", s);
+        then(PrivateAccess.getInstanceValue(h, "instancePrivateObject")).isSameAs(s);
     }
 
     @Test
     public void get_instance_field_ko_static_field() throws Exception {
         try {
-            PrivateAccess.getInstanceValue(new PrivateAccessHelper(), "StaticPrivateObject");
+            PrivateAccess.getInstanceValue(new PrivateAccessHelper(), "staticPrivateObject");
             fail("static fields shall throw an exception");
         } catch (NoSuchFieldException x) {
-            then(x.getMessage()).contains("StaticPrivateObject").contains("a static field");
+            then(x.getMessage()).contains("staticPrivateObject").contains("a static field");
         }
     }
 
     @Test
     public void get_instance_field_ko_null_instance() throws Exception {
         try {
-            PrivateAccess.getInstanceValue(null, "InstancePrivateObject");
+            PrivateAccess.getInstanceValue(null, "instancePrivateObject");
             fail("null values shall be checked");
         } catch (IllegalArgumentException x) {
             then(x.getMessage()).contains("the instance can not be null");
@@ -126,15 +126,15 @@ public class BugFreePrivateAccess {
     @Test
     public void get_instance_field_in_parent_class() throws Exception {
         PrivateAccessHelperSubclass h = new PrivateAccessHelperSubclass();
-        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject")).isNull();
+        then(PrivateAccess.getInstanceValue(h, "instancePrivateObject")).isNull();
 
         String s = "hello world";
-        PrivateAccess.setInstanceValue(h, "InstancePrivateObject", s);
-        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObject"))
+        PrivateAccess.setInstanceValue(h, "instancePrivateObject", s);
+        then(PrivateAccess.getInstanceValue(h, "instancePrivateObject"))
             .isSameAs(s).isEqualTo("hello world");
 
-        PrivateAccess.setInstanceValue(h, "InstancePrivateObjectSubclass", s);
-        then(PrivateAccess.getInstanceValue(h, "InstancePrivateObjectSubclass"))
+        PrivateAccess.setInstanceValue(h, "instancePrivateObjectSubclass", s);
+        then(PrivateAccess.getInstanceValue(h, "instancePrivateObjectSubclass"))
             .isEqualTo("hello world");
     }
 }

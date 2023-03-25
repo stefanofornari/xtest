@@ -26,7 +26,9 @@ package ste.xtest.reflect;
  *
  */
 public class PrivateAccessHelper {
-    private static Object StaticPrivateObject;
-    protected static String StaticPrivateString;
-    private Object InstancePrivateObject;
+    private static Object staticPrivateObject;
+    protected static String staticPrivateProtectedString;
+    private static String staticPrivateString;
+    private static final String staticPrivateFinalString = "initial value";
+    private Object instancePrivateObject;
 }

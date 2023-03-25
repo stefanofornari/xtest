@@ -23,5 +23,5 @@
 package ste.xtest.reflect;
 
 class PrivateAccessHelperSubclass extends PrivateAccessHelper {
-    private Object InstancePrivateObjectSubclass;
+    private Object instancePrivateObjectSubclass;
 }
