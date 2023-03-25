@@ -1,3 +1,7 @@
+20230325
+- added WaitFor(millis) to sleep for the given milliseconds without the need of a try-catch statement
+- added ThreadPoolExecutor that can be controlled to hold on and resume the execution of tasks
+
 20220815
 - release 3.2.0
 
