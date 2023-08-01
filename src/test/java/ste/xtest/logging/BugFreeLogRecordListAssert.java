@@ -34,9 +34,9 @@ import org.junit.Test;
  * @author ste
  */
 public class BugFreeLogRecordListAssert {
-    
+
     private final ArrayList<LogRecord> TEST_LIST = new ArrayList<LogRecord>();
-    
+
     @Before
     public void before() {
         TEST_LIST.add(new LogRecord(Level.INFO, "message one"));
@@ -44,16 +44,16 @@ public class BugFreeLogRecordListAssert {
         TEST_LIST.add(new LogRecord(Level.CONFIG, "message three"));
         TEST_LIST.add(new LogRecord(Level.SEVERE, "message four"));
     }
-    
+
     //
     // @TODO: contains with null argument
     // @TODO: support all levels (for now just INFO and FINE)
     //
-    
+
     @Test
-    public void list_contains_message_at_a_certain_level() {
+    public void contains_message_at_a_certain_level() {
         LogRecordListAssert a = new LogRecordListAssert(TEST_LIST);
-        
+
         for (LogRecord r: TEST_LIST) {
             if (r.getLevel() == Level.INFO) {
                 try {
@@ -79,11 +79,11 @@ public class BugFreeLogRecordListAssert {
             }
         }
     }
-    
+
     @Test
-    public void list_does_not_contains_message_at_a_certain_level() {
+    public void contains_message_at_a_certain_level_fail() {
         LogRecordListAssert a = new LogRecordListAssert(TEST_LIST);
-        
+
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (LogRecord r: TEST_LIST) {
@@ -96,14 +96,14 @@ public class BugFreeLogRecordListAssert {
             sb.append(String.format("<%s: %s>", r.getLevel(), r.getMessage()));
         }
         sb.append(']');
-        
+
         try {
             a.containsINFO("message");
             fail("assertion not rised");
         } catch (AssertionError e) {
             then(e).hasMessage("expecting message <message> at level INFO in " + sb);
         }
-        
+
         try {
             a.containsFINE("message");
             fail("assertion not rised");
@@ -117,7 +117,7 @@ public class BugFreeLogRecordListAssert {
         } catch (AssertionError e) {
             then(e).hasMessage("expecting message <message> at level SEVERE in " + sb);
         }
-                
+
     }
 
 }
