@@ -1,3 +1,7 @@
+20230801
+- added doesNotContainXXX() in LogRecordListAssert
+- released 3.2.1
+
 20230325
 - added WaitFor(millis) to sleep for the given milliseconds without the need of a try-catch statement
 - added ThreadPoolExecutor that can be controlled to hold on and resume the execution of tasks

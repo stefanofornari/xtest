@@ -36,40 +36,36 @@ public class LogRecordListAssert extends AbstractAssert<LogRecordListAssert, Lis
     protected LogRecordListAssert(final List<LogRecord> o) {
         super(o, LogRecordListAssert.class);
     }
-    
+
     public List<LogRecord> getActual() {
         return actual;
     }
-    
+
     public LogRecordListAssert containsINFO(String expected) {
         contains(expected, Level.INFO); return this;
     }
-    
+
+    public LogRecordListAssert doesNotContainINFO(String expected) {
+        doesNotContain(expected, Level.INFO); return this;
+    }
+
     public LogRecordListAssert containsFINE(String expected) {
         contains(expected, Level.FINE); return this;
     }
-    
-        
+
+    public LogRecordListAssert doesNotContainFINE(String expected) {
+        doesNotContain(expected, Level.FINE); return this;
+    }
+
     public LogRecordListAssert containsSEVERE(String expected) {
         contains(expected, Level.SEVERE); return this;
     }
-    
-    // -------------------------------------------------------- private methods
-    
-    private void contains(String message, Level level) {
-        if (message == null) {
-            throw new IllegalArgumentException("expected can not be null");
-        }
-        for(LogRecord r: actual) {
-            if (message.equals(r.getMessage()) && (r.getLevel() == level)) {
-                return;
-            }
-        }
-        
-        //
-        // if we are here, we want to report the content ot the list,
-        // therefore we need to properly format the records
-        //
+
+    public LogRecordListAssert doesNotContainSEVERE(String expected) {
+        doesNotContain(expected, Level.SEVERE); return this;
+    }
+
+    public String recordsSring() {
         StringBuilder records = new StringBuilder("[");
         for(LogRecord r: actual) {
             if (records.length() > 1) {
@@ -80,16 +76,58 @@ public class LogRecordListAssert extends AbstractAssert<LogRecordListAssert, Lis
                    .append('>');
         }
         records.append("]");
-        
+
+        return records.toString();
+    }
+
+    // -------------------------------------------------------- private methods
+
+    private boolean doesActualContain(final String message, final Level level) {
+        if (message == null) {
+            throw new IllegalArgumentException("expected can not be null");
+        }
+
+        for(LogRecord r: actual) {
+            if (message.equals(r.getMessage()) && (r.getLevel() == level)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void contains(String message, Level level) {
+        if (doesActualContain(message, level)) {
+            return;
+        }
+
         throw Failures.instance().failure(
-            info, 
+            info,
             new BasicErrorMessageFactory(
                 String.format(
-                    "expecting message <%s> at level %s in %s", 
-                    message, level.toString(), records.toString()
+                    "expecting message <%s> at level %s in %s",
+                    message, level.toString(), recordsSring()
                 )
             )
         );
     }
 
+    private void doesNotContain(String message, Level level) {
+        if (!doesActualContain(message, level)) {
+            return;
+        }
+
+        //
+        // if we are here, we want to report the content of the list
+        //
+        throw Failures.instance().failure(
+            info,
+            new BasicErrorMessageFactory(
+                String.format(
+                    "not expecting message <%s> at level %s in %s",
+                    message, level.toString(), recordsSring()
+                )
+            )
+        );
+    }
 }

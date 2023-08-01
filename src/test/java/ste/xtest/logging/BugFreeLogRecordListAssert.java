@@ -37,87 +37,135 @@ public class BugFreeLogRecordListAssert {
 
     private final ArrayList<LogRecord> TEST_LIST = new ArrayList<LogRecord>();
 
+    private static final String MSG_INFO = "message one";
+    private static final String MSG_FINE = "message two";
+    private static final String MSG_CONFIG = "message three";
+    private static final String MSG_SEVERE = "message four";
+
     @Before
     public void before() {
-        TEST_LIST.add(new LogRecord(Level.INFO, "message one"));
-        TEST_LIST.add(new LogRecord(Level.FINE, "message two"));
-        TEST_LIST.add(new LogRecord(Level.CONFIG, "message three"));
-        TEST_LIST.add(new LogRecord(Level.SEVERE, "message four"));
+        TEST_LIST.add(new LogRecord(Level.INFO, MSG_INFO));
+        TEST_LIST.add(new LogRecord(Level.FINE, MSG_FINE));
+        TEST_LIST.add(new LogRecord(Level.CONFIG, MSG_CONFIG));
+        TEST_LIST.add(new LogRecord(Level.SEVERE, MSG_SEVERE));
     }
 
     //
-    // @TODO: contains with null argument
-    // @TODO: support all levels (for now just INFO and FINE)
+    // @TODO: support all levels (for now just INFO, FINE and SEVERE)
     //
 
     @Test
     public void contains_message_at_a_certain_level() {
-        LogRecordListAssert a = new LogRecordListAssert(TEST_LIST);
+        final LogRecordListAssert A = new LogRecordListAssert(TEST_LIST);
 
         for (LogRecord r: TEST_LIST) {
             if (r.getLevel() == Level.INFO) {
                 try {
-                    a.containsINFO(null);
+                    A.containsINFO(null);
                 } catch (IllegalArgumentException x) {
                     then(x).hasMessageContaining("expected can not be null");
                 }
-                then(a.containsINFO(r.getMessage())).isSameAs(a);
+                then(A.containsINFO(r.getMessage())).isSameAs(A);
             } else if (r.getLevel() == Level.FINE) {
                 try {
-                    a.containsFINE(null);
+                    A.containsFINE(null);
                 } catch (IllegalArgumentException x) {
                     then(x).hasMessageContaining("expected can not be null");
                 }
-                then(a.containsFINE(r.getMessage())).isSameAs(a);
+                then(A.containsFINE(r.getMessage())).isSameAs(A);
             } else if (r.getLevel() == Level.SEVERE) {
                 try {
-                    a.containsSEVERE(null);
+                    A.containsSEVERE(null);
                 } catch (IllegalArgumentException x) {
                     then(x).hasMessageContaining("expected can not be null");
                 }
-                then(a.containsSEVERE(r.getMessage())).isSameAs(a);
+                then(A.containsSEVERE(r.getMessage())).isSameAs(A);
             }
         }
     }
 
     @Test
     public void contains_message_at_a_certain_level_fail() {
-        LogRecordListAssert a = new LogRecordListAssert(TEST_LIST);
-
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (LogRecord r: TEST_LIST) {
-            if (first) {
-                first = false;
-                sb.append('[');
-            } else {
-                sb.append(", ");
-            }
-            sb.append(String.format("<%s: %s>", r.getLevel(), r.getMessage()));
-        }
-        sb.append(']');
+        final LogRecordListAssert A = new LogRecordListAssert(TEST_LIST);
 
         try {
-            a.containsINFO("message");
+            A.containsINFO("message");
             fail("assertion not rised");
         } catch (AssertionError e) {
-            then(e).hasMessage("expecting message <message> at level INFO in " + sb);
+            then(e).hasMessage("expecting message <message> at level INFO in " + A.recordsSring());
         }
 
         try {
-            a.containsFINE("message");
+            A.containsFINE("message");
             fail("assertion not rised");
         } catch (AssertionError e) {
             //then(e).hasMessage("expecting message <message> at level FINE in [<INFO: message one>, <FINE: message two>, <CONFIG: message three>]");
-            then(e).hasMessage("expecting message <message> at level FINE in " + sb);
+            then(e).hasMessage("expecting message <message> at level FINE in " + A.recordsSring());
         }
         try{
-            a.containsSEVERE("message");
+            A.containsSEVERE("message");
             fail("assertion not rised");
         } catch (AssertionError e) {
-            then(e).hasMessage("expecting message <message> at level SEVERE in " + sb);
+            then(e).hasMessage("expecting message <message> at level SEVERE in " + A.recordsSring());
+        }
+    }
+
+    @Test
+    public void does_not_contain_message_at_a_certain_level() {
+        final String MSG = "this should not be there";
+
+        final LogRecordListAssert A = new LogRecordListAssert(TEST_LIST);
+
+        for (LogRecord r: TEST_LIST) {
+            if (r.getLevel() == Level.INFO) {
+                try {
+                    A.doesNotContainINFO(null);
+                } catch (IllegalArgumentException x) {
+                    then(x).hasMessageContaining("expected can not be null");
+                }
+                then(A.doesNotContainINFO(MSG)).isSameAs(A);
+            } else if (r.getLevel() == Level.FINE) {
+                try {
+                    A.doesNotContainFINE(null);
+                } catch (IllegalArgumentException x) {
+                    then(x).hasMessageContaining("expected can not be null");
+                }
+                then(A.doesNotContainFINE(MSG)).isSameAs(A);
+            } else if (r.getLevel() == Level.SEVERE) {
+                try {
+                    A.doesNotContainSEVERE(null);
+                } catch (IllegalArgumentException x) {
+                    then(x).hasMessageContaining("expected can not be null");
+                }
+                then(A.doesNotContainSEVERE(MSG)).isSameAs(A);
+            }
+        }
+    }
+
+    @Test
+    public void does_not_contain_message_at_a_certain_level_fail() {
+        final LogRecordListAssert A = new LogRecordListAssert(TEST_LIST);
+
+        try {
+            A.doesNotContainINFO(MSG_INFO);
+            fail("assertion not rised");
+        } catch (AssertionError e) {
+            then(e).hasMessage("not expecting message <" + MSG_INFO + "> at level INFO in " + A.recordsSring());
         }
 
+        try {
+            A.doesNotContainFINE(MSG_FINE);
+            fail("assertion not rised");
+        } catch (AssertionError e) {
+            //then(e).hasMessage("expecting message <message> at level FINE in [<INFO: message one>, <FINE: message two>, <CONFIG: message three>]");
+            then(e).hasMessage("not expecting message <" + MSG_FINE + "> at level FINE in " + A.recordsSring());
+        }
+        try{
+            A.doesNotContainSEVERE(MSG_SEVERE);
+            fail("assertion not rised");
+        } catch (AssertionError e) {
+            then(e).hasMessage("not expecting message <" + MSG_SEVERE + "> at level SEVERE in " + A.recordsSring());
+        }
     }
 
 }
