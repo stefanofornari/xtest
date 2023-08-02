@@ -22,6 +22,9 @@
 
 package ste.xtest;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 /**
  *
  * @author ste
@@ -51,4 +54,7 @@ public class Constants {
     public static final int[] NOT_POSITIVES_0_1_25_389_4567 = new int[] {
         0, -1, -25, -389, -4567
     };
+    
+    public static final Date DATETIME_197110290000 = new Date(57538800000l);
+    public static final Date DATETIME_197110301200 = new Date(57668400000l);
 }
