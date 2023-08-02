@@ -1,5 +1,6 @@
-20230801
+20230802
 - added doesNotContainXXX() in LogRecordListAssert
+- a draft implementation of DummyMessage to work with emails
 - released 3.2.1
 
 20230325
