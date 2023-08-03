@@ -1,7 +1,7 @@
 20230802
 - added doesNotContainXXX() in LogRecordListAssert
 - a draft implementation of DummyMessage to work with emails
-- released 3.3.2
+- released 3.3.1
 
 20230325
 - added WaitFor(millis) to sleep for the given milliseconds without the need of a try-catch statement
@@ -14,7 +14,7 @@
 - Added support convenient fluent methods to work with testfx (https://github.com/TestFX/TestFX):
 
   then(lookup(selector)).hasOneWidget();
-  then(lookup(selector)).hasNWidgets(); 
+  then(lookup(selector)).hasNWidgets();
   then(lookup(selector)).hasNoWidgets();
   then(lookup(selector)).hasWidgets();
 
