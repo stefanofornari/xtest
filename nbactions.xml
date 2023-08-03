@@ -18,7 +18,7 @@
         </goals>
         <properties>
             <preparationGoals>install</preparationGoals>
-            <skipTests>true</skipTests>
+            <arguments>-DskipTests</arguments>
         </properties>
     </action>
     <action>
@@ -29,23 +29,7 @@
         </goals>
         <properties>
             <goals>install</goals>
-            <skipTests>true</skipTests>
+            <arguments>-DskipTests</arguments>
         </properties>
-    </action>
-    <action>
-        <actionName>CUSTOM-release:prepare</actionName>
-        <displayName>prepare for central</displayName>
-        <goals>
-            <goal>release:prepare</goal>
-            <skipTests>true</skipTests>
-        </goals>
-    </action>
-    <action>
-        <actionName>CUSTOM-release:perform</actionName>
-        <displayName>release to central</displayName>
-        <goals>
-            <goal>release:perform</goal>
-            <skipTests>true</skipTests>
-        </goals>
     </action>
 </actions>
