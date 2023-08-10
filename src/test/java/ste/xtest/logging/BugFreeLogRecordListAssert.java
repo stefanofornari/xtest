@@ -41,6 +41,7 @@ public class BugFreeLogRecordListAssert {
     private static final String MSG_FINE = "message two";
     private static final String MSG_CONFIG = "message three";
     private static final String MSG_SEVERE = "message four";
+    private static final String MSG_WARNING = "message five";
 
     @Before
     public void before() {
@@ -48,11 +49,8 @@ public class BugFreeLogRecordListAssert {
         TEST_LIST.add(new LogRecord(Level.FINE, MSG_FINE));
         TEST_LIST.add(new LogRecord(Level.CONFIG, MSG_CONFIG));
         TEST_LIST.add(new LogRecord(Level.SEVERE, MSG_SEVERE));
+        TEST_LIST.add(new LogRecord(Level.WARNING, MSG_WARNING));
     }
-
-    //
-    // @TODO: support all levels (for now just INFO, FINE and SEVERE)
-    //
 
     @Test
     public void contains_message_at_a_certain_level() {
@@ -80,6 +78,13 @@ public class BugFreeLogRecordListAssert {
                     then(x).hasMessageContaining("expected can not be null");
                 }
                 then(A.containsSEVERE(r.getMessage())).isSameAs(A);
+            } else if (r.getLevel() == Level.WARNING) {
+                try {
+                    A.containsWARNING(null);
+                } catch (IllegalArgumentException x) {
+                    then(x).hasMessageContaining("expected can not be null");
+                }
+                then(A.containsWARNING(r.getMessage())).isSameAs(A);
             }
         }
     }
@@ -107,6 +112,12 @@ public class BugFreeLogRecordListAssert {
             fail("assertion not rised");
         } catch (AssertionError e) {
             then(e).hasMessage("expecting message <message> at level SEVERE in " + A.recordsSring());
+        }
+        try{
+            A.containsWARNING("message");
+            fail("assertion not rised");
+        } catch (AssertionError e) {
+            then(e).hasMessage("expecting message <message> at level WARNING in " + A.recordsSring());
         }
     }
 
@@ -138,6 +149,13 @@ public class BugFreeLogRecordListAssert {
                     then(x).hasMessageContaining("expected can not be null");
                 }
                 then(A.doesNotContainSEVERE(MSG)).isSameAs(A);
+            } else if (r.getLevel() == Level.WARNING) {
+                try {
+                    A.doesNotContainWARNING(null);
+                } catch (IllegalArgumentException x) {
+                    then(x).hasMessageContaining("expected can not be null");
+                }
+                then(A.doesNotContainWARNING(MSG)).isSameAs(A);
             }
         }
     }
@@ -165,6 +183,12 @@ public class BugFreeLogRecordListAssert {
             fail("assertion not rised");
         } catch (AssertionError e) {
             then(e).hasMessage("not expecting message <" + MSG_SEVERE + "> at level SEVERE in " + A.recordsSring());
+        }
+        try{
+            A.doesNotContainWARNING(MSG_WARNING);
+            fail("assertion not rised");
+        } catch (AssertionError e) {
+            then(e).hasMessage("not expecting message <" + MSG_WARNING + "> at level WARNING in " + A.recordsSring());
         }
     }
 
