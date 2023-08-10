@@ -65,6 +65,14 @@ public class LogRecordListAssert extends AbstractAssert<LogRecordListAssert, Lis
         doesNotContain(expected, Level.SEVERE); return this;
     }
 
+    public LogRecordListAssert containsWARNING(String expected) {
+        contains(expected, Level.WARNING); return this;
+    }
+
+    public LogRecordListAssert doesNotContainWARNING(String expected) {
+        doesNotContain(expected, Level.WARNING); return this;
+    }
+
     public String recordsSring() {
         StringBuilder records = new StringBuilder("[");
         for(LogRecord r: actual) {
