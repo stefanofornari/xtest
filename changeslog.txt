@@ -1,6 +1,11 @@
-20230801
+20230809
+- added support for WARNING level in LogRecordListAssert
+- released 3.3.2
+
+20230802
 - added doesNotContainXXX() in LogRecordListAssert
-- released 3.2.1
+- a draft implementation of DummyMessage to work with emails
+- released 3.3.1
 
 20230325
 - added WaitFor(millis) to sleep for the given milliseconds without the need of a try-catch statement
