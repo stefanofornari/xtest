@@ -18,6 +18,7 @@
         </goals>
         <properties>
             <preparationGoals>install</preparationGoals>
+            <arguments>-DskipTests</arguments>
         </properties>
     </action>
     <action>
@@ -28,20 +29,7 @@
         </goals>
         <properties>
             <goals>install</goals>
+            <arguments>-DskipTests</arguments>
         </properties>
-    </action>
-    <action>
-        <actionName>CUSTOM-release:prepare</actionName>
-        <displayName>prepare for central</displayName>
-        <goals>
-            <goal>release:prepare</goal>
-        </goals>
-    </action>
-    <action>
-        <actionName>CUSTOM-release:perform</actionName>
-        <displayName>release to central</displayName>
-        <goals>
-            <goal>release:perform</goal>
-        </goals>
     </action>
 </actions>

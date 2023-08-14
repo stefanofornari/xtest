@@ -22,6 +22,7 @@
 package ste.xtest.net;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,7 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.nio.file.FileSystems;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.activation.MimetypesFileTypeMap;
 import org.apache.commons.lang3.SerializationUtils;
 import org.assertj.core.util.Lists;
 import ste.xtest.logging.LoggingByteArrayOutputStream;
@@ -376,15 +378,10 @@ public class      StubURLConnection
     public StubURLConnection file(final String file) {
         String type = null;
         
-        Path path = (file == null) ? null : FileSystems.getDefault().getPath(file);
+        Path path = (file == null) ? null : new File(file).toPath();
         if (path != null) {
-            try {
-                type = Files.probeContentType(path);
-            } catch (IOException x) {
-                //
-                // noting to do
-                //
-            }
+            System.out.println(file);
+            type = new MimetypesFileTypeMap().getContentType(file);
         }
         
         setContent(path, (type == null) ? "application/octet-stream" : type); 
