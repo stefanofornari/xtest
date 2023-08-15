@@ -22,10 +22,14 @@
 
 package ste.xtest.net;
 
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import ste.xtest.net.StubHttpClient.StubHttpResponse;
 
 /**
  *
@@ -77,6 +81,54 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
         then(HTTP.sslParameters()).isSameAs(P);
         then(HTTP.version()).isEqualTo(HttpClient.Version.HTTP_2);
         then(HTTP.executor()).hasValue(E);
+    }
+
+    @Test
+    public void send_returs_the_stubbed_response() throws Exception {
+        final String URL1 = "http://earth.com";
+        final String URL2 = "https://universe.io";
+        final HttpClient HTTP = new HttpClientStubber()
+            .withStub(
+                URL1, new StubHttpResponse().text("hello world")
+            )
+            .withStub(
+                URL2, new StubHttpResponse().text("hello universe")
+            )
+            .build();
+
+        then(HTTP.send(
+            HttpRequest.newBuilder(URI.create(URL1)).GET().build(),
+            BodyHandlers.ofString()
+        ).body()).isEqualTo("hello world");
+
+        then(HTTP.send(
+            HttpRequest.newBuilder(URI.create(URL2)).GET().build(),
+            BodyHandlers.ofString()
+        ).body()).isEqualTo("hello universe");
+    }
+
+    @Test
+    public void async_send_returs_the_stubbed_response() throws Exception {
+        final String URL1 = "http://earth.com";
+        final String URL2 = "https://universe.io";
+        final HttpClient HTTP = new HttpClientStubber()
+            .withStub(
+                URL1, new StubHttpResponse().text("hello world")
+            )
+            .withStub(
+                URL2, new StubHttpResponse().text("hello universe")
+            )
+            .build();
+
+        then(HTTP.sendAsync(
+            HttpRequest.newBuilder(URI.create(URL1)).GET().build(),
+            BodyHandlers.ofString()
+        ).join().body()).isEqualTo("hello world");
+
+        then(HTTP.sendAsync(
+            HttpRequest.newBuilder(URI.create(URL2)).GET().build(),
+            BodyHandlers.ofString()
+        ).join().body()).isEqualTo("hello universe");
     }
 
 

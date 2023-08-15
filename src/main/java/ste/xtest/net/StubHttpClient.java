@@ -32,6 +32,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.BodySubscriber;
+import java.net.http.HttpResponse.ResponseInfo;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -41,11 +45,57 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Flow.Subscription;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import org.apache.commons.io.FileUtils;
 
 /**
+ * This is a stubber for JDK11 HttpClient. The basic idea is to setup the stubber
+ * with response stubs (as StubHttpClient.StubHttpResponse) associated each to
+ * its url. When HttpClient invokes send() or sendAsync() on a stubbed url, the
+ * corresponding response is used instead of using the network.
+ *
+ * If send()/sendAsync() is invoked on a URI not stabbed, the default HttpClient
+ * created with HttpClient.newHttpClient() is used, accessing therefore the
+ * network. (TODO)
+ *
+ * example:
+ * <pre>
+ *   public class MyRealClass {
+ *     Builder builder = HttpClient.newBuilder();
+ *     ...
+ *
+ *     public void doSomething() {
+ *       HttpClient client = builder.build();
+ *
+ *       HttpResponse<String> response = client.send(
+ *         HttpRequest.newBuilder("http://somehwere.com/resource").GET().build(),
+ *         BodyHandlers.ofString()
+ *       );
+ *
+ *       System.out.println(response.getBody());
+ *     }
+
+ *   }
+ *
+ *   public MyRealClassTest() {
+ *
+ *     @Test
+ *     public void say_hello() {
+ *       HttpClientStubber builder = HttpClientStubber()
+ *         .withStub(
+ *           "http://somehwere.com/resource", new StubHttpResponse().text("hello world")
+ *         );
+ *
+ *       MyRealClass myClass = new MyRealClass();
+ *       myClass.builder = builder;
+ *
+ *       myClass,doSomething(); // -> prints "hello world"
+ *     }
+ *
+ * </pre>
+ *
  *
  */
 public class StubHttpClient extends HttpClient {
@@ -102,13 +152,46 @@ public class StubHttpClient extends HttpClient {
     }
 
     @Override
-    public <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+        StubHttpResponse<T> response = builder.stub(request.uri().toString()).right;
+        BodySubscriber<T> bodySubscriber = responseBodyHandler.apply(response);
+
+        bodySubscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+                bodySubscriber.onNext(List.of(ByteBuffer.wrap(response.content)));
+                bodySubscriber.onComplete();
+            }
+
+            @Override
+            public void cancel() {}
+        });
+
+        bodySubscriber.getBody().whenComplete((body, error) -> response.body(body));
+
+        return response;
     }
 
+    /**
+     * Simulate the semantic of HttpClient.sendAsync() although it does not
+     * perform real async computation. It fundamentally returns a completed
+     * CompletableFuture with the result of calling {@code send(request, responseBodyHandler}.
+     * If send() throws an exception the return future will be in failed status.
+     *
+     * @param request the request
+     * @param responseBodyHandler the handler for the response data
+     *
+     * @return a completed CompletableFuture with the result of calling
+     *         {@code send(request, responseBodyHandler}.
+     *
+     */
     @Override
     public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try {
+            return CompletableFuture.completedFuture(send(request, responseBodyHandler));
+        } catch (Exception x) {
+            return CompletableFuture.failedFuture(x);
+        }
     }
 
     @Override
@@ -118,13 +201,22 @@ public class StubHttpClient extends HttpClient {
 
     // ------------------------------------------------------------ HttpResponse
 
-    static public class StubHttpResponse<T> implements HttpResponse<T> {
+    /**
+     * Note the difference between body (of type T) and content (a byte[]). The
+     * former represents the body created by the body handler when a request is
+     * done (e.g. @{code httpClient.send(uri, bodyHandler);}); the latter is the
+     * stubbed raw content a web server would return.
+     *
+     * @param <T> the type of the body of a response
+     */
+    static public class StubHttpResponse<T> implements HttpResponse<T>, ResponseInfo {
 
         private int statusCode = 200;
         private Map<String, List<String>> headers = new HashMap<>();
         private T body;
         private Class<T> returnType;
         private HttpClient.Version version = HttpClient.Version.HTTP_2;
+        private byte[] content = new byte[0];
 
         public StubHttpResponse() {
             this((Class<T>)String.class);
@@ -132,8 +224,10 @@ public class StubHttpClient extends HttpClient {
 
         public StubHttpResponse(Class<T> returnType) {
             this.returnType = returnType;
-            body("");
+            text("");
         }
+
+        // --------------------------------------------- HttèpResponse, HttpInfo
 
         @Override
         public int statusCode() {
@@ -164,40 +258,56 @@ public class StubHttpClient extends HttpClient {
             return body;
         }
 
-        public StubHttpResponse body(byte[] body) {
-            if (body == null) {
-                body = new byte[0];
-            }
-            this.body = bodyFromBytes(body);
+        //
+        // TODO: bugfree code
+        //
+        /**
+         * The body of the response
+         *
+         * @param body the object representing the body of the response
+         *
+         * @return this instance
+         */
+        public StubHttpResponse body(T body) {
+            this.body = body; return this;
+        }
+
+        /**
+         * The stubbed raw data the web server is supposed to return
+         *
+         * @return the stubbed raw data the web server is supposed to return
+         */
+        public byte[] content() {
+            return content;
+        }
+
+        public StubHttpResponse content(final byte[] content) {
+            this.content = (content == null) ? new byte[0] : content;
             headers.put("Content-type", headerValue("application/octet-stream"));
-            headers.put("Content-length", headerValue(body.length));
+            headers.put("Content-length", headerValue(this.content.length));
 
             return this;
         }
 
-        public StubHttpResponse body(String body) {
-            return text(body);
-        }
-
         public StubHttpResponse text(String body) {
-            stringBody(body, "text/plain"); return this;
+            stringContent(body, "text/plain"); return this;
         }
 
         public StubHttpResponse html(String body) {
-            stringBody(body, "text/html"); return this;
+            stringContent(body, "text/html"); return this;
         }
 
         public StubHttpResponse json(String body) {
-            stringBody((body == null) ? "{}" : body, "application/json"); return this;
+            stringContent((body == null) ? "{}" : body, "application/json"); return this;
         }
 
-        public StubHttpResponse file(String file) throws IOException {
-            if (file == null) {
-                return body(new byte[0]);
+        public StubHttpResponse file(String content) throws IOException {
+            if (content == null) {
+                return StubHttpResponse.this.content(new byte[0]);
             }
-            File f = new File(file);
+            File f = new File(content);
 
-            body = bodyFromBytes(FileUtils.readFileToByteArray(new File(file)));
+            this.content = FileUtils.readFileToByteArray(new File(content));
 
             headers.put("Content-type", headerValue(Files.probeContentType(f.toPath())));
             headers.put("Content-length", headerValue(f.length()));
@@ -284,13 +394,10 @@ public class StubHttpClient extends HttpClient {
             return (T)body;
         }
 
-        private void stringBody(String body, final String type) {
-            if (body == null) {
-                body = "";
-            }
-            this.body = bodyFromString(body);
+        private void stringContent(final String content, final String type) {
+            this.content = (content == null) ? new byte[0] : content.getBytes();
             headers.put("Content-type", headerValue(type));
-            headers.put("Content-length", headerValue(body.length()));
+            headers.put("Content-length", headerValue(this.content.length));
         }
     }
 

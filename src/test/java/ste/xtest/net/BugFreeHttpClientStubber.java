@@ -107,7 +107,7 @@ public class BugFreeHttpClientStubber extends BugFreeHttpClientBase {
 
         then(S.withStub(URL1)).isSameAs(S);
         then(S.stubs()).hasSize(1);
-        ImmutablePair<String, HttpResponse> pair = S.stub(URL1);
+        ImmutablePair<String, StubHttpResponse> pair = S.stub(URL1);
         then(pair).isNotNull();
         then(pair.getKey()).isEqualTo(URL1);
         then(pair.getValue()).isNotNull();
@@ -120,27 +120,28 @@ public class BugFreeHttpClientStubber extends BugFreeHttpClientBase {
         then(pair.getValue()).isNotNull();
         HttpResponse response = pair.getValue();
         then(response.statusCode()).isEqualTo(200);
-        then(response.body()).isEqualTo("");
+        then(response.body()).isNull();
     }
 
     @Test
     public void with_url_and_json() {
         final String URL1 = "https://somewhere.com/resource";
+        final String JSON = "{\"key\":\"value\"}";
 
         final HttpClientStubber S = new HttpClientStubber();
 
-        StubHttpResponse R = new StubHttpResponse<String>().json("{\"key\":\"value\"}");
+        StubHttpResponse R = new StubHttpResponse<String>().json(JSON);
 
         then(S.withStub(URL1, R)).isSameAs(S);
         then(S.stubs()).hasSize(1);
-        ImmutablePair<String, HttpResponse> pair = S.stub(URL1);
+        ImmutablePair<String, StubHttpResponse> pair = S.stub(URL1);
         then(pair).isNotNull();
         then(pair.getKey()).isEqualTo(URL1);
         then(pair.getValue()).isSameAs(R);
         then(R.contentType()).isEqualTo("application/json");
-        then(R.body()).isEqualTo("{\"key\":\"value\"}");
+        then(R.content()).isEqualTo(JSON.getBytes());
 
-        R = new StubHttpResponse<String>().body(new byte[0]);
+        R = new StubHttpResponse<String>().content(new byte[0]);
 
         then(S.withStub(URL2, R)).isSameAs(S);
         then(S.stubs()).hasSize(2);

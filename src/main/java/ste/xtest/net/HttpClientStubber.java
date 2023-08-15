@@ -25,7 +25,6 @@ import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.ProxySelector;
 import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,7 +49,7 @@ public class HttpClientStubber implements HttpClient.Builder {
     private int priority = 0;
     private ProxySelector proxy = null;
     private Authenticator authenticator = null;
-    private Set<ImmutablePair<String, HttpResponse>> stubs = new HashSet<>();
+    private Set<ImmutablePair<String, StubHttpResponse>> stubs = new HashSet<>();
 
     @Override
     public HttpClientStubber cookieHandler(final CookieHandler cookieHandler) {
@@ -152,12 +151,12 @@ public class HttpClientStubber implements HttpClient.Builder {
         return this;
     }
 
-    public HttpClientStubber withStub(final String url, final HttpResponse response) {
+    public HttpClientStubber withStub(final String url, final StubHttpResponse response) {
         stubs.add(new ImmutablePair<>(url, response)); return this;
     }
 
-    public ImmutablePair<String, HttpResponse> stub(String uri) {
-        for(ImmutablePair<String, HttpResponse> stub: stubs) {
+    public ImmutablePair<String, StubHttpResponse> stub(String uri) {
+        for(ImmutablePair<String, StubHttpResponse> stub: stubs) {
             if (stub.left.equals(uri)) {
                 return stub;
             }
@@ -166,7 +165,7 @@ public class HttpClientStubber implements HttpClient.Builder {
         return null;
     }
 
-    public Set<ImmutablePair<String, HttpResponse>> stubs() {
+    public Set<ImmutablePair<String, StubHttpResponse>> stubs() {
         return stubs;
     }
 
