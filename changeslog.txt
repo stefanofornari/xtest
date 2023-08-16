@@ -1,3 +1,7 @@
+20230816
+- added new functionality Stubbing of new JDK 11 HttpClient (user story #13)
+-released 3.4.2
+
 20230809
 - added support for WARNING level in LogRecordListAssert
 - released 3.3.2
