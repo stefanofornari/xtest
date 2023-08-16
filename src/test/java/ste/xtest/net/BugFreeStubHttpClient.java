@@ -22,11 +22,13 @@
 
 package ste.xtest.net;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
+import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.xtest.net.StubHttpClient.StubHttpResponse;
@@ -84,7 +86,7 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
     }
 
     @Test
-    public void send_returs_the_stubbed_response() throws Exception {
+    public void send_returns_the_stubbed_response() throws Exception {
         final String URL1 = "http://earth.com";
         final String URL2 = "https://universe.io";
         final HttpClient HTTP = new HttpClientStubber()
@@ -108,7 +110,7 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
     }
 
     @Test
-    public void async_send_returs_the_stubbed_response() throws Exception {
+    public void async_send_returns_the_stubbed_response() throws Exception {
         final String URL1 = "http://earth.com";
         final String URL2 = "https://universe.io";
         final HttpClient HTTP = new HttpClientStubber()
@@ -129,6 +131,37 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
             HttpRequest.newBuilder(URI.create(URL2)).GET().build(),
             BodyHandlers.ofString()
         ).join().body()).isEqualTo("hello universe");
+    }
+
+    @Test
+    public void send_throws_exception_if_no_stub_found() throws Exception {
+        HttpClient http = new HttpClientStubber().build();
+
+        try {
+            http.send(
+                HttpRequest.newBuilder(URI.create("https://nostub.io")).GET().build(),
+                BodyHandlers.ofString()
+            ).body();
+            fail("missing error");
+        } catch (IOException x) {
+            then(x).hasMessage("no stub found for https://nostub.io");
+        }
+
+        http = new HttpClientStubber()
+            .withStub(
+                "https://onestub.io/resource", new StubHttpResponse().text("hello world")
+            ).build();
+
+        try {
+            http.send(
+                HttpRequest.newBuilder(URI.create("https://onestub.io/resource/error")).GET().build(),
+                BodyHandlers.ofString()
+            ).body();
+            fail("missing error");
+        } catch (IOException x) {
+            then(x).hasMessage("no stub found for https://onestub.io/resource/error");
+        }
+
     }
 
 
