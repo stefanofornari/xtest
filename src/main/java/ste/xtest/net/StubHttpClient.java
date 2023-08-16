@@ -49,6 +49,7 @@ import java.util.concurrent.Flow.Subscription;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 /**
  * This is a stubber for JDK11 HttpClient. The basic idea is to setup the stubber
@@ -153,9 +154,16 @@ public class StubHttpClient extends HttpClient {
 
     @Override
     public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        StubHttpResponse<T> response = builder.stub(request.uri().toString()).right;
-        BodySubscriber<T> bodySubscriber = responseBodyHandler.apply(response);
+        ImmutablePair<String, StubHttpResponse> stub = builder.stub(request.uri().toString());
+        if (stub == null) {
+            //
+            // No stub found for the given request, let's tell it with an IOException
+            //
+            throw new IOException("no stub found for " + request.uri());
+        }
 
+        StubHttpResponse<T> response = stub.right;
+        BodySubscriber<T> bodySubscriber = responseBodyHandler.apply(response);
         bodySubscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long n) {
@@ -372,27 +380,7 @@ public class StubHttpClient extends HttpClient {
             return ret;
         }
 
-        // --------------------------------------------------------- private methods
-
-        private T bodyFromBytes(byte[] bytes) {
-            if (returnType.equals(byte[].class)) {
-                return (T)bytes;
-            } else if (returnType.equals(String.class)) {
-                return (T)new String(bytes);
-            }
-
-            return (T)bytes;
-        }
-
-        private T bodyFromString(String text) {
-            if (returnType.equals(byte[].class)) {
-                return (T)text.getBytes();
-            } else if (returnType.equals(String.class)) {
-                return (T)text;
-            }
-
-            return (T)body;
-        }
+        // ----------------------------------------------------- private methods
 
         private void stringContent(final String content, final String type) {
             this.content = (content == null) ? new byte[0] : content.getBytes();
