@@ -1,3 +1,7 @@
+20230919
+- added a Clock that returns a provided sequence of instants (InstantSequenceClock)
+- released 3.5.0
+
 20230816
 - added new functionality Stubbing of new JDK 11 HttpClient (user story #13)
 -released 3.4.2
