@@ -1,3 +1,11 @@
+20240204
+- bumped dependencies with vulnerabilities
+- removed package ste.xtest.jetty
+- released 3.6.0
+
+20240202
+- released 3.5.1
+
 20240114
 - added BugFreeExec to provide an environment to run external programs
 
