@@ -28,10 +28,10 @@ MA 02110-1301 USA.
 RELEASE NOTES
 =============
 
-1. v3.x breaks backward compatibility to address the new mechanisms of 
+1. v3.x breaks backward compatibility to address the new mechanisms of
    preventing the use of internal APIs introduced with JDK9.
    This involved the following xtest packages
-   
+
    - ste.xtest.awt
    - ste.xtest.net
 
@@ -40,8 +40,41 @@ RELEASE NOTES
    The following classes have been removed and will not be longer supported:
 
    - ste.xtest.reflect.CodeInjector
-   
- 1. To be able to easily using URL stubbing in other projects all relevan 
+
+2. To be able to easily using URL stubbing in other projects all relevan
    classes have been taken from JDK's source code and relocated under
    the package ste.xtest.net. In this way the stubs will not use any more
    internal classes but normal packages.
+
+3. Note that Java 17 deprecated SecurityManager and setting a SM into a JVM.
+   Trying to replace the SM throws the exception
+
+   java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release
+
+   This impacts ste.xtest.cli.BugFreeCLI, which uses such functionality behind
+   the scene to determine the exist status of the process. This indeed means
+   that if BugFreeCLI is used with Java 18 or earlier, test will fail with above
+   exception.
+   The only workaround available at the moment is to set -Djava.security.manager=allow
+   when running the tests:
+
+    <project>
+      [...]
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.5.0</version>
+            <configuration>
+                <!--
+                  java.security.manager must be set on the command line of
+                  the forked VM, it cannot be set after the VM has been started
+                -->
+                <argLine>-Djava.security.manager=allow</argLine>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      [...]
+    </project>
