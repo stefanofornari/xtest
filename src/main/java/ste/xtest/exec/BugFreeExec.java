@@ -27,23 +27,30 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
+import ste.xtest.junit.BugFree;
 
 /**
  *
  */
-public class BugFreeExec {
+public class BugFreeExec extends BugFree {
 
     final protected ProcessBuilder processBuilder = new ProcessBuilder();
-    protected File ROOT, ERR, OUT;
+    protected File HOME, ERR, OUT;
 
     @Before
     public void before() throws IOException {
-        ROOT = Files.createTempDirectory("xtest-").toFile(); ROOT.deleteOnExit();
-        ERR = new File(ROOT, "err.log"); OUT = new File(ROOT, "out.log");
-        processBuilder.directory(ROOT)
+        HOME = Files.createTempDirectory("xtest-").toFile();
+        ERR = new File(HOME, "err.log"); OUT = new File(HOME, "out.log");
+        processBuilder.directory(HOME)
             .redirectError(ERR).redirectOutput(OUT)
             .environment().put("CLASSPATH", System.getProperty("java.class.path"));
+    }
+
+    @After
+    public void after() throws IOException {
+        FileUtils.deleteDirectory(HOME);
     }
 
     protected int exec(final long milliseconds, final String... args) throws IOException, InterruptedException {
