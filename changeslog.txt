@@ -1,3 +1,8 @@
+20240914
+- Improved BugFreeExec
+- Fixed Issue #15 - BugFreeExec does not delete the HOME directory
+- released 3.6.1
+
 20240204
 - bumped dependencies with vulnerabilities
 - removed package ste.xtest.jetty

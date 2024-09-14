@@ -40,8 +40,8 @@ public class BugFreeBugFreeExec {
 
         E.before();
 
-        then(E.ROOT).exists().isDirectory();
-        then(E.ROOT.getName()).startsWith("xtest-");
+        then(E.HOME).exists().isDirectory();
+        then(E.HOME.getName()).startsWith("xtest-");
         then(E.processBuilder).isNotNull();
         then(E.processBuilder.redirectError().file()).isEqualTo(E.ERR);
         then(E.processBuilder.redirectOutput().file()).isEqualTo(E.OUT);
@@ -49,20 +49,33 @@ public class BugFreeBugFreeExec {
     }
 
     @Test
-    public void create_temp_dir_on_before() throws IOException {
-        final BugFreeExec E = new BugFreeExec() {
-        };
+    public void create_home_dir_on_before() throws IOException {
+        final BugFreeExec E = new BugFreeExec() {};
 
         //
         // Each call to before creates a new temp dir; dir are supposed to be
         // deleted at VM shutdown (I can not easily simulate it, I'll skeep this)
         //
         E.before();
-        File R1 = E.ROOT;
+        File R1 = E.HOME;
         then(R1).exists();
 
         E.before();
-        then(E.ROOT).exists().isNotEqualTo(R1);
+        then(E.HOME).exists().isNotEqualTo(R1);
+    }
+
+    @Test
+    public void delete_home_dir_on_after() throws Exception {
+        final BugFreeExec E = new BugFreeExec() {};
+
+        E.before(); then(E.HOME).exists();
+        //
+        // let's create a file to make sure the directory is deleted even when
+        // not empty
+        //
+        new File(E.HOME, "newfile").createNewFile();
+
+        E.after(); then(E.HOME).doesNotExist();
     }
 
     @Test
