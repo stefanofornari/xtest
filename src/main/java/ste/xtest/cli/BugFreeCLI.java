@@ -27,32 +27,23 @@ import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.contrib.java.lang.system.SystemErrRule;
 import org.junit.contrib.java.lang.system.SystemOutRule;
 import org.junit.contrib.java.lang.system.TextFromStandardInputStream;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import ste.xtest.junit.BugFree;
 
 /**
  *
  * @author ste
  */
-public abstract class BugFreeCLI {
-    @Rule
-    public final TestRule printTestName = new TestWatcher() {
-        @Override
-        protected void starting(Description description) {
-            System.out.printf("\nTEST %s...\n", description.getMethodName());
-        }
-    };
-    
+public abstract class BugFreeCLI extends BugFree {
+
     @Rule
     public final ExpectedSystemExit EXIT = ExpectedSystemExit.none();
-    
+
     @Rule
     public final SystemErrRule STDERR = new SystemErrRule().enableLog();
-    
+
     @Rule
     public final SystemOutRule STDOUT = new SystemOutRule().enableLog();
-    
+
     @Rule
     public final TextFromStandardInputStream STDIN = TextFromStandardInputStream.emptyStandardInputStream();
 }
