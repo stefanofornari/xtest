@@ -27,7 +27,7 @@ package ste.xtest.concurrent;
 public class WaitFor {
 
     /**
-     * Wait that the condition is true for the given timeout. Timeout = -1 means
+     * Wait the condition to be true for the given timeout. Timeout = -1 means
      * forever.
      *
      * @param timeout millisecond to wait or -1 for ever
