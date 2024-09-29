@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2014 Stefano Fornari
+ * Copyright (C) 2024 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -24,6 +24,7 @@ package ste.xtest.exec;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
@@ -121,5 +122,20 @@ public class BugFreeBugFreeExec {
         assertThatThrownBy(() -> E.exec(1000, "sleep", "2"))
             .isInstanceOf(InterruptedException.class)
             .hasMessage("the process has not completed in 1000 ms");
+    }
+
+    @Test
+    public void launch_execs_asynchronously() throws Exception {
+        final BugFreeExec E = new BugFreeExec() {
+        };
+        E.before();
+
+        final Process P = E.start("java");
+        then(P).isNotNull();
+
+        P.waitFor(3, TimeUnit.SECONDS);
+
+        then(P.exitValue()).isEqualTo(1);
+        then(E.err()).contains("Usage: java [options] <mainclass> [args...]");
     }
 }

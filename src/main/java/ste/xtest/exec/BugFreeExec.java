@@ -53,8 +53,28 @@ public class BugFreeExec extends BugFree {
         FileUtils.deleteDirectory(HOME);
     }
 
-    protected int exec(final long milliseconds, final String... args) throws IOException, InterruptedException {
-        Process p = processBuilder.command(args).start();
+    protected Process start(final String... args) throws IOException, InterruptedException {
+        return processBuilder.command(args).start();
+    }
+
+    /**
+     * Runs the given commands with provided arguments. It spawns the command
+     * asynchronously with a ProcessBuilder and it waits command completion
+     * for the given amount of milliseconds.
+     *
+     * @param milliseconds amount of time in millisecond to wait for the
+     *                     completion of the command or a negative number
+     *                     to wait forever
+     * @param args the command and its arguments
+     *
+     * @return the command exit code
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    protected int exec(final long milliseconds, final String... args)
+    throws IOException, InterruptedException {
+        Process p = start(args);
 
         if (milliseconds < 0) {
             p.waitFor(); return p.exitValue();
