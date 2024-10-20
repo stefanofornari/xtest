@@ -29,12 +29,15 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  *
  * @author ste
  */
 public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
+
+    private final Logger LOG = Logger.getLogger("xtest.concurrent.executor");
 
     private CountDownLatch latch = null;
 
@@ -62,9 +65,9 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
         super.beforeExecute(t, r);
         if (latch != null) {
             try {
-                //System.out.println("on hold " + new Date());
+                LOG.finest("on hold " + new Date());
                 latch.await(10, TimeUnit.SECONDS);
-                //System.out.println("let's go " + new Date());
+                LOG.finest("let's go " + new Date());
             } catch (InterruptedException x) {
                 x.printStackTrace();
             } finally {
@@ -74,12 +77,12 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     public void hold() {
-        //System.out.println("hold");
+        LOG.finest("hold");
         latch = new CountDownLatch(1);
     }
 
     public void go() {
-        //System.out.println("go");
+        LOG.finest("go");
         latch.countDown();
     }
 }
