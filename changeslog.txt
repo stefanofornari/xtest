@@ -1,3 +1,8 @@
+20241020
+- added logging to ste.xtest.concurrent.PausableThreadPoolExecutor
+- renamed ROOT to HOME in BugFreeExec
+- released 3.7.1
+
 20240929
 - Added start() to BugFreeExec to run a process asynchronously and return
   its Process
