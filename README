@@ -78,3 +78,14 @@ RELEASE NOTES
       </build>
       [...]
     </project>
+
+4. ste.xtest v3.8.0 introduced a new working stub for JDBC based on the open
+   source project Acolyte (see CREDITS).
+
+CREDITS
+=======
+
+Acolyte: xtest 3.8.0 and earlier includes source code from the Acolyte project
+(https://github.com/cchantep/acolyte). The source code has been included instead
+of using directly the original package because the Acolyte project seems not to
+be active any more and some improvements were required.

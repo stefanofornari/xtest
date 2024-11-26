@@ -1,3 +1,7 @@
+NEXT
+- added ste.xtest.jdbc - a stub of a JDBC driver
+- released 3.8.0
+
 20241020
 - added logging to ste.xtest.concurrent.PausableThreadPoolExecutor
 - renamed ROOT to HOME in BugFreeExec
