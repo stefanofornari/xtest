@@ -132,7 +132,8 @@ Envjs.DEBUG = false;
 Envjs.debug = function(message){
     if (Envjs.DEBUG) {
         var args = Array.prototype.splice.call(arguments, 1);
-        Envjs.log("DEBUG: " + vsprintf(message, args));
+
+        Envjs.log("DEBUG: " + java.lang.String.format(message, args));
     }
 };
 
@@ -1526,14 +1527,14 @@ Envjs.deleteFile = function(url){
     file["delete"]();
 };
 
-Envjs.buildURL = function (url) {
-    var uri = new java.net.URI(url);
-
-    return new java.net.URL(uri.scheme, uri.host, uri.port, uri.path + ((uri.query) ? ('?' + parts.query) : ''), URL_STREAM_HANDLER);
+Envjs.httpClientBuilder = new Packages.ste.xtest.net.HttpClientStubber();
+Envjs.http = function() {
+    Envjs.httpClientBuilder.cookieHandler(new Packages.ste.xtest.net.FileCookieHandler());
+    return Envjs.httpClientBuilder.build();
 }
 
-Envjs.contentType = function(connection) {
-    return connection.getContentType();
+Envjs.contentType = function(url) {
+    return java.nio.file.Files.probeContentType(java.nio.file.Paths.get(url));
 }
 
 /**
@@ -1543,186 +1544,186 @@ Envjs.contentType = function(connection) {
  * @param {Object} data
  */
 Envjs.connection = function(xhr, responseHandler, data){
-    var url = Envjs.buildURL(xhr.url),
-        connection,
-        header,
-        outstream,
-        buffer,
+    Envjs.debug("connecting to %s", xhr.url);
+    var header,
         length,
-        binary = false,
-        name, value,
-        contentEncoding,
-        instream,
+        value,
         responseXML,
-        i;
-    if ( /^file\:/.test(url) ) {
-        try{
-            if ( "PUT" == xhr.method || "POST" == xhr.method ) {
-                data =  data || "" ;
-                Envjs.writeToFile(data, url);
-                xhr.readyState = 4;
-                //could be improved, I just cant recall the correct http codes
-                xhr.status = 200;
-                xhr.statusText = "";
-            } else if ( xhr.method == "DELETE" ) {
-                Envjs.deleteFile(url);
-                xhr.readyState = 4;
-                //could be improved, I just cant recall the correct http codes
-                xhr.status = 200;
-                xhr.statusText = "";
-            } else {
-                connection = url.openConnection();
-                connection.connect();
-                //try to add some canned headers that make sense
-
-                /** TODO TO BE REMOVED **/
-                try{
-                    xhr.responseHeaders["Content-Type"] =  Envjs.contentType(connection);
-                    //xhr.responseHeaders['Last-Modified'] = connection.getLastModified();
-                    //xhr.responseHeaders['Content-Length'] = headerValue+'';
-                    //xhr.responseHeaders['Date'] = new Date()+'';*/
-                }catch(e){
-                    console.log('failed to load response headers',e);
-                }
-                /** **/
-
-                //
-                // some implementation of URLConnection may not have getResponseCode()
-                //
-                if (!connection.responseCode) {
-                    xhr.status = 200;
-                }
-                xhr.statusText = "";
-            }
-        }catch(e){
-            console.log('failed to open file %s %s', url, e.message);
-            connection = null;
+        response,
+        uri = java.net.URI.create(xhr.url);
+    if ( /^file\:/.test(xhr.url) ) {
+        if ( "PUT" == xhr.method || "POST" == xhr.method ) {
+            data =  data || "" ;
+            Envjs.writeToFile(data, xhr.url);
             xhr.readyState = 4;
-            xhr.statusText = "Local File Protocol Error";
-            if (e.message.indexOf("java.io.FileNotFoundException") >= 0) {
-                xhr.status = 404;
-                xhr.responseText = "<html><head/><body><p>" + url + " not found</p></body></html>";
-            } else {
-                xhr.status = 500;
-                xhr.responseText = "<html><head/><body><p>"+ e + "</p></body></html>";
+            //could be improved, I just cant recall the correct http codes
+            xhr.status = 200;
+            xhr.statusText = "";
+        } else if ( xhr.method == "DELETE" ) {
+            Envjs.deleteFile(xhr.url);
+            xhr.readyState = 4;
+            //could be improved, I just cant recall the correct http codes
+            xhr.status = 200;
+            xhr.statusText = "";
+        } else if ( xhr.method == "GET" ) {
+            var file = java.nio.file.Paths.get(uri);
+
+            response = {};
+            response.statusCode = function() {
+                return 200;
+            }
+            response.body = function() {
+                console.log(file.toFile().getAbsolutePath());
+                return new java.io.FileInputStream(file.toFile());
+            }
+            response.headers = function() {
+                return {
+                    map: function() {
+                        var headers = new java.util.HashMap();
+
+                        try {
+                            headers.put("Content-Type", java.util.List.of(Envjs.contentType(xhr.url)));
+                        } catch (e) {}
+                        try {
+                            headers.put("Content-Length", java.util.List.of(java.nio.file.Files.size(file)));
+                        } catch (e) {}
+                        try {
+                            headers.put("Last-Modified", java.util.List.of(java.nio.file.Files.getLastModifiedTime(file)));
+                        } catch (e) {}
+
+                        return headers;
+                    }
+                }
             }
         }
     } else {
-        connection = url.openConnection();
-        connection.setRequestMethod( xhr.method );
+        var client = Envjs.http();
 
-        // Add headers to Java connection
+        var requestBuilder = java.net.http.HttpRequest.newBuilder();
+        requestBuilder.uri(uri);
+
+        // Add headers to request builder
         for (header in xhr.headers){
-            connection.addRequestProperty(header+'', xhr.headers[header]+'');
+            requestBuilder.header(header+'', xhr.headers[header]+'');
         }
 
-        //write data to output stream if required
-        if(data){
-            if(data instanceof Document){
-                if ( xhr.method == "PUT" || xhr.method == "POST" ) {
-                    connection.setDoOutput(true);
-                    outstream = connection.getOutputStream(),
-                    xml = (new XMLSerializer()).serializeToString(data);
-                    buffer = new java.lang.String(xml).getBytes('UTF-8');
-                    outstream.write(buffer, 0, buffer.length);
-                    outstream.close();
-                }
-            }else if(data.length&&data.length>0){
-                if ( xhr.method == "PUT" || xhr.method == "POST" ) {
-                    connection.setDoOutput(true);
-                    outstream = connection.getOutputStream();
-                    buffer = new java.lang.String(data).getBytes('UTF-8');
-                    outstream.write(buffer, 0, buffer.length);
-                    outstream.close();
+        if (xhr.method == "GET") {
+            requestBuilder.GET();
+        } else if (xhr.method == "PUT" || xhr.method == "POST") {
+            var content = "";
+            if (data) {
+                if (data instanceof Document) {
+                    content = (new XMLSerializer()).serializeToString(data);
+                } else if (data.length && data.length > 0) {
+                    content = data;
                 }
             }
+            requestBuilder.POST(java.net.http.HttpRequest.BodyPublishers.ofString(content));
+        } else {
+            throw "HTTP method '" + xhr.method + "' not supported";
         }
+        var request = requestBuilder.build();
+
         try {
-            connection.connect();
+            response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofInputStream());
         } catch (e) {
-            console.log('failed to connect to %s %s', url, e);
+            console.log('failed to connect to %s %s', xhr.url, e);
             xhr.readyState = 4;
             xhr.onreadystatechange();
             throw e;
         }
     }
 
-    if(connection){
-        try{
-            var headers = connection.getHeaderFields();
-            var names = headers.keySet().toArray();
-            // Stick the response headers into responseHeaders
+    if(response){
+        Envjs.debug("connection established, reading content...");
+
+        var contentEncoding = "utf-8",
+            outstream,
+            instream,
+            binary = false,
+            buffer;
+        try {
             Envjs.debug("reading headers...");
+            var headers = response.headers().map();
+            var names = headers.keySet().toArray();
             for (i=0; i<names.length; ++i) {
                 value = (headers.get(names[i]).size() == 1)
                       ? (headers.get(names[i]).get(0))
                       : headers.get(names[i]).toArray();
                 if (names[i]) {
-                    xhr.responseHeaders[names[i].toLowerCase()] = value;
+                    names[i] = names[i].toLowerCase();
+                    xhr.responseHeaders[names[i]] = value;
+                    //
+                    // extract the content type
+                    //
+                    if (names[i] == "content-type") {
+                        xhr.responseType = value;
+                    } else if (names[i] == "content-encoding") {
+                        contentEncoding = value;
+                    }
                 }
-                Envjs.debug("%d) %s: %s", i, names[i], value);
+                Envjs.debug("%s) %s: %s", i.toString(), names[i], value);
             }
             Envjs.debug("reading headers done");
-        }catch(e){
+        } catch (e) {
             console.log('failed to load response headers \n%s',e);
         }
 
         xhr.readyState = 2;
-        if (!xhr.status) {
-            xhr.status = connection.responseCode;
-            xhr.statusText = connection.responseMessage || "";
-        }
-        Envjs.debug("connection response status: %d", xhr.status);
-        xhr.responseType = connection.getContentType();
         xhr.onreadystatechange();
 
-        contentEncoding = connection.getContentEncoding() || "utf-8";
         instream = null;
         responseXML = null;
 
         try{
-            Envjs.debug('contentEncoding %s', contentEncoding);
+            Envjs.debug('contentEncoding: %s', contentEncoding);
             if( contentEncoding.equalsIgnoreCase("gzip") ||
                 contentEncoding.equalsIgnoreCase("decompress")){
                 //zipped content
                 binary = true;
                 outstream = new java.io.ByteArrayOutputStream();
                 buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.TYPE, 1024);
-                instream = new java.util.zip.GZIPInputStream(connection.getInputStream())
-            }else{
+                instream = new java.util.zip.GZIPInputStream(response.body());
+            } else {
                 //this is a text file
                 outstream = new java.io.StringWriter();
                 buffer = java.lang.reflect.Array.newInstance(java.lang.Character.TYPE, 1024);
-                instream = new java.io.InputStreamReader(connection.getInputStream());
+                instream = new java.io.InputStreamReader(response.body());
             }
-        }catch(e){
-            if (connection.getResponseCode() == 404){
-                console.log('failed to open connection stream \n %s %s',
-                            e.toString(), e);
-            }else{
-                console.log('failed to open connection stream \n %s %s',
-                            e.toString(), e);
+
+            Envjs.debug("reading request content...");
+            while ((length = instream.read(buffer, 0, 1024)) != -1) {
+                outstream.write(buffer, 0, length);
             }
-            instream = connection.getErrorStream();
+            outstream.close();
+            instream.close();
+
+            xhr.readyState = 4;
+            Envjs.debug("reading request content done");
+
+            if (binary) {
+                xhr.responseText = new String(outstream.toByteArray(), 'UTF-8') + '';
+            } else {
+                xhr.responseText = outstream.toString() + '';
+            }
+
+            xhr.status = response.statusCode();
+            Envjs.debug("response status: %s", xhr.status.toString());
+        } catch(e) {
+            console.log('failed to read stream \n %s %s', e.toString(), e);
+            xhr.readyState = 4;
+            if (e.message.indexOf("java.io.FileNotFoundException") >= 0) {
+                xhr.statusText = "Not Found";
+                xhr.status = 404;
+                xhr.responseText = "<html><head/><body><p>" + xhr.url + " not found</p></body></html>";
+            } else {
+                xhr.status = 500;
+                xhr.responseText = "<html><head/><body><p>"+ e + "</p></body></html>";
+            }
         }
-
-        while ((length = instream.read(buffer, 0, 1024)) != -1) {
-            outstream.write(buffer, 0, length);
-        }
-
-        outstream.close();
-        instream.close();
-
-        xhr.readyState = 4;
-
-        if(binary){
-            xhr.responseText = new String(outstream.toByteArray(), 'UTF-8') + '';
-        }else{
-            xhr.responseText = outstream.toString() + '';
-        }
-
     }
-    if(responseHandler){
+
+    if (responseHandler) {
         //Envjs.debug('calling ajax response handler');
         responseHandler();
     }
@@ -5841,7 +5842,7 @@ function __dispatchEvent__(target, event, bubbles){
         event.eventPhase = Event.AT_TARGET;
         if ( target.uuid && $events[target.uuid] && $events[target.uuid][event.type] ) {
             event.currentTarget = target;
-            Envjs.debug('dispatching %s %s %s %s', target, event.type,
+            Envjs.debug('dispatching %s %s %s', target, event.type,
               $events[target.uuid][event.type]['CAPTURING'].length);
             $events[target.uuid][event.type].CAPTURING.forEach(function(fn){
                 Envjs.debug('AT_TARGET (CAPTURING) event %s', fn);
@@ -5851,7 +5852,7 @@ function __dispatchEvent__(target, event, bubbles){
                     event.stopPropagation();
                 }
             });
-            Envjs.debug('dispatching %s %s %s %s', target, event.type,
+            Envjs.debug('dispatching %s %s %s', target, event.type,
               $events[target.uuid][event.type]['BUBBLING'].length);
             $events[target.uuid][event.type].BUBBLING.forEach(function(fn){
                 Envjs.debug('AT_TARGET (BUBBLING) event %s', fn);
@@ -13994,7 +13995,7 @@ Window = function(scope, parent, opener){
 
     var $uuid = Envjs.clock.millis()+'-'+Math.floor(Math.random()*1000000000000000);
     Envjs.windows[$uuid] = scope;
-    Envjs.debug('opening window %s (%d)', $uuid, Object.keys(Envjs.windows).length);
+    Envjs.debug('opening window %s (%f)', $uuid, Object.keys(Envjs.windows).length);
 
     // every window has one-and-only-one .document property which is always
     // an [object HTMLDocument].  also, only window.document objects are
