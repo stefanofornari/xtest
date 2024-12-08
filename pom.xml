@@ -43,6 +43,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>19</maven.compiler.source>
         <maven.compiler.target>19</maven.compiler.target>
+        <argLine>--add-exports java.net.http/jdk.internal.net.http=ALL-UNNAMED</argLine>
     </properties>
 
     <dependencies>
@@ -80,7 +81,7 @@
         <dependency>
             <groupId>com.github.stefanbirkner</groupId>
             <artifactId>system-rules</artifactId>
-            <version>1.16.1</version>
+            <version>1.19.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -164,6 +165,10 @@
                         <arg>java.desktop/sun.awt=ALL-UNNAMED</arg>
                         <arg>--add-exports</arg>
                         <arg>java.desktop/sun.awt.datatransfer=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>java.net.http/jdk.internal.net.http=ALL-UNNAMED</arg>
+                        <arg>--add-exports</arg>
+                        <arg>jdk.internal.net.http/jdk.internal.net.http=ALL-UNNAMED</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -178,7 +183,8 @@
                         <include>**/*BugFree.java</include>
                         <include>**/*BF.java</include>
                     </includes>
-                    <forkMode>always</forkMode>
+                    <forkCount>2</forkCount>
+                    <reuseForks>false</reuseForks>
                     <parallel>classes</parallel>
                     <threadCountClasses>1</threadCountClasses>
                 </configuration>
