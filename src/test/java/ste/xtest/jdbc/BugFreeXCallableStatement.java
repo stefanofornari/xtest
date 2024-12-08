@@ -32,13 +32,13 @@ import java.sql.*;
 import java.util.Calendar;
 import java.util.HashMap;
 
-public class BugFreeCallableStatement {
+public class BugFreeXCallableStatement {
 
     private static final String TEST_SQL = "TEST";
 
     @Test
     public void testOutParameterRegistrationFailsOnClosedStatement() throws Exception {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
         stmt.close();
 
         assertThatThrownBy(() -> stmt.registerOutParameter(1, 1))
@@ -60,7 +60,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testOutParameterRegistrationFailsWithCustomType() {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
 
         assertThatThrownBy(() -> stmt.registerOutParameter(1, 1, "VARCHAR"))
                 .isInstanceOf(SQLFeatureNotSupportedException.class);
@@ -71,7 +71,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testOutParameterRegistrationFailsForInvalidParameter() {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
 
         assertThatThrownBy(() -> stmt.registerOutParameter(-1, 1))
                 .isInstanceOf(SQLException.class)
@@ -92,7 +92,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testParameterSetterFailsWithNamedParamAndUnsupportedTypes() {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
 
         // Object setters
         assertThatThrownBy(() -> stmt.setObject("param", null))
@@ -126,7 +126,7 @@ public class BugFreeCallableStatement {
                 .isInstanceOf(SQLFeatureNotSupportedException.class);
 
         // BLOB setters
-        assertThatThrownBy(() -> stmt.setBlob("param", (Blob) null))
+        assertThatThrownBy(() -> stmt.setBlob("param", (XBlob) null))
                 .isInstanceOf(SQLFeatureNotSupportedException.class);
         assertThatThrownBy(() -> stmt.setBlob("param", (InputStream) null))
                 .isInstanceOf(SQLFeatureNotSupportedException.class);
@@ -228,7 +228,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testGetterFailsWithUnsupportedDataTypes() {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
 
         // Array getters
         assertThatThrownBy(() -> stmt.getArray(1))
@@ -263,7 +263,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testGetterFailsWithNoResult() {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
 
         // Object getters
         assertThatThrownBy(() -> stmt.getObject(1))
@@ -436,7 +436,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testNullCheckFailsWithNoResult() {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
 
         assertThatThrownBy(() -> stmt.wasNull())
                 .isInstanceOf(SQLException.class)
@@ -445,7 +445,7 @@ public class BugFreeCallableStatement {
 
     @Test
     public void testNullCheckFailsWithClosedStatement() throws Exception {
-        CallableStatement stmt = createStatement();
+        XCallableStatement stmt = createStatement();
         stmt.close();
 
         assertThatThrownBy(() -> stmt.wasNull())
@@ -454,13 +454,13 @@ public class BugFreeCallableStatement {
     }
 
     // --------------------------------------------------------- private methods
-    private CallableStatement createStatement() {
+    private XCallableStatement createStatement() {
         final String S = "jdbc:xtest:anything-you-want?handler=my-handler-id";
         final StatementHandler SH = CompositeHandler.empty();
         final ConnectionHandler CH = new ConnectionHandler.Default(SH);
 
-        return new CallableStatement(
-                new Connection(S, null, CH),
+        return new XCallableStatement(
+                new XConnection(S, null, CH),
                 TEST_SQL, Statement.NO_GENERATED_KEYS,
                 SH
         );

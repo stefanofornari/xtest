@@ -33,9 +33,9 @@ import java.sql.SQLException;
 import org.junit.Before;
 import ste.xtest.jdbc.Utils.EmptyConnectionHandler;
 
-public class BugFreeDatabaseMetaData {
+public class BugFreeXDatabaseMetaData {
 
-    private DatabaseMetaData metadata;
+    private XDatabaseMetaData metadata;
     private EmptyConnectionHandler conHandler;
 
     @Before
@@ -44,15 +44,15 @@ public class BugFreeDatabaseMetaData {
         this.metadata = createMetadata();
     }
 
-    private DatabaseMetaData createMetadata() {
-        DatabaseMetaData meta = new ste.xtest.jdbc.DatabaseMetaData(
-            new ste.xtest.jdbc.Connection("jdbc:xtest:test", null, conHandler)
+    private XDatabaseMetaData createMetadata() {
+        XDatabaseMetaData meta = new ste.xtest.jdbc.XDatabaseMetaData(
+            new ste.xtest.jdbc.XConnection("jdbc:xtest:test", null, conHandler)
         );
         return meta;
     }
 
-    private DatabaseMetaData createMetadata(Connection connection) {
-        return new ste.xtest.jdbc.DatabaseMetaData(connection);
+    private XDatabaseMetaData createMetadata(XConnection connection) {
+        return new ste.xtest.jdbc.XDatabaseMetaData(connection);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class BugFreeDatabaseMetaData {
     public void shouldUseXOpenSQLStates() throws SQLException {
         assertThat(metadata.getSQLStateType())
                 .as("SQL state type")
-                .isEqualTo(DatabaseMetaData.sqlStateXOpen);
+                .isEqualTo(XDatabaseMetaData.sqlStateXOpen);
     }
 
     @Test
@@ -722,9 +722,9 @@ public class BugFreeDatabaseMetaData {
 
     @Test
     public void ownerConnectionShouldBeAttachedToRelatedMetadata() throws SQLException {
-        Connection conn = new Connection("jdbc:xtest:meta", null, conHandler);
+        XConnection conn = new XConnection("jdbc:xtest:meta", null, conHandler);
         conn.setReadOnly(true);
-        DatabaseMetaData meta = new DatabaseMetaData(conn);
+        XDatabaseMetaData meta = new XDatabaseMetaData(conn);
 
         assertThat(meta.getConnection())
             .as("meta-data owner")

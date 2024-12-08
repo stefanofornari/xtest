@@ -76,10 +76,10 @@ public class Utils {
         public ResourceHandler getResourceHandler() {
             return new ResourceHandler() {
                 @Override
-                public void whenCommitTransaction(Connection conn) {}
+                public void whenCommitTransaction(XConnection conn) {}
 
                 @Override
-                public void whenRollbackTransaction(Connection conn) {}
+                public void whenRollbackTransaction(XConnection conn) {}
             };
         }
 

@@ -34,7 +34,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import javax.sql.rowset.serial.SerialBlob;
 import java.nio.charset.StandardCharsets;
 
-public class BugFreeBlob {
+public class BugFreeXBlob {
 
     private byte[] testData;
     private SerialBlob serialBlob;
@@ -48,25 +48,25 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldBeZeroSized() throws Exception {
-        assertThat(Blob.Nil().length())
+        assertThat(XBlob.Nil().length())
             .as("size")
             .isEqualTo(0);
     }
 
     @Test
     public void nilBlobShouldHaveEmptyBinaryStream() throws Exception {
-        assertThat(Blob.Nil().getBinaryStream().read())
+        assertThat(XBlob.Nil().getBinaryStream().read())
             .as("binary stream #1")
             .isEqualTo(-1);
 
-        assertThat(Blob.Nil().getBinaryStream(1, 2).read())
+        assertThat(XBlob.Nil().getBinaryStream(1, 2).read())
             .as("binary stream #2")
             .isEqualTo(-1);
     }
 
     @Test
     public void nilBlobShouldThrowExceptionForInvalidStreamPosition() {
-        assertThatThrownBy(() -> Blob.Nil().getBinaryStream(2, 1))
+        assertThatThrownBy(() -> XBlob.Nil().getBinaryStream(2, 1))
             .as("binary stream")
             .isInstanceOf(SQLException.class)
             .hasMessage("Invalid position: 2");
@@ -74,14 +74,14 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldHaveEmptyBytes() throws Exception {
-        assertThat(Blob.Nil().getBytes(1, 3))
+        assertThat(XBlob.Nil().getBytes(1, 3))
             .as("bytes")
             .hasSize(0);
     }
 
     @Test
     public void nilBlobShouldThrowExceptionForInvalidBytesPosition() {
-        assertThatThrownBy(() -> Blob.Nil().getBytes(3, 1))
+        assertThatThrownBy(() -> XBlob.Nil().getBytes(3, 1))
             .as("bytes")
             .isInstanceOf(SQLException.class)
             .hasMessage("Invalid position: 3");
@@ -89,12 +89,12 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldThrowExceptionForInvalidSearchPosition() {
-        assertThatThrownBy(() -> Blob.Nil().position(serialBlob, 3))
+        assertThatThrownBy(() -> XBlob.Nil().position(serialBlob, 3))
             .as("position")
             .isInstanceOf(SQLException.class)
             .hasMessage("Invalid offset: 3");
 
-        assertThatThrownBy(() -> Blob.Nil().position(testData, 5))
+        assertThatThrownBy(() -> XBlob.Nil().position(testData, 5))
             .as("position")
             .isInstanceOf(SQLException.class)
             .hasMessage("Invalid offset: 5");
@@ -102,37 +102,37 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldNotFindPosition() throws Exception {
-        assertThat(Blob.Nil().position(serialBlob, 0))
+        assertThat(XBlob.Nil().position(serialBlob, 0))
             .as("position")
             .isEqualTo(-1L);
 
-        assertThat(Blob.Nil().position(serialBlob, 1))
+        assertThat(XBlob.Nil().position(serialBlob, 1))
             .as("position")
             .isEqualTo(-1L);
 
-        assertThat(Blob.Nil().position(testData, 0))
+        assertThat(XBlob.Nil().position(testData, 0))
             .as("position")
             .isEqualTo(-1L);
 
-        assertThat(Blob.Nil().position(testData, 1))
+        assertThat(XBlob.Nil().position(testData, 1))
             .as("position")
             .isEqualTo(-1L);
     }
 
     @Test
     public void nilBlobShouldAllowTruncation() throws Exception {
-        Blob.Nil().truncate(0);
-        Blob.Nil().truncate(1);
+        XBlob.Nil().truncate(0);
+        XBlob.Nil().truncate(1);
     }
 
     @Test
     public void nilBlobShouldNotBeWritable() {
-        assertThatThrownBy(() -> Blob.Nil().setBinaryStream(1))
+        assertThatThrownBy(() -> XBlob.Nil().setBinaryStream(1))
             .as("write request @ 1")
             .isInstanceOf(SQLFeatureNotSupportedException.class)
             .hasMessage("Cannot write to empty BLOB");
 
-        assertThatThrownBy(() -> Blob.Nil().setBinaryStream(3))
+        assertThatThrownBy(() -> XBlob.Nil().setBinaryStream(3))
             .as("write request @ 3")
             .isInstanceOf(SQLException.class)
             .hasMessage("Invalid position: 3");
@@ -140,7 +140,7 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldNotAllowSettingMissingData() {
-        assertThatThrownBy(() -> Blob.Nil().setBytes(1, null))
+        assertThatThrownBy(() -> XBlob.Nil().setBytes(1, null))
             .as("missing data")
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("No byte to be set");
@@ -148,7 +148,7 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldThrowExceptionForInvalidSetBytesPosition() {
-        assertThatThrownBy(() -> Blob.Nil().setBytes(2, new byte[0]))
+        assertThatThrownBy(() -> XBlob.Nil().setBytes(2, new byte[0]))
             .as("setting bytes")
             .isInstanceOf(SQLException.class)
             .hasMessage("Invalid position: 2");
@@ -156,7 +156,7 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldThrowExceptionForInvalidBytesLength() {
-        assertThatThrownBy(() -> Blob.Nil().setBytes(1, new byte[0], 0, -1))
+        assertThatThrownBy(() -> XBlob.Nil().setBytes(1, new byte[0], 0, -1))
             .as("setting bytes")
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Invalid bytes length: -1");
@@ -164,7 +164,7 @@ public class BugFreeBlob {
 
     @Test
     public void nilBlobShouldThrowExceptionForLengthGreaterThanData() {
-        assertThatThrownBy(() -> Blob.Nil().setBytes(1, new byte[0], 0, 3))
+        assertThatThrownBy(() -> XBlob.Nil().setBytes(1, new byte[0], 0, 3))
             .as("setting bytes")
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Fails to prepare binary data");

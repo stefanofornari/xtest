@@ -32,7 +32,7 @@ import org.junit.Test;
 
 public class BugFreeAbstractStatement {
     private static final String JDBC_URL = "jdbc:xtest:test";
-    private Connection defaultCon;
+    private XConnection defaultCon;
     private StatementHandler defaultHandler;
 
     @Before
@@ -73,10 +73,10 @@ public class BugFreeAbstractStatement {
                 resourceHandler = handler; return this;
             }
         };
-        defaultCon = new ste.xtest.jdbc.Connection(JDBC_URL, null, connectionHandler);
+        defaultCon = new ste.xtest.jdbc.XConnection(JDBC_URL, null, connectionHandler);
     }
 
-    private Statement createStatement(Connection connection, StatementHandler handler) {
+    private Statement createStatement(XConnection connection, StatementHandler handler) {
         return new AbstractStatement(connection, handler) {};
     }
 

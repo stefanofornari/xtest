@@ -23,6 +23,7 @@
 
 package ste.xtest.jdbc;
 
+import java.sql.Connection;
 import static org.assertj.core.api.Assertions.*;
 
 import java.sql.Date;
@@ -36,7 +37,7 @@ import org.junit.Test;
 public class BugFreeJDBCFramework {
     @Test
     public void testJavaUseCase1() throws Exception {
-        Connection con = JavaUseCases.useCase1();
+        Connection con = JDBCDriverStub.useCase1();
 
         // Test DELETE statement
         PreparedStatement deleteStmt = con.prepareStatement("DELETE * FROM table");
@@ -85,7 +86,7 @@ public class BugFreeJDBCFramework {
 
     @Test
     public void testJavaUseCase2() throws Exception {
-        Connection con = JavaUseCases.useCase2();
+        Connection con = JDBCDriverStub.useCase2();
 
         PreparedStatement stmt = con.prepareStatement("SELECT * FROM table");
         stmt.setString(1, "test");
@@ -115,7 +116,7 @@ public class BugFreeJDBCFramework {
 
     @Test
     public void testJavaUseCase3() throws Exception {
-        Connection con = JavaUseCases.useCase3();
+        Connection con = JDBCDriverStub.useCase3();
 
         // Test empty SELECT
         PreparedStatement selectStmt = con.prepareStatement("SELECT *");
@@ -147,7 +148,7 @@ public class BugFreeJDBCFramework {
 
     @Test
     public void testJavaUseCase4() throws Exception {
-        Connection con = JavaUseCases.useCase4();
+        Connection con = JDBCDriverStub.useCase4();
 
         PreparedStatement stmt = con.prepareStatement("SELECT * FROM table");
         ResultSet rs = stmt.executeQuery();
@@ -158,7 +159,7 @@ public class BugFreeJDBCFramework {
 
     @Test
     public void testJavaUseCase5() throws Exception {
-        Connection con = JavaUseCases.useCase5();
+        Connection con = JDBCDriverStub.useCase5();
 
         PreparedStatement stmt = con.prepareStatement("INSERT INTO table(x) VALUE('y')");
         stmt.executeUpdate();
@@ -168,4 +169,5 @@ public class BugFreeJDBCFramework {
         assertThat(keys.getInt(1)).as("first key").isEqualTo(100);
         assertThat(keys.next()).as("has second key").isFalse();
     }
+    
 }

@@ -264,7 +264,7 @@ public class BugFreeRowList {
     public void resultSetStatementShouldBeExpectedOne() throws SQLException {
         final String url = "jdbc:xtest:test";
         final ConnectionHandler ch = new EmptyConnectionHandler();
-        final Connection con = new Connection(url, null, ch);
+        final XConnection con = new XConnection(url, null, ch);
         final AbstractStatement stmt = new AbstractStatement(con, ch.getStatementHandler()) {};
 
         final RowList r = RowLists.stringList().withCycling(true).withStatement(stmt);

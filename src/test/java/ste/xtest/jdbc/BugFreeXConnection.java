@@ -37,37 +37,37 @@ import ste.xtest.jdbc.Utils.EmptyStatementHandler;
 /**
  *
  */
-public class BugFreeConnection {
+public class BugFreeXConnection {
 
     private static final String JDBC_URL = "jdbc:xtest:test";
     private static final HashMap<String, Class<?>> EMPTY_TYPE_MAP = new HashMap<>();
     private static final Properties EMPTY_CLIENT_INFO = new Properties();
     private static final ConnectionHandler DEFAULT_HANDLER = EmptyConnectionHandler.INSTANCE;
 
-    private Connection defaultConnection;
+    private XConnection defaultConnection;
 
     @Before
     public void setup() {
-        defaultConnection = new Connection(JDBC_URL, null, DEFAULT_HANDLER);
+        defaultConnection = new XConnection(JDBC_URL, null, DEFAULT_HANDLER);
     }
 
     @Test
     public void shouldNotAcceptNullUrl() {
-        assertThatThrownBy(() -> new Connection(null, null, DEFAULT_HANDLER))
+        assertThatThrownBy(() -> new XConnection(null, null, DEFAULT_HANDLER))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("url can not be null");
     }
 
     @Test
     public void shouldNotAcceptNullHandler() {
-        assertThatThrownBy(() -> new Connection(JDBC_URL, null, null))
+        assertThatThrownBy(() -> new XConnection(JDBC_URL, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("handler can not be null");
     }
 
     @Test
     public void shouldReturnValidInstanceForValidInformation() throws SQLException {
-        Connection conn = new Connection(JDBC_URL, null, DEFAULT_HANDLER);
+        XConnection conn = new XConnection(JDBC_URL, null, DEFAULT_HANDLER);
 
         assertThat(conn.getAutoCommit()).isFalse();
         assertThat(conn.isReadOnly()).isFalse();
@@ -91,7 +91,7 @@ public class BugFreeConnection {
         Properties props = new Properties();
         props.put("_test", "_1");
 
-        Connection conn = new Connection(JDBC_URL, props, DEFAULT_HANDLER);
+        XConnection conn = new XConnection(JDBC_URL, props, DEFAULT_HANDLER);
         assertThat(conn.getProperties()).isEqualTo(props);
 
         props.put("_test", "_2");
@@ -274,11 +274,11 @@ public class BugFreeConnection {
             public ResourceHandler getResourceHandler() {
                 return new ResourceHandler() {
                     @Override
-                    public void whenCommitTransaction(Connection conn) {
+                    public void whenCommitTransaction(XConnection conn) {
                     }
 
                     @Override
-                    public void whenRollbackTransaction(Connection conn) {
+                    public void whenRollbackTransaction(XConnection conn) {
                         rollbackCount[0]++;
                     }
                 };
@@ -290,7 +290,7 @@ public class BugFreeConnection {
             }
         };
 
-        Connection conn = new Connection(JDBC_URL, EMPTY_CLIENT_INFO, handler);
+        XConnection conn = new XConnection(JDBC_URL, EMPTY_CLIENT_INFO, handler);
         conn.rollback();
 
         assertThat(rollbackCount[0]).isEqualTo(1);
@@ -308,11 +308,11 @@ public class BugFreeConnection {
             public ResourceHandler getResourceHandler() {
                 return new ResourceHandler() {
                     @Override
-                    public void whenCommitTransaction(Connection conn) {
+                    public void whenCommitTransaction(XConnection conn) {
                     }
 
                     @Override
-                    public void whenRollbackTransaction(Connection conn) throws SQLException {
+                    public void whenRollbackTransaction(XConnection conn) throws SQLException {
                         throw new SQLException("Foo");
                     }
                 };
@@ -324,7 +324,7 @@ public class BugFreeConnection {
             }
         };
 
-        Connection conn = new Connection(JDBC_URL, EMPTY_CLIENT_INFO, handler);
+        XConnection conn = new XConnection(JDBC_URL, EMPTY_CLIENT_INFO, handler);
 
         assertThatThrownBy(() -> conn.rollback())
                 .isInstanceOf(SQLException.class)
@@ -381,7 +381,7 @@ public class BugFreeConnection {
                 .isInstanceOf(SQLException.class)
                 .hasMessage("Connection is closed");
 
-        Connection freshConn = new Connection(JDBC_URL, null, DEFAULT_HANDLER);
+        XConnection freshConn = new XConnection(JDBC_URL, null, DEFAULT_HANDLER);
         java.sql.Savepoint freshSavepoint = freshConn.setSavepoint();
         assertThatThrownBy(() -> freshConn.rollback(freshSavepoint))
                 .isInstanceOf(SQLFeatureNotSupportedException.class);
@@ -402,7 +402,7 @@ public class BugFreeConnection {
                 .isInstanceOf(SQLException.class)
                 .hasMessage("Connection is closed");
 
-        Connection freshConn = new Connection(JDBC_URL, null, DEFAULT_HANDLER);
+        XConnection freshConn = new XConnection(JDBC_URL, null, DEFAULT_HANDLER);
         java.sql.Savepoint freshSavepoint = freshConn.setSavepoint();
         assertThatThrownBy(() -> freshConn.releaseSavepoint(freshSavepoint))
                 .isInstanceOf(SQLFeatureNotSupportedException.class);
@@ -432,12 +432,12 @@ public class BugFreeConnection {
             public ResourceHandler getResourceHandler() {
                 return new ResourceHandler() {
                     @Override
-                    public void whenCommitTransaction(Connection conn) {
+                    public void whenCommitTransaction(XConnection conn) {
                         commitCount[0]++;
                     }
 
                     @Override
-                    public void whenRollbackTransaction(Connection conn) {
+                    public void whenRollbackTransaction(XConnection conn) {
                     }
                 };
             }
@@ -448,7 +448,7 @@ public class BugFreeConnection {
             }
         };
 
-        Connection conn = new Connection(JDBC_URL, EMPTY_CLIENT_INFO, handler);
+        XConnection conn = new XConnection(JDBC_URL, EMPTY_CLIENT_INFO, handler);
         conn.commit();
 
         assertThat(commitCount[0]).isEqualTo(1);
@@ -456,7 +456,7 @@ public class BugFreeConnection {
 
     @Test
     public void commitShouldPropagateException() throws Exception {
-        Connection conn = new Connection(JDBC_URL, EMPTY_CLIENT_INFO, DEFAULT_HANDLER);
+        XConnection conn = new XConnection(JDBC_URL, EMPTY_CLIENT_INFO, DEFAULT_HANDLER);
         conn.setAutoCommit(true);
 
         assertThatThrownBy(() -> conn.commit())
@@ -466,7 +466,7 @@ public class BugFreeConnection {
 
     @Test
     public void autoCommitShouldNotBeSetOnClosedConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.close();
 
         assertThatThrownBy(() -> conn.setAutoCommit(true))
@@ -476,7 +476,7 @@ public class BugFreeConnection {
 
     @Test
     public void nativeSQLShouldNotBeCalledOnClosedConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.close();
 
         assertThatThrownBy(() -> conn.nativeSQL("test"))
@@ -498,7 +498,7 @@ public class BugFreeConnection {
 
     @Test
     public void unnamedSavepointShouldFailWithAutoCommit() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.setAutoCommit(true);
 
         assertThatThrownBy(() -> conn.setSavepoint())
@@ -508,7 +508,7 @@ public class BugFreeConnection {
 
     @Test
     public void namedSavepointShouldFailWithAutoCommit() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.setAutoCommit(true);
 
         assertThatThrownBy(() -> conn.setSavepoint("savepoint"))
@@ -518,8 +518,8 @@ public class BugFreeConnection {
 
     @Test
     public void shouldBeValidConnectionWrapper() throws Exception {
-        assertThat(defaultConnection.isWrapperFor(Connection.class)).isTrue();
-        assertThat(defaultConnection.unwrap(Connection.class)).isNotNull();
+        assertThat(defaultConnection.isWrapperFor(XConnection.class)).isTrue();
+        assertThat(defaultConnection.unwrap(XConnection.class)).isNotNull();
     }
 
     @Test
@@ -531,7 +531,7 @@ public class BugFreeConnection {
 
     @Test
     public void abortShouldBeNoOpOnClosedConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.close();
 
         conn.abort(Executors.newSingleThreadExecutor()); // no exceptions
@@ -539,7 +539,7 @@ public class BugFreeConnection {
 
     @Test
     public void abortShouldMarkConnectionAsClosed() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.abort(Executors.newSingleThreadExecutor());
 
         assertThat(conn.isClosed()).isTrue();
@@ -585,7 +585,7 @@ public class BugFreeConnection {
     // Statement creation tests
     @Test
     public void plainStatementShouldBeOwnedByConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
 
         assertThat(conn.createStatement().getConnection()).isSameAs(conn);
         assertThat(conn.createStatement(
@@ -599,7 +599,7 @@ public class BugFreeConnection {
 
     @Test
     public void statementCreationShouldFailOnClosedConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.close();
 
         assertThatThrownBy(() -> conn.createStatement())
@@ -645,7 +645,7 @@ public class BugFreeConnection {
             }
         };
 
-        Connection conn = new Connection(
+        XConnection conn = new XConnection(
                 JDBC_URL,
                 null,
                 new ConnectionHandler.Default(handler)
@@ -664,7 +664,7 @@ public class BugFreeConnection {
 
     @Test
     public void preparedStatementShouldBeOwnedByConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
 
         assertThat(conn.prepareStatement("TEST").getConnection())
                 .isSameAs(conn);
@@ -687,7 +687,7 @@ public class BugFreeConnection {
 
     @Test
     public void preparedStatementCreationShouldFailOnClosedConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.close();
 
         assertThatThrownBy(() -> conn.prepareStatement("TEST"))
@@ -770,7 +770,7 @@ public class BugFreeConnection {
     // CallableStatement Tests
     @Test
     public void callableStatementShouldBeOwnedByConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
 
         assertThat(conn.prepareCall("TEST").getConnection())
                 .isSameAs(conn);
@@ -789,7 +789,7 @@ public class BugFreeConnection {
 
     @Test
     public void callableStatementCreationShouldFailOnClosedConnection() throws Exception {
-        Connection conn = defaultConnection;
+        XConnection conn = defaultConnection;
         conn.close();
 
         assertThatThrownBy(() -> conn.prepareCall("TEST"))

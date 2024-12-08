@@ -28,17 +28,17 @@ import org.junit.Test;
 /**
  *
  */
-public class BugFreeSavePoint {
+public class BugFreeXSavePoint {
 
  // Test fixtures
-    private Savepoint unnamed;
-    private Savepoint named;
+    private XSavepoint unnamed;
+    private XSavepoint named;
     private static final String TEST_NAME = "test";
 
     @Before
     public void setUp() {
-        unnamed = new Savepoint();
-        named = new Savepoint(TEST_NAME);
+        unnamed = new XSavepoint();
+        named = new XSavepoint(TEST_NAME);
     }
 
     @Test

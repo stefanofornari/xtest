@@ -53,13 +53,13 @@ import java.util.List;
 import java.util.Properties;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import static ste.xtest.jdbc.Driver.CONNECTION_UNTYPED_NULL_PARAMETER;
+import static ste.xtest.jdbc.XDriver.CONNECTION_UNTYPED_NULL_PARAMETER;
 import ste.xtest.jdbc.StatementHandler.Parameter;
 import ste.xtest.jdbc.Utils.EmptyStatementHandler;
 
-public class BugFreePreparedStatement {
+public class BugFreeXPreparedStatement {
 
-    private Connection defaultCon;
+    private XConnection defaultCon;
     private StatementHandler defaultHandler;
     private static final String TEST_SQL = "TEST";
 
@@ -67,12 +67,12 @@ public class BugFreePreparedStatement {
     public void setUp() throws Exception {
         // Initialize your default connection and handler here
         defaultHandler = Utils.EmptyStatementHandler.QUERY;
-        defaultCon = Driver.connection(defaultHandler);
+        defaultCon = XDriver.connection(defaultHandler);
     }
 
     @Test
     public void testSetParameters() throws Exception {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
 
         // Test setting various parameter types
         Object[][] testCases = {
@@ -97,7 +97,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testDateTimeParameters() throws Exception {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
         TimeZone tz = TimeZone.getTimeZone("GMT");
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(tz);
@@ -141,7 +141,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testStreamParameters() throws Exception {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
         byte[] testData = "test data".getBytes();
         InputStream stream = new ByteArrayInputStream(testData);
 
@@ -158,8 +158,8 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testBlobParameters() throws Exception {
-        PreparedStatement stmt = statement();
-        Blob blob = createTestBlob();
+        XPreparedStatement stmt = statement();
+        XBlob blob = createTestBlob();
 
         stmt.setBlob(1, blob);
 
@@ -169,7 +169,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testArrayParameters() throws Exception {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
         Array sqlArray = createTestSqlArray();
 
         stmt.setArray(1, sqlArray);
@@ -193,7 +193,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testUnsupportedTypes() throws SQLException {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
 
         // Testing all unsupported types
         SetterFunction[][] unsupportedCases = {
@@ -237,7 +237,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testBatchAddOnClosedStatement() throws SQLException {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
         stmt.close();
 
         assertThatThrownBy(() -> stmt.addBatch())
@@ -248,7 +248,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testBatchExecutionWithTwoElements() throws SQLException {
-        PreparedStatement stmt = statement(defaultCon, "TEST", new Utils.EmptyStatementHandler(false));
+        XPreparedStatement stmt = statement(defaultCon, "TEST", new Utils.EmptyStatementHandler(false));
 
         // First batch
         stmt.setString(1, "A");
@@ -299,7 +299,7 @@ public class BugFreePreparedStatement {
             }
         };
 
-        PreparedStatement stmt = statement(defaultCon, "TEST", handler);
+        XPreparedStatement stmt = statement(defaultCon, "TEST", handler);
 
         stmt.setString(1, "A");
         stmt.setInt(2, 3);
@@ -322,7 +322,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testNullParameters() throws SQLException {
-        PreparedStatement stmt = statement();
+        XPreparedStatement stmt = statement();
 
         // Test VARCHAR null
         stmt.setNull(1, JDBCType.VARCHAR.getVendorTypeNumber());
@@ -373,8 +373,8 @@ public class BugFreePreparedStatement {
         final Properties properties = new Properties();
         properties.put(CONNECTION_UNTYPED_NULL_PARAMETER, "true");
 
-        PreparedStatement stmt = statement(
-                Driver.connection(defaultHandler, properties),
+        XPreparedStatement stmt = statement(
+                XDriver.connection(defaultHandler, properties),
                 "TEST", defaultHandler
         );
         stmt.setObject(1, null);
@@ -402,7 +402,7 @@ public class BugFreePreparedStatement {
         };
 
         for (String[] testCase : testCases) {
-            PreparedStatement stmt = statement();
+            XPreparedStatement stmt = statement();
 
             switch (testCase[0]) {
                 case "setArray":
@@ -453,23 +453,23 @@ public class BugFreePreparedStatement {
         };
 
         for (String[] testCase : testCases) {
-            PreparedStatement stmt = statement();
+            XPreparedStatement stmt = statement();
 
             switch (testCase[0]) {
                 case "setBlob":
-                    stmt.setBlob(1, Blob.Nil());
+                    stmt.setBlob(1, XBlob.Nil());
                     break;
                 case "setObjectWithType":
-                    stmt.setObject(1, Blob.Nil(), JDBCType.BLOB);
+                    stmt.setObject(1, XBlob.Nil(), JDBCType.BLOB);
                     break;
                 case "setBlobStream":
                     stmt.setBlob(1, new ByteArrayInputStream(new byte[]{1, 3, 5}), 2);
                     break;
                 case "setObjectWithTypeAndScale":
-                    stmt.setObject(1, Blob.Nil(), JDBCType.BLOB, 1);
+                    stmt.setObject(1, XBlob.Nil(), JDBCType.BLOB, 1);
                     break;
                 case "setObjectWithoutType":
-                    stmt.setObject(1, Blob.Nil());
+                    stmt.setObject(1, XBlob.Nil());
                     break;
             }
 
@@ -487,7 +487,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testBlobPreparedStatements() throws Exception {
-        verifyUpdateAndQuery(JDBCType.BLOB, Blob.Nil());
+        verifyUpdateAndQuery(JDBCType.BLOB, XBlob.Nil());
     }
 
     @Test
@@ -501,7 +501,7 @@ public class BugFreePreparedStatement {
         };
 
         for (String[] testCase : testCases) {
-            PreparedStatement stmt = statement();
+            XPreparedStatement stmt = statement();
 
             switch (testCase[0]) {
                 case "setBoolean":
@@ -547,7 +547,7 @@ public class BugFreePreparedStatement {
         };
 
         for (String[] testCase : testCases) {
-            PreparedStatement stmt = statement();
+            XPreparedStatement stmt = statement();
             byte testByte = (byte) 1;
 
             switch (testCase[0]) {
@@ -594,7 +594,7 @@ public class BugFreePreparedStatement {
         };
 
         for (String[] testCase : testCases) {
-            PreparedStatement stmt = statement();
+            XPreparedStatement stmt = statement();
             short testShort = (short) 1;
 
             switch (testCase[0]) {
@@ -632,7 +632,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetIntegerAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setInt(1, 1);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -646,7 +646,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetIntegerAsFirstObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1, JDBCType.INTEGER);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -660,7 +660,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetIntegerAsFirstObjectWithTypeAndScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1, JDBCType.INTEGER, 1);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -674,7 +674,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetIntegerAsFirstObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -694,7 +694,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetLongAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setLong(1, 1L);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -708,7 +708,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetLongAsFirstObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1L, JDBCType.BIGINT);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -722,7 +722,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetLongAsFirstObjectWithTypeAndScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1L, JDBCType.BIGINT, 2);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -736,7 +736,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetLongAsFirstObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1L);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -756,7 +756,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetFloatAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setFloat(1, 1.2f);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -773,7 +773,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetFloatAsFirstObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.2f, JDBCType.FLOAT);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -790,7 +790,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetFloatAsFirstObjectWithTypeAndScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.2f, JDBCType.FLOAT, 3);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -807,7 +807,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetFloatAsFirstObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.2f);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -824,7 +824,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetRealNullObject() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, null, JDBCType.REAL);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -838,7 +838,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetRealObject() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.23f, JDBCType.REAL);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -855,7 +855,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetRealObjectWithScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.23f, JDBCType.REAL, 1);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -880,7 +880,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDoubleAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setDouble(1, 1.234);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -897,7 +897,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDoubleAsFirstObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.234, JDBCType.DOUBLE);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -914,7 +914,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDoubleAsFirstObjectWithTypeAndScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.234, JDBCType.DOUBLE, 5);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -931,7 +931,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDoubleAsFirstObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, 1.234);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -954,7 +954,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetBigDecimalAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBigDecimal(1, new BigDecimal("1.2345678"));
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -971,7 +971,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetNumericObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, new BigDecimal("1.2345678"), JDBCType.NUMERIC);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -988,7 +988,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetNumericObjectWithTypeAndScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, new BigDecimal("1.2345678"), JDBCType.NUMERIC, 2);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1005,7 +1005,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetNumericObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, new BigDecimal("1.2345678"));
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1022,7 +1022,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDecimalObject() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, new BigDecimal("1.2345678"), JDBCType.DECIMAL);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1045,7 +1045,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldHandleNullNumeric() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBigDecimal(1, null);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1059,7 +1059,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldHandleNullDecimal() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setDecimal(1, null);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1073,7 +1073,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetStringAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setString(1, "str");
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1088,7 +1088,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetStringAsFirstObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, "str", JDBCType.VARCHAR);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1103,7 +1103,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetStringAsFirstObjectWithTypeAndLength() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, "str", JDBCType.VARCHAR, 2);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1118,7 +1118,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetStringAsFirstObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, "str");
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1142,7 +1142,7 @@ public class BugFreePreparedStatement {
     @Test
     public void shouldSetBytesAsFirstParameter() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBytes(1, bindata);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1158,7 +1158,7 @@ public class BugFreePreparedStatement {
     @Test
     public void shouldSetBytesAsFirstObjectWithType() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, bindata, JDBCType.BINARY);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1174,7 +1174,7 @@ public class BugFreePreparedStatement {
     @Test
     public void shouldSetBytesAsFirstObjectWithTypeAndLength() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, bindata, JDBCType.BINARY, 2);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1190,7 +1190,7 @@ public class BugFreePreparedStatement {
     @Test
     public void shouldSetBytesAsFirstObjectWithoutType() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, bindata);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1207,7 +1207,7 @@ public class BugFreePreparedStatement {
     public void shouldSetBytesAsFirstParameterFromInputStream() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
         InputStream binstream = new ByteArrayInputStream(bindata);
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBinaryStream(1, binstream);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1224,7 +1224,7 @@ public class BugFreePreparedStatement {
     public void shouldSetBytesAsFirstParameterFromInputStreamWithIntegerLength() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
         InputStream binstream = new ByteArrayInputStream(bindata);
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBinaryStream(1, binstream, 3);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1241,7 +1241,7 @@ public class BugFreePreparedStatement {
     public void shouldSetBytesAsFirstParameterFromInputStreamWithLongLength() throws Exception {
         byte[] bindata = new byte[]{1, 3, 7};
         InputStream binstream = new ByteArrayInputStream(bindata);
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBinaryStream(1, binstream, 4L);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1277,7 +1277,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDateAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setDate(1, new java.sql.Date(System.currentTimeMillis()));
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1292,7 +1292,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDateAsFirstParameterWithCalendar() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setDate(1,
                 new java.sql.Date(System.currentTimeMillis()),
                 Calendar.getInstance()
@@ -1310,7 +1310,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDateAsFirstObjectWithType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, new java.sql.Date(System.currentTimeMillis()), JDBCType.DATE);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1325,7 +1325,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDateAsFirstObjectWithTypeAndScale() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1,
                 new java.sql.Date(System.currentTimeMillis()),
                 JDBCType.DATE,
@@ -1344,7 +1344,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void shouldSetDateAsFirstObjectWithoutType() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, new java.sql.Date(System.currentTimeMillis()));
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1371,7 +1371,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testSetTimeAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setTime(1, new Time(System.currentTimeMillis()));
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1385,7 +1385,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testSetTimeWithCalendar() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setTime(1, new Time(System.currentTimeMillis()), Calendar.getInstance());
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1409,7 +1409,7 @@ public class BugFreePreparedStatement {
         };
 
         for (Object[] testCase : testCases) {
-            PreparedStatement s = statement();
+            XPreparedStatement s = statement();
 
             if (testCase.length == 3) {
                 s.setObject((int) testCase[0], testCase[1], (JDBCType) testCase[2]);
@@ -1443,7 +1443,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testSetTimestampAsFirstParameter() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setTimestamp(1, new Timestamp(1L));
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1457,7 +1457,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testSetTimestampWithCalendar() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setTimestamp(1, new Timestamp(1L), Calendar.getInstance());
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1479,7 +1479,7 @@ public class BugFreePreparedStatement {
             {1, timestampValue, JDBCType.TIMESTAMP, 1},
             {1, timestampValue}
         };
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
 
         s.setObject(1, timestampValue, JDBCType.TIMESTAMP);
         ParameterMetaData m = s.getParameterMetaData();
@@ -1524,7 +1524,7 @@ public class BugFreePreparedStatement {
     @Test
     public void testUnknownValueAsOtherObject() throws Exception {
         Object v = new Object();
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(1, v, JDBCType.OTHER);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1538,7 +1538,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testParametersOrderWhenNotSetOrderly() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBoolean(2, false);
         s.setNull(1, JDBCType.INTEGER.getVendorTypeNumber());
         ParameterMetaData m = s.getParameterMetaData();
@@ -1556,7 +1556,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testParametersOrderWhenPartiallySetAtEnd() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(2, null, JDBCType.DOUBLE);
         ParameterMetaData m = s.getParameterMetaData();
 
@@ -1575,7 +1575,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testParametersOrderWhenPartiallySetAtMiddle() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setObject(3, null, JDBCType.DOUBLE);
         s.setNull(1, JDBCType.INTEGER.getVendorTypeNumber());
         ParameterMetaData m = s.getParameterMetaData();
@@ -1598,7 +1598,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testParametersClear() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         s.setBoolean(2, false);
         s.setNull(1, JDBCType.INTEGER.getVendorTypeNumber());
         s.clearParameters();
@@ -1617,7 +1617,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testQueryExecution() throws Exception {
-        PreparedStatement s = statement();
+        XPreparedStatement s = statement();
         ResultSet query = s.executeQuery();
 
         assertThat(query)
@@ -1636,7 +1636,7 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testFailWithUpdateStatement() throws Exception {
-        PreparedStatement s = statement(defaultCon, "TEST", Utils.EmptyStatementHandler.UPDATE);
+        XPreparedStatement s = statement(defaultCon, "TEST", Utils.EmptyStatementHandler.UPDATE);
 
         assertThatThrownBy(() -> s.executeQuery())
                 .as("query")
@@ -1690,7 +1690,7 @@ public class BugFreePreparedStatement {
             }
         };
 
-        PreparedStatement s = statement(defaultCon, "TEST", h);
+        XPreparedStatement s = statement(defaultCon, "TEST", h);
         assertThat(s.executeUpdate())
                 .as("update count")
                 .isEqualTo(1);
@@ -1762,8 +1762,8 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testFailWithMissingParameterAtStart() throws Exception {
-        PreparedStatement u = statement(defaultCon, "TEST", Utils.EmptyStatementHandler.UPDATE);
-        PreparedStatement q = statement();
+        XPreparedStatement u = statement(defaultCon, "TEST", Utils.EmptyStatementHandler.UPDATE);
+        XPreparedStatement q = statement();
 
         u.setString(2, "Test");
         q.setFloat(2, 1.23F);
@@ -1791,8 +1791,8 @@ public class BugFreePreparedStatement {
 
     @Test
     public void testFailWithMissingParameterAtMiddle() throws Exception {
-        PreparedStatement u = statement(defaultCon, "TEST", Utils.EmptyStatementHandler.UPDATE);
-        PreparedStatement q = statement();
+        XPreparedStatement u = statement(defaultCon, "TEST", Utils.EmptyStatementHandler.UPDATE);
+        XPreparedStatement q = statement();
 
         u.setNull(1, JDBCType.LONGVARCHAR.getVendorTypeNumber());
         u.setString(3, "Test");
@@ -1830,7 +1830,7 @@ public class BugFreePreparedStatement {
             }
         };
 
-        PreparedStatement s = statement(defaultCon, "TEST", h);
+        XPreparedStatement s = statement(defaultCon, "TEST", h);
         s.executeQuery("TEST");
 
         assertThat((Exception) s.getWarnings())
@@ -1861,7 +1861,7 @@ public class BugFreePreparedStatement {
             }
         };
 
-        PreparedStatement s = statement(defaultCon, "TEST", h);
+        XPreparedStatement s = statement(defaultCon, "TEST", h);
         s.executeUpdate();
 
         assertThat((Exception) s.getWarnings())
@@ -1873,12 +1873,12 @@ public class BugFreePreparedStatement {
     @FunctionalInterface
     interface SetterFunction {
 
-        void apply(PreparedStatement stmt) throws SQLException;
+        void apply(XPreparedStatement stmt) throws SQLException;
     }
 
     // --------------------------------------------------------- private methods
     private void verifyParameter(
-            final PreparedStatement actual, final int index, final Object value, final JDBCType type
+            final XPreparedStatement actual, final int index, final Object value, final JDBCType type
     ) {
         final Parameter P = actual.parameter(index);
         assertThat(P.left.sqlType).isEqualTo(type);
@@ -1922,19 +1922,19 @@ public class BugFreePreparedStatement {
         assertThat(actual).isEqualTo(expected);
     }
 
-    private PreparedStatement statement() throws SQLException {
+    private XPreparedStatement statement() throws SQLException {
         return statement(defaultCon, TEST_SQL, defaultHandler);
     }
 
-    private PreparedStatement statement(
-            final Connection c, final String sql, final StatementHandler h
+    private XPreparedStatement statement(
+            final XConnection c, final String sql, final StatementHandler h
     ) throws SQLException {
-        return new PreparedStatement(
+        return new XPreparedStatement(
                 c, sql, Statement.RETURN_GENERATED_KEYS, null, null, h
         );
     }
 
-    private void setParameter(PreparedStatement stmt, int index, Object value, JDBCType type) throws SQLException {
+    private void setParameter(XPreparedStatement stmt, int index, Object value, JDBCType type) throws SQLException {
         if (value == null) {
             stmt.setNull(index, type.getVendorTypeNumber());
             return;
@@ -1974,13 +1974,13 @@ public class BugFreePreparedStatement {
         }
     }
 
-    private Parameter getParameter(PreparedStatement stmt, int index) {
+    private Parameter getParameter(XPreparedStatement stmt, int index) {
         // You'll need to implement this method to get the parameter from your PreparedStatement
         // This is just a placeholder
         return stmt.parameter(index);
     }
 
-    private Blob createTestBlob() {
+    private XBlob createTestBlob() {
         // Implement test blob creation
         return null;
     }
@@ -1997,7 +1997,7 @@ public class BugFreePreparedStatement {
             final EmptyStatementHandler handler
     ) throws SQLException {
         // Get the prepared statement
-        PreparedStatement stmt = statement(defaultCon, sql, handler);
+        XPreparedStatement stmt = statement(defaultCon, sql, handler);
 
         // Set the parameter
         stmt.setObject(1, value, type);

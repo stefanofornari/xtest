@@ -43,12 +43,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import ste.xtest.jdbc.Utils.EmptyConnectionHandler;
 
-public class BugFreeDriver {
+public class BugFreeXDriver {
     private String handlerId;
     private String jdbcUrl;
     private final DriverPropertyInfo[] NO_META_PROPS = new DriverPropertyInfo[0];
     private final ConnectionHandler defaultHandler = new EmptyConnectionHandler();
-    private final ste.xtest.jdbc.Driver driver = new ste.xtest.jdbc.Driver();
+    private final ste.xtest.jdbc.XDriver driver = new ste.xtest.jdbc.XDriver();
 
     @Before
     public void setup() {
@@ -64,20 +64,20 @@ public class BugFreeDriver {
 
     @Test
     public void shouldBeAssignableAsJdbcDriver() {
-        assertThat(new ste.xtest.jdbc.Driver())
+        assertThat(new ste.xtest.jdbc.XDriver())
             .isInstanceOf(Driver.class);
     }
 
     @Test
     public void shouldBeAutoRegisteredUsingSPIMechanism() {
-        assertThat(isRegistered(ste.xtest.jdbc.Driver.class))
+        assertThat(isRegistered(ste.xtest.jdbc.XDriver.class))
             .isTrue();
     }
 
     @Test
     public void shouldReturnXTestDriverForJdbcUrl() throws Exception {
         assertThat(DriverManager.getDriver(jdbcUrl))
-            .isInstanceOf(ste.xtest.jdbc.Driver.class);
+            .isInstanceOf(ste.xtest.jdbc.XDriver.class);
     }
 
     @Test
@@ -109,24 +109,24 @@ public class BugFreeDriver {
         Properties props = new Properties();
         props.put("_test", "_val");
 
-        ste.xtest.jdbc.Driver.register(handlerId, defaultHandler);
+        ste.xtest.jdbc.XDriver.register(handlerId, defaultHandler);
 
         // Test with Properties
-        assertThat(new ste.xtest.jdbc.Driver().connect(jdbcUrl, props).getProperties())
+        assertThat(new ste.xtest.jdbc.XDriver().connect(jdbcUrl, props).getProperties())
             .isEqualTo(props);
-        assertThat(ste.xtest.jdbc.Driver.connection(defaultHandler, props).getProperties())
+        assertThat(ste.xtest.jdbc.XDriver.connection(defaultHandler, props).getProperties())
             .isEqualTo(props);
-        assertThat(ste.xtest.jdbc.Driver.connection(CompositeHandler.empty(), props).getProperties())
+        assertThat(ste.xtest.jdbc.XDriver.connection(CompositeHandler.empty(), props).getProperties())
             .isEqualTo(props);
 
         // Test with Driver.Property
-        ste.xtest.jdbc.Driver.Property prop = new ste.xtest.jdbc.Driver.Property("_test", "_val");
+        ste.xtest.jdbc.XDriver.Property prop = new ste.xtest.jdbc.XDriver.Property("_test", "_val");
 
-        assertThat(new ste.xtest.jdbc.Driver().connect(jdbcUrl, prop).getProperties())
+        assertThat(new ste.xtest.jdbc.XDriver().connect(jdbcUrl, prop).getProperties())
             .isEqualTo(props);
-        assertThat(ste.xtest.jdbc.Driver.connection(defaultHandler, prop).getProperties())
+        assertThat(ste.xtest.jdbc.XDriver.connection(defaultHandler, prop).getProperties())
             .isEqualTo(props);
-        assertThat(ste.xtest.jdbc.Driver.connection(CompositeHandler.empty(), prop).getProperties())
+        assertThat(ste.xtest.jdbc.XDriver.connection(CompositeHandler.empty(), prop).getProperties())
             .isEqualTo(props);
     }
 
@@ -137,16 +137,16 @@ public class BugFreeDriver {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Invalid handler ID: null");
 
-        assertThatThrownBy(() -> ste.xtest.jdbc.Driver.connection((ConnectionHandler) null))
+        assertThatThrownBy(() -> ste.xtest.jdbc.XDriver.connection((ConnectionHandler) null))
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> ste.xtest.jdbc.Driver.connection((StatementHandler) null))
+        assertThatThrownBy(() -> ste.xtest.jdbc.XDriver.connection((StatementHandler) null))
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> ste.xtest.jdbc.Driver.connection((ConnectionHandler) null, (Properties) null))
+        assertThatThrownBy(() -> ste.xtest.jdbc.XDriver.connection((ConnectionHandler) null, (Properties) null))
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> ste.xtest.jdbc.Driver.connection((StatementHandler) null, (Properties) null))
+        assertThatThrownBy(() -> ste.xtest.jdbc.XDriver.connection((StatementHandler) null, (Properties) null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -159,7 +159,7 @@ public class BugFreeDriver {
 
     @Test
     public void shouldSuccessfullyReturnConnectionForValidInformation() throws Exception {
-        ste.xtest.jdbc.Driver.register(handlerId, defaultHandler);
+        ste.xtest.jdbc.XDriver.register(handlerId, defaultHandler);
 
         assertThat(directConnect(jdbcUrl, null, defaultHandler))
             .isNotNull();
@@ -167,19 +167,19 @@ public class BugFreeDriver {
 
     @Test
     public void shouldRefuseNullHandler() {
-        assertThatThrownBy(() -> ste.xtest.jdbc.Driver.register("id", (ConnectionHandler) null))
+        assertThatThrownBy(() -> ste.xtest.jdbc.XDriver.register("id", (ConnectionHandler) null))
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> ste.xtest.jdbc.Driver.register("id", (StatementHandler) null))
+        assertThatThrownBy(() -> ste.xtest.jdbc.XDriver.register("id", (StatementHandler) null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldManageHandlerRegistrySuccessfully() {
         CompositeHandler handler = new CompositeHandler();
-        ste.xtest.jdbc.Driver.register("id", handler);
+        ste.xtest.jdbc.XDriver.register("id", handler);
 
-        assertThat(ste.xtest.jdbc.Driver.unregister("id").getStatementHandler())
+        assertThat(ste.xtest.jdbc.XDriver.unregister("id").getStatementHandler())
             .isEqualTo(handler);
     }
 
@@ -191,8 +191,8 @@ public class BugFreeDriver {
         for (int i = 0; i < 1000; i++) {
             futures.add(executor.submit(() -> {
                 String handlerId = UUID.randomUUID().toString();
-                ste.xtest.jdbc.Driver.register(handlerId, new CompositeHandler());
-                assertThat(ste.xtest.jdbc.Driver.handlers.get(handlerId))
+                ste.xtest.jdbc.XDriver.register(handlerId, new CompositeHandler());
+                assertThat(ste.xtest.jdbc.XDriver.handlers.get(handlerId))
                     .isNotNull();
                 return null;
             }));
