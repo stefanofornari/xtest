@@ -25,7 +25,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.script.ScriptException;
-import ste.xtest.net.StubStreamHandler;
+import org.mozilla.javascript.NativeJavaObject;
+import ste.xtest.net.HttpClientStubber;
 import ste.xtest.net.StubStreamHandler.URLMap;
 import ste.xtest.net.StubURLConnection;
 
@@ -38,7 +39,6 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
         super();
         loadScript("/js/ecma5-adapter.js");
         loadScript("/js/angular-rhino.js");
-        set("URL_STREAM_HANDLER", new StubStreamHandler());
     }
 
     /**
@@ -52,6 +52,7 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
      *
      * @throws MalformedURLException if any of the urls is incorrect
      */
+    @Deprecated
     protected StubURLConnection[] prepareUrlSetupBuilders(final String... urls) throws MalformedURLException {
         StubURLConnection[] builders = new StubURLConnection[urls.length];
 
@@ -63,6 +64,14 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
         }
 
         return builders;
+    }
+
+    protected HttpClientStubber httpStubber() {
+        return (HttpClientStubber)((NativeJavaObject)exec("Envjs.httpClientBuilder ")).unwrap();
+    }
+
+    protected void debug(boolean debug) {
+        exec("Envjs.DEBUG = " + debug + ";");
     }
 
 }

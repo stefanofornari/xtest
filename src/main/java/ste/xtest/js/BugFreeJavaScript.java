@@ -272,6 +272,16 @@ public abstract class BugFreeJavaScript extends BugFree {
         return result;
     }
 
+    /**
+     * Sets the debug status
+     *
+     * @param debug true turns debug on, false turns debug off
+     */
+    protected void debug(boolean debug) {
+        set("Envjs.DEBUG", true);
+        exec("Envjs.debug(\"debug is \" + (Envjs.DEBUG) ? \"on\" : \"off\");");
+    }
+
     // --------------------------------------------------------- Private methods
 
     private void loadResourceScripts(final Context cx, final String[] scripts)
