@@ -22,77 +22,72 @@
 package ste.xtest.envjs;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.net.StubStreamHandlerFactory;
-import ste.xtest.net.StubURLConnection;
+import ste.xtest.net.HttpClientStubber;
+import ste.xtest.net.StubHttpClient;
 
 /**
- * 
+ *
  * @author ste
  */
 public class BugFreeCookie extends BugFreeEnvjs {
-    
+
     public BugFreeCookie() throws Exception {
         super();
     }
-    
-    @BeforeClass
-    public static void before_class() throws Exception {
-        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
-    }
-    
+
     @Test
     public void empty_cookie_if_no_cookie_given() throws Exception {
         givenUrlStubs();
-        
+
         exec("document.location='http://server.com/cookie/none';");
-        
+
         then(
             exec("document.cookie")
         ).isEqualTo("");
     }
-    
+
     @Test
     public void cookie_available_if_one_cookie_given_value_only() throws Exception {
         givenUrlStubs();
-        
+
         exec("document.location='http://server.com/cookie/value1';");
-        
+
         then(
             exec("document.cookie")
-        ).isEqualTo("firstname=laura");
-        
+        ).isEqualTo("firstname=sandy");
+
         exec("Envjs.DEBUG=true; document.location='http://server.com/cookie/value2';");
-        
+
         then(
             exec("document.cookie")
-        ).isEqualTo("lastname=fornari");
+        ).isEqualTo("lastname=marton");
     }
-    
+
     @Test
     public void cookie_available_if_multiple_cookies_given_value_only() throws Exception {
         givenUrlStubs();
-        
+
         exec("document.location='http://server.com/cookie/values1';");
-        
+
         then(
             exec("document.cookie")
-        ).isEqualTo("firstname=laura;lastname=fornari");
-        
+        ).isEqualTo("firstname=sandy,lastname=marton");
+
         exec("document.location='http://server.com/cookie/values2';");
-        
+
         then(
             exec("document.cookie")
-        ).isEqualTo("firstname=arianna;lastname=fornari");
+        ).isEqualTo("firstname=molly,lastname=marton");
     }
-    
+
     // --------------------------------------------------------- private methods
-    
+
     private void givenUrlStubs() throws MalformedURLException {
+        final HttpClientStubber HTTP = httpStubber();
+
         final String[] URLS = new String[] {
             "http://server.com/cookie/none",
             "http://server.com/cookie/value1",
@@ -100,13 +95,12 @@ public class BugFreeCookie extends BugFreeEnvjs {
             "http://server.com/cookie/values1",
             "http://server.com/cookie/values2"
         };
-        StubURLConnection[] builders = prepareUrlSetupBuilders(URLS);
-        
+
         int i=0;
-        builders[i++].text("");
-        builders[i++].text("").header("Set-Cookie", "firstname=laura");
-        builders[i++].text("").header("Set-Cookie", "lastname=fornari");
-        builders[i++].text("").header("Set-Cookie", "firstname=laura", "lastname=fornari");
-        builders[i++].text("").header("Set-Cookie", "firstname=arianna", "lastname=fornari");
+        HTTP.withStub(URLS[i++], new StubHttpClient.StubHttpResponse().text(""));
+        HTTP.withStub(URLS[i++], new StubHttpClient.StubHttpResponse().text("").header("Set-Cookie", "firstname=sandy"));
+        HTTP.withStub(URLS[i++], new StubHttpClient.StubHttpResponse().text("").header("Set-Cookie", "lastname=marton"));
+        HTTP.withStub(URLS[i++], new StubHttpClient.StubHttpResponse().text("").header("Set-Cookie", "firstname=sandy,lastname=marton"));
+        HTTP.withStub(URLS[i++], new StubHttpClient.StubHttpResponse().text("").header("Set-Cookie", "firstname=molly,lastname=marton"));
     }
 }

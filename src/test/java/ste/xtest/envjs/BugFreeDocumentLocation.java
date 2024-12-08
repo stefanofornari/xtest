@@ -89,8 +89,8 @@ public class BugFreeDocumentLocation extends BugFreeEnvjs {
         exec(String.format("window.location='%s';", f.toString()));
         then(exec("document.innerHTML;"))
             .isEqualTo(String.format(
-                "<html><head/><body><p>%s not found</p></body></html>",
-                f.toURI().toString()
+                "<html><head/><body><p>file://%s not found</p></body></html>",
+                f.getAbsolutePath()
             ));
     }
 }

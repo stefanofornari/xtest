@@ -21,15 +21,14 @@
  */
 package ste.xtest.envjs;
 
-import java.net.URL;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
 import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
-import ste.xtest.net.StubStreamHandlerFactory;
-import ste.xtest.net.StubURLConnection;
+import ste.xtest.net.HttpClientStubber;
+import ste.xtest.net.StubHttpClient;
 
 /**
  *
@@ -37,13 +36,15 @@ import ste.xtest.net.StubURLConnection;
  */
 public class BugFreeWindow extends BugFreeEnvjs {
 
+    final String URL = "http://www.server.com/home.html";
+
     public BugFreeWindow() throws Exception {
         super();
     }
 
-    @BeforeClass
-    public static void before_class() throws Exception {
-        URL.setURLStreamHandlerFactory(new StubStreamHandlerFactory());
+    @Before
+    public void before() {
+        //debug(true);
     }
 
     @Test
@@ -59,33 +60,31 @@ public class BugFreeWindow extends BugFreeEnvjs {
 
     @Test
     public void opening_and_closing_window() throws Exception {
-        JSAssertions.then((NativeArray)exec("Envjs.windows.getAll();")).hasSize(1);  // default window
+        JSAssertions.then((NativeArray) exec("Envjs.windows.getAll();")).hasSize(1);  // default window
         exec("var w = window.open('', 'test');");
         then(exec("Envjs.windows.get('test');")).isNotNull();
         exec("w.close();");
         then(exec("Envjs.windows.get('test');")).isNull();
         exec("window.close();");
-        JSAssertions.then((NativeArray)exec("Envjs.windows.getAll();")).isEmpty();
+        JSAssertions.then((NativeArray) exec("Envjs.windows.getAll();")).isEmpty();
     }
 
     @Test
     public void set_location_with_fragment() throws Exception {
-        final String URL = "http://www.server.com/home.html#fragment";
-        StubURLConnection[] b = prepareUrlSetupBuilders(URL);
-        b[0].status(200).text("");
+        final HttpClientStubber HTTP = httpStubber();
+        HTTP.withStub(URL, new StubHttpClient.StubHttpResponse().statusCode(200).text(""));
 
         exec("window.location = '" + URL + "'");
 
         then(
-            exec("window.location.href;")
+                exec("window.location.href;")
         ).isEqualTo(URL);
     }
 
     @Test
     public void windows_with_same_name_do_not_open_new_windows() throws Exception {
-        final String URL = "http://www.server.com/home.html";
-        StubURLConnection[] b = prepareUrlSetupBuilders(URL);
-        b[0].status(200).text("");
+        final HttpClientStubber HTTP = httpStubber();
+        HTTP.withStub(URL, new StubHttpClient.StubHttpResponse().statusCode(200).text(""));
 
         exec(
             String.format(
@@ -94,14 +93,14 @@ public class BugFreeWindow extends BugFreeEnvjs {
             )
         );
 
-        then((Boolean)exec("w1 === w2;")).isTrue();
+        then((Boolean) exec("w1 === w2;")).isTrue();
     }
 
     @Test
     public void windows_with_different_name_open_new_windows() throws Exception {
-        final String URL = "http://www.server.com/home.html";
-        StubURLConnection[] b = prepareUrlSetupBuilders(URL);
-        b[0].status(200).text("");
+
+        final HttpClientStubber HTTP = httpStubber();
+        HTTP.withStub(URL, new StubHttpClient.StubHttpResponse().statusCode(200).text(""));
 
         exec(
             String.format(
@@ -110,6 +109,6 @@ public class BugFreeWindow extends BugFreeEnvjs {
             )
         );
 
-        then((Boolean)exec("w1 != w2;")).isTrue();
+        then((Boolean) exec("w1 != w2;")).isTrue();
     }
 }

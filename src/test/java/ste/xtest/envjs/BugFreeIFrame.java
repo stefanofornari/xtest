@@ -26,10 +26,11 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.net.StubURLConnection;
+import ste.xtest.net.HttpClientStubber;
+import ste.xtest.net.StubHttpClient;
 
 /**
- * TODO: make it inherit from BugFreeEnvjs
+ *
  */
 public class BugFreeIFrame extends BugFreeEnvjs {
 
@@ -40,21 +41,22 @@ public class BugFreeIFrame extends BugFreeEnvjs {
 
     @Before
     public void before() throws Exception {
-        StubURLConnection[] stubs = prepareUrlSetupBuilders(
+        final HttpClientStubber HTTP = httpStubber();
+        final String[] URLS = {
            "http://noserver.com/hello1.txt", "http://noserver.com/hello2.txt",
            "http://noserver.com/hello1.html", "http://noserver.com/hello2.html",
            "http://noserver.com/hello1.jpg", "http://noserver.com/hello2.png",
            "http://noserver.com/hello.html"
-        );
+        };
 
         int c = 0;
-        stubs[c++].text("1. hello world!");
-        stubs[c++].text("2. hello world!");
-        stubs[c++].html("<html><head/><body>hello world 1</body></html>");
-        stubs[c++].html("<html><head/><body>hello world 2</body></html>");
-        stubs[c++].content(new byte[] {0}).type("image/jpg");
-        stubs[c++].content(new byte[] {0}).type("image/png");
-        stubs[c++].html("<html><body>hello world!</body></html>");
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().text("1. hello world!"));
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().text("2. hello world!"));
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().html("<html><head/><body>hello world 1</body></html>"));
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().html("<html><head/><body>hello world 2</body></html>"));
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().content(new byte[] {0}).contentType("image/jpg"));
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().content(new byte[] {0}).contentType("image/png"));
+        HTTP.withStub(URLS[c++], new StubHttpClient.StubHttpResponse().html("<html><body>hello world!</body></html>"));
 
         exec("window.location='src/test/resources/html/iframe.html';");
     }
