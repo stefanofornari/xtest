@@ -16,7 +16,7 @@ import java.sql.SQLException;
  *
  * @author Cedric Chantepie
  */
-public final class Driver implements java.sql.Driver {
+public final class XDriver implements java.sql.Driver {
     // --- Constants ---
 
     /**
@@ -44,7 +44,7 @@ public final class Driver implements java.sql.Driver {
 
     static {
         try {
-            java.sql.DriverManager.registerDriver(new Driver());
+            java.sql.DriverManager.registerDriver(new XDriver());
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         } // end of catch
@@ -57,7 +57,7 @@ public final class Driver implements java.sql.Driver {
      * @throws IllegalArgumentException if |info| doesn't contain handler
      * (ConnectionHandler) for property "connection.handler".
      */
-    public ste.xtest.jdbc.Connection connect(final String url,
+    public ste.xtest.jdbc.XConnection connect(final String url,
                                            final Properties info)
         throws SQLException {
 
@@ -88,7 +88,7 @@ public final class Driver implements java.sql.Driver {
 
         // ---
 
-        return new ste.xtest.jdbc.Connection(url, info, handler);
+        return new ste.xtest.jdbc.XConnection(url, info, handler);
     } // end of connect
 
     /**
@@ -100,7 +100,7 @@ public final class Driver implements java.sql.Driver {
      * @throws SQLException if fails to connect
      * @see #connect(java.lang.String, java.util.Properties)
      */
-    public ste.xtest.jdbc.Connection connect(final String url,
+    public ste.xtest.jdbc.XConnection connect(final String url,
                                            final Property... info)
         throws SQLException {
 
@@ -159,7 +159,7 @@ public final class Driver implements java.sql.Driver {
      * @return the configured connection
      * @throws IllegalArgumentException if handler is null
      */
-    public static ste.xtest.jdbc.Connection connection(ConnectionHandler handler) {
+    public static ste.xtest.jdbc.XConnection connection(ConnectionHandler handler) {
         return connection(handler, (Properties) null);
     } // end of connection
 
@@ -172,7 +172,7 @@ public final class Driver implements java.sql.Driver {
      * @throws IllegalArgumentException if handler is null
      * @see #connection(ste.xtest.jdbc.ConnectionHandler, java.util.Properties)
      */
-    public static ste.xtest.jdbc.Connection connection(final ConnectionHandler handler, final Property... info) {
+    public static ste.xtest.jdbc.XConnection connection(final ConnectionHandler handler, final Property... info) {
         return connection(handler, props(info));
     } // end of connnection
 
@@ -185,7 +185,7 @@ public final class Driver implements java.sql.Driver {
      * @throws IllegalArgumentException if handler is null
      * @see #connection(ste.xtest.jdbc.ConnectionHandler)
      */
-    public static ste.xtest.jdbc.Connection connection(final ConnectionHandler handler, final Properties info) {
+    public static ste.xtest.jdbc.XConnection connection(final ConnectionHandler handler, final Properties info) {
         if (handler == null) {
             throw new IllegalArgumentException();
         } // end of if
@@ -193,7 +193,7 @@ public final class Driver implements java.sql.Driver {
         final String url = String.
             format("jdbc:xtest:direct-%d", System.identityHashCode(handler));
 
-        return new ste.xtest.jdbc.Connection(url, info, handler);
+        return new ste.xtest.jdbc.XConnection(url, info, handler);
     } // end of connection
 
     /**
@@ -203,7 +203,7 @@ public final class Driver implements java.sql.Driver {
      * @return the configured connection
      * @throws IllegalArgumentException if handler is null
      */
-    public static ste.xtest.jdbc.Connection connection(StatementHandler handler) {
+    public static ste.xtest.jdbc.XConnection connection(StatementHandler handler) {
         return connection(handler, (Properties) null);
     } // end of connection
 
@@ -215,7 +215,7 @@ public final class Driver implements java.sql.Driver {
      * @return the configured connection
      * @throws IllegalArgumentException if handler is null
      */
-    public static ste.xtest.jdbc.Connection connection(final StatementHandler handler, final Properties info) {
+    public static ste.xtest.jdbc.XConnection connection(final StatementHandler handler, final Properties info) {
         return connection(handler, new ResourceHandler.Default(), info);
     } // end of connection
 
@@ -228,7 +228,7 @@ public final class Driver implements java.sql.Driver {
      * @return the configured connection
      * @throws IllegalArgumentException if handler is null
      */
-    public static ste.xtest.jdbc.Connection connection(final StatementHandler stmtHandler, final ResourceHandler resHandler, final Properties info) {
+    public static ste.xtest.jdbc.XConnection connection(final StatementHandler stmtHandler, final ResourceHandler resHandler, final Properties info) {
 
         if (stmtHandler == null) {
             throw new IllegalArgumentException("Statement handler");
@@ -251,7 +251,7 @@ public final class Driver implements java.sql.Driver {
      * @return the configured connection
      * @throws IllegalArgumentException if handler is null
      */
-    public static ste.xtest.jdbc.Connection connection(final StatementHandler handler, final Property... info) {
+    public static ste.xtest.jdbc.XConnection connection(final StatementHandler handler, final Property... info) {
         return connection(handler, props(info));
     } // end of connection
 

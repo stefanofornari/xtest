@@ -10,20 +10,20 @@ import java.sql.ResultSet;
  *
  * @author Cedric Chantepie
  */
-public final class DatabaseMetaData implements java.sql.DatabaseMetaData {
+public final class XDatabaseMetaData implements java.sql.DatabaseMetaData {
     // --- Properties ---
 
     /**
      * Connection
      */
-    private final ste.xtest.jdbc.Connection connection;
+    private final ste.xtest.jdbc.XConnection connection;
 
     // --- Constructors ---
 
     /**
      * Connection constructor.
      */
-    DatabaseMetaData(final ste.xtest.jdbc.Connection connection) {
+    XDatabaseMetaData(final ste.xtest.jdbc.XConnection connection) {
         if (connection == null) {
             throw new IllegalArgumentException();
         } // end of if
@@ -131,14 +131,14 @@ public final class DatabaseMetaData implements java.sql.DatabaseMetaData {
      * {@inheritDoc}
      */
     public int getDriverMajorVersion() {
-        return Driver.MAJOR_VERSION;
+        return XDriver.MAJOR_VERSION;
     } // end of getDriverMajorVersion
 
     /**
      * {@inheritDoc}
      */
     public int getDriverMinorVersion() {
-        return Driver.MINOR_VERSION;
+        return XDriver.MINOR_VERSION;
     } // end of getDriverMinorVersion
 
     /**

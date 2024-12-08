@@ -694,7 +694,7 @@ public class RowList extends AbstractResultSet {
             return null;
         } // end of if
 
-        return convert(val, Blob.class);
+        return convert(val, XBlob.class);
     } // end of getBlob
 
     /**
@@ -1448,7 +1448,7 @@ public class RowList extends AbstractResultSet {
             } // end of catch
         } // end of if
 
-        if (value instanceof Blob) {
+        if (value instanceof XBlob) {
             InputStream in = null;
 
             try {
@@ -1481,7 +1481,7 @@ public class RowList extends AbstractResultSet {
             return new ByteArrayInputStream((byte[]) value);
         } // end of if
 
-        if (value instanceof Blob) {
+        if (value instanceof XBlob) {
             return ((java.sql.Blob) value).getBinaryStream();
         } // end of if
 

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
  *
  * @author Cedric Chantepie
  */
-public final class Savepoint implements java.sql.Savepoint {
+public final class XSavepoint implements java.sql.Savepoint {
     // --- Properties ---
 
     /**
@@ -26,7 +26,7 @@ public final class Savepoint implements java.sql.Savepoint {
     /**
      * No-name constructor.
      */
-    public Savepoint() {
+    public XSavepoint() {
         this.id = System.identityHashCode(this);
         this.name = null;
     } // end of <init>
@@ -36,7 +36,7 @@ public final class Savepoint implements java.sql.Savepoint {
      *
      * @param name Savepoint name
      */
-    public Savepoint(final String name) {
+    public XSavepoint(final String name) {
         if (name == null) {
             throw new IllegalArgumentException("Invalid name");
         } // end of if
@@ -84,11 +84,11 @@ public final class Savepoint implements java.sql.Savepoint {
      * {@inheritDoc}
      */
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Savepoint)) {
+        if (o == null || !(o instanceof XSavepoint)) {
             return false;
         } // end of if
 
-        final Savepoint other = (Savepoint) o;
+        final XSavepoint other = (XSavepoint) o;
 
         return new EqualsBuilder().
             append(this.id, other.id).

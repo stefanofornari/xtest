@@ -14,7 +14,7 @@ import javax.sql.rowset.serial.SerialBlob;
  *
  * @author Cedric Chantepie
  */
-final class Blob implements java.sql.Blob {
+final class XBlob implements java.sql.Blob {
     // --- Shared ---
 
     /**
@@ -40,19 +40,19 @@ final class Blob implements java.sql.Blob {
     /**
      * No-arg constructor.
      */
-    private Blob() throws SQLException { }
+    private XBlob() throws SQLException { }
 
     /**
      * Bulk constructor.
      */
-    public Blob(final byte[] bytes) throws SQLException {
+    public XBlob(final byte[] bytes) throws SQLException {
         this.underlying = new SerialBlob(bytes);
     } // end of <init>
 
     /**
      * Returns nil BLOB.
      */
-    public static Blob Nil() throws SQLException { return new Blob(); }
+    public static XBlob Nil() throws SQLException { return new XBlob(); }
 
     // --- Blob implementation ---
 
@@ -273,13 +273,13 @@ final class Blob implements java.sql.Blob {
      * {@inheritDoc}
      */
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Blob)) {
+        if (o == null || !(o instanceof XBlob)) {
             return false;
         } // end of if
 
         // ---
 
-        final Blob other = (Blob) o;
+        final XBlob other = (XBlob) o;
 
         return ((this.underlying == null && other.underlying == null) ||
                 (this.underlying != null &&

@@ -13,7 +13,7 @@ public interface ResourceHandler {
      *
      * @see java.sql.Connection#commit
      */
-    public void whenCommitTransaction(Connection connection)
+    public void whenCommitTransaction(XConnection connection)
         throws SQLException;
 
     /**
@@ -21,7 +21,7 @@ public interface ResourceHandler {
      *
      * @see java.sql.Connection#rollback
      */
-    public void whenRollbackTransaction(Connection connection)
+    public void whenRollbackTransaction(XConnection connection)
         throws SQLException;
 
     // --- Inner classes ---
@@ -36,13 +36,13 @@ public interface ResourceHandler {
         /**
          * {@inheritDoc}
          */
-        public void whenCommitTransaction(Connection connection)
+        public void whenCommitTransaction(XConnection connection)
             throws SQLException {}
 
         /**
          * {@inheritDoc}
          */
-        public void whenRollbackTransaction(Connection connection)
+        public void whenRollbackTransaction(XConnection connection)
             throws SQLException {}
     }
 }

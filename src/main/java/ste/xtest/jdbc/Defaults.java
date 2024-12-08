@@ -75,7 +75,7 @@ final class Defaults {
         mappings.put(JDBCType.LONGVARCHAR, String.class.getName());
         mappings.put(JDBCType.OTHER, Object.class.getName());
         mappings.put(JDBCType.NCHAR, String.class.getName());
-        mappings.put(JDBCType.NCLOB, Blob.class.getName());
+        mappings.put(JDBCType.NCLOB, XBlob.class.getName());
         mappings.put(JDBCType.NULL, Null.class.getName());
         mappings.put(JDBCType.NUMERIC, BigDecimal.class.getName());
         mappings.put(JDBCType.NVARCHAR, String.class.getName());

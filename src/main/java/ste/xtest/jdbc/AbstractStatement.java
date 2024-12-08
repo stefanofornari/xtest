@@ -111,7 +111,7 @@ abstract class AbstractStatement implements java.sql.Statement {
     /**
      * Owner connection
      */
-    final ste.xtest.jdbc.Connection connection;
+    final ste.xtest.jdbc.XConnection connection;
 
     // --- Constructors ---
 
@@ -130,7 +130,7 @@ abstract class AbstractStatement implements java.sql.Statement {
      *
      * @param handler Statement handler (not null)
      */
-    protected AbstractStatement(final ste.xtest.jdbc.Connection connection,
+    protected AbstractStatement(final ste.xtest.jdbc.XConnection connection,
                                 final StatementHandler handler) {
 
         if (connection == null) {
@@ -440,7 +440,7 @@ abstract class AbstractStatement implements java.sql.Statement {
     /**
      * {@inheritDoc}
      */
-    public Connection getConnection() throws SQLException {
+    public XConnection getConnection() throws SQLException {
         checkClosed();
 
         return this.connection;

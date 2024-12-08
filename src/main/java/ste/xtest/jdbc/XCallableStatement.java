@@ -34,8 +34,8 @@ import static ste.xtest.jdbc.ParameterMetaData.Scaled;
  *
  * @author Cedric Chantepie
  */
-public final class CallableStatement
-    extends PreparedStatement implements java.sql.CallableStatement {
+public final class XCallableStatement
+    extends XPreparedStatement implements java.sql.CallableStatement {
 
     // --- Properties ---
 
@@ -61,7 +61,7 @@ public final class CallableStatement
      * @param generatedKeys Generated keys flag
      * @param handler Statement handler (not null)
      */
-    protected CallableStatement(final ste.xtest.jdbc.Connection connection,
+    protected XCallableStatement(final ste.xtest.jdbc.XConnection connection,
                                 final String sql,
                                 final int generatedKeys,
                                 final StatementHandler handler) {

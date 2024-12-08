@@ -40,7 +40,7 @@ import org.apache.commons.io.IOUtils;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import static ste.xtest.jdbc.Driver.CONNECTION_UNTYPED_NULL_PARAMETER;
+import static ste.xtest.jdbc.XDriver.CONNECTION_UNTYPED_NULL_PARAMETER;
 
 import ste.xtest.jdbc.ParameterMetaData.ParameterDef;
 import ste.xtest.jdbc.StatementHandler.Parameter;
@@ -69,7 +69,7 @@ import static ste.xtest.jdbc.ParameterMetaData.Str;
  *
  * @author Cedric Chantepie
  */
-public class PreparedStatement
+public class XPreparedStatement
     extends AbstractStatement implements java.sql.PreparedStatement {
 
     // --- Shared ---
@@ -146,7 +146,7 @@ public class PreparedStatement
      * @param generatedKeysColumnIndexes Column indexes for the generated keys
      * @param handler Statement handler (not null)
      */
-    protected PreparedStatement(final ste.xtest.jdbc.Connection connection,
+    protected XPreparedStatement(final ste.xtest.jdbc.XConnection connection,
                                 final String sql,
                                 final int generatedKeys,
                                 final String[] generatedKeysColumnNames,
@@ -1085,10 +1085,10 @@ public class PreparedStatement
      * @param stream Input stream
      * @param length
      */
-    private ste.xtest.jdbc.Blob createBlob(InputStream stream, long length)
+    private ste.xtest.jdbc.XBlob createBlob(InputStream stream, long length)
         throws SQLException {
 
-        final ste.xtest.jdbc.Blob blob = ste.xtest.jdbc.Blob.Nil();
+        final ste.xtest.jdbc.XBlob blob = ste.xtest.jdbc.XBlob.Nil();
 
         blob.setBytes(0L, createBytes(stream, length));
 
