@@ -220,12 +220,6 @@ public class XPreparedStatement
         return updateCount;
     } // end of executeUpdate
 
-    private void reset() {
-        result = null;
-        generatedKeys = null;
-        updateCount = -1;
-    }
-
     /**
      * Returns the resultset corresponding to the keys generated on update.
      *

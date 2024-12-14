@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class QueryResult implements Result {
 
-    public final RowList rowList;
+    public final RowList resultSet;
     public final SQLWarning warning;
 
     /**
@@ -29,7 +29,7 @@ public class QueryResult implements Result {
      * @param warning the SQL warning
      */
     public QueryResult(final RowList list, final SQLWarning warning) {
-        this.rowList = list;
+        this.resultSet = list;
         this.warning = warning;
     } // end of <init>
 
@@ -38,14 +38,14 @@ public class QueryResult implements Result {
      * {@inheritDoc}
      */
     public RowList getRowList() {
-        return this.rowList;
+        return this.resultSet;
     } // end of getRowList
 
     /**
      * {@inheritDoc}
      */
     public QueryResult withWarning(final SQLWarning warning) {
-        return new QueryResult(this.rowList, warning);
+        return new QueryResult(resultSet, warning);
     }
 
     /**
@@ -72,9 +72,9 @@ public class QueryResult implements Result {
 
         final QueryResult other = (QueryResult) o;
 
-        return ((this.rowList == null && other.rowList == null) ||
-                (this.rowList != null &&
-                 this.rowList.equals(other.rowList)));
+        return ((this.resultSet == null && other.resultSet == null) ||
+                (this.resultSet != null &&
+                 this.resultSet.equals(other.resultSet)));
 
     }
 
@@ -82,6 +82,6 @@ public class QueryResult implements Result {
      * {@inheritDoc}
      */
     public int hashCode() {
-        return (this.rowList == null) ? -1 : this.rowList.hashCode();
+        return (this.resultSet == null) ? -1 : this.resultSet.hashCode();
     }
 }
