@@ -40,7 +40,7 @@ public class BugFreeAbstractStatement {
         defaultHandler = new StatementHandler() {
             @Override
             public QueryResult whenSQLQuery(String sql, List<StatementHandler.Parameter> parameters) throws SQLException {
-                return new QueryResult.Default(new RowList());
+                return new QueryResult(new RowList());
             }
 
             @Override
@@ -129,7 +129,7 @@ public class BugFreeAbstractStatement {
             public QueryResult whenSQLQuery(String sql, List<Parameter> params) {
                 capturedSql.setLength(0);
                 capturedSql.append(sql);
-                return new QueryResult.Default(RowLists.stringList());
+                return new QueryResult(RowLists.stringList());
             }
         };
 
@@ -293,7 +293,7 @@ public class BugFreeAbstractStatement {
 
             @Override
             public QueryResult whenSQLQuery(String sql, List<Parameter> params) {
-                return new QueryResult.Default(RowLists.stringList()).withWarning(warning);
+                return new QueryResult(RowLists.stringList()).withWarning(warning);
             }
         };
 

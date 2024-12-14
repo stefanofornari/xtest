@@ -21,7 +21,6 @@ import java.sql.BatchUpdateException;
 import java.sql.ParameterMetaData;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.sql.SQLXML;
@@ -38,7 +37,6 @@ import java.sql.Ref;
 
 import org.apache.commons.io.IOUtils;
 
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import static ste.xtest.jdbc.XDriver.CONNECTION_UNTYPED_NULL_PARAMETER;
 
@@ -217,16 +215,16 @@ public class XPreparedStatement
      * {@inheritDoc}
      */
     public int executeUpdate() throws SQLException {
-        this.result = null;
+        reset(); update(parameters);
 
-        final ImmutableTriple<Integer,ResultSet,SQLWarning> res =
-            update(parameters);
-
-        this.warning = res.right;
-        this.generatedKeys = res.middle;
-
-        return (this.updateCount = res.left);
+        return updateCount;
     } // end of executeUpdate
+
+    private void reset() {
+        result = null;
+        generatedKeys = null;
+        updateCount = -1;
+    }
 
     /**
      * Returns the resultset corresponding to the keys generated on update.
@@ -250,11 +248,9 @@ public class XPreparedStatement
     } // end of generateKeysResultSet
 
     /**
-     * Executes update.
-     * @return Triple of update count, generated keys (or null)
-     * and optional warning
+     * Executes update and updates instance properties accordingly
      */
-    private ImmutableTriple<Integer,ResultSet,SQLWarning> update(final TreeMap<Integer,Parameter> parameters) throws SQLException {
+    private void update(final TreeMap<Integer,Parameter> parameters) throws SQLException {
 
         checkClosed();
 
@@ -264,8 +260,7 @@ public class XPreparedStatement
 
         // ---
 
-        final ArrayList<Parameter> params =
-            new ArrayList<Parameter>(parameters.values());
+        final ArrayList<Parameter> params = new ArrayList(parameters.values());
 
         final int idx = params.indexOf(null);
 
@@ -277,12 +272,12 @@ public class XPreparedStatement
 
         try {
             final UpdateResult res = this.handler.whenSQLUpdate(sql, params);
-            final SQLWarning w = res.getWarning();
-            final ResultSet k = (res.generatedKeys == null)
+            warning = res.getWarning();
+            generatedKeys = (res.generatedKeys == null)
                 ? EMPTY_GENERATED_KEYS.withStatement(this)
                 : generateKeysResultSet(res);
-
-            return ImmutableTriple.of(res.getUpdateCount(), k, w);
+            result = res.getRowList();
+            updateCount = res.getUpdateCount();
         } catch (SQLException se) {
             throw se;
         } catch (Exception e) {
@@ -580,7 +575,8 @@ public class XPreparedStatement
         int i = 0;
         for (final ImmutablePair<String,TreeMap<Integer,Parameter>> b : batch) {
             try {
-                cs[i++] = update(b.right).left;
+                update(b.right);
+                cs[i++] = updateCount;
             } catch (SQLException se) {
                 if (!cont) throw new BatchUpdateException(se.getMessage(), se.getSQLState(), se.getErrorCode(), cs, se.getCause());
                 else {

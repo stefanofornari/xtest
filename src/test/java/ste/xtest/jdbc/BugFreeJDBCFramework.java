@@ -24,11 +24,11 @@
 package ste.xtest.jdbc;
 
 import java.sql.Connection;
-import static org.assertj.core.api.Assertions.*;
 
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
+import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 
 /**
@@ -41,7 +41,7 @@ public class BugFreeJDBCFramework {
 
         // Test DELETE statement
         PreparedStatement deleteStmt = con.prepareStatement("DELETE * FROM table");
-        assertThat(deleteStmt.executeUpdate())
+        then(deleteStmt.executeUpdate())
             .as("update count")
             .isEqualTo(2);
 
@@ -49,13 +49,13 @@ public class BugFreeJDBCFramework {
         PreparedStatement insertStmt = con.prepareStatement("INSERT INTO table('id', 'name') VALUES (?, ?)");
         insertStmt.setString(1, "idVal");
         insertStmt.setString(2, "idName");
-        assertThat(insertStmt.executeUpdate())
+        then(insertStmt.executeUpdate())
             .as("update count")
             .isEqualTo(1);
 
         // Test empty SELECT query
         ResultSet emptyRs = con.createStatement().executeQuery("SELECT * FROM table");
-        assertThat(emptyRs.next())
+        then(emptyRs.next())
             .as("resultset")
             .isFalse();
 
@@ -65,23 +65,23 @@ public class BugFreeJDBCFramework {
         ResultSet rs = procStmt.executeQuery();
 
         // First row
-        assertThat(rs.next()).as("has first row").isTrue();
-        assertThat(rs.getString(1)).as("1st row/1st col (by index)").isEqualTo("str");
-        assertThat(rs.getString("String")).as("1st row/1st col (by label)").isEqualTo("str");
-        assertThat(rs.getFloat(2)).as("1st row/2nd col").isEqualTo(1.2F);
-        assertThat(rs.getDate(3)).as("1st row/3rd col (by index)").isEqualTo(new Date(1L));
-        assertThat(rs.getDate("Date")).as("1st row/3rd col (by label)").isEqualTo(new Date(1L));
+        then(rs.next()).as("has first row").isTrue();
+        then(rs.getString(1)).as("1st row/1st col (by index)").isEqualTo("str");
+        then(rs.getString("String")).as("1st row/1st col (by label)").isEqualTo("str");
+        then(rs.getFloat(2)).as("1st row/2nd col").isEqualTo(1.2F);
+        then(rs.getDate(3)).as("1st row/3rd col (by index)").isEqualTo(new Date(1L));
+        then(rs.getDate("Date")).as("1st row/3rd col (by label)").isEqualTo(new Date(1L));
 
         // Second row
-        assertThat(rs.next()).as("has second row").isTrue();
-        assertThat(rs.getString(1)).as("2nd row/1st col (by index)").isEqualTo("val");
-        assertThat(rs.getString("String")).as("2nd row/1st col (by label)").isEqualTo("val");
-        assertThat(rs.getFloat(2)).as("2nd row/2nd col").isEqualTo(2.34F);
-        assertThat(rs.getDate(3)).as("2nd row/3rd col (by index)").isNull();
-        assertThat(rs.getDate("Date")).as("2nd row/3rd col (by label)").isNull();
+        then(rs.next()).as("has second row").isTrue();
+        then(rs.getString(1)).as("2nd row/1st col (by index)").isEqualTo("val");
+        then(rs.getString("String")).as("2nd row/1st col (by label)").isEqualTo("val");
+        then(rs.getFloat(2)).as("2nd row/2nd col").isEqualTo(2.34F);
+        then(rs.getDate(3)).as("2nd row/3rd col (by index)").isNull();
+        then(rs.getDate("Date")).as("2nd row/3rd col (by label)").isNull();
 
         // No third row
-        assertThat(rs.next()).as("has third row").isFalse();
+        then(rs.next()).as("has third row").isFalse();
     }
 
     @Test
@@ -93,25 +93,25 @@ public class BugFreeJDBCFramework {
         ResultSet rs = stmt.executeQuery();
 
         // First row
-        assertThat(rs.next()).as("has first row").isTrue();
-        assertThat(rs.getString(1)).as("1st row/1st col (by index)").isEqualTo("text");
-        assertThat(rs.getFloat(2)).as("1st row/2nd col (by index)").isEqualTo(2.3F);
-        assertThat(rs.getDate(3)).as("1st row/3rd col (by index)").isEqualTo(new Date(3L));
-        assertThat(rs.getString("str")).as("1st row/1st col (by label)").isEqualTo("text");
-        assertThat(rs.getFloat("f")).as("1st row/2nd col (by label)").isEqualTo(2.3F);
-        assertThat(rs.getDate("date")).as("1st row/3rd col (by label)").isEqualTo(new Date(3L));
+        then(rs.next()).as("has first row").isTrue();
+        then(rs.getString(1)).as("1st row/1st col (by index)").isEqualTo("text");
+        then(rs.getFloat(2)).as("1st row/2nd col (by index)").isEqualTo(2.3F);
+        then(rs.getDate(3)).as("1st row/3rd col (by index)").isEqualTo(new Date(3L));
+        then(rs.getString("str")).as("1st row/1st col (by label)").isEqualTo("text");
+        then(rs.getFloat("f")).as("1st row/2nd col (by label)").isEqualTo(2.3F);
+        then(rs.getDate("date")).as("1st row/3rd col (by label)").isEqualTo(new Date(3L));
 
         // Second row
-        assertThat(rs.next()).as("has second row").isTrue();
-        assertThat(rs.getString(1)).as("2nd row/1st col (by index)").isEqualTo("label");
-        assertThat(rs.getFloat(2)).as("2nd row/2nd col (by index)").isEqualTo(4.56F);
-        assertThat(rs.getDate(3)).as("2nd row/3rd col (by index)").isEqualTo(new Date(4L));
-        assertThat(rs.getString("str")).as("2nd row/1st col (by label)").isEqualTo("label");
-        assertThat(rs.getFloat("f")).as("2nd row/2nd col (by label)").isEqualTo(4.56F);
-        assertThat(rs.getDate("date")).as("2nd row/3rd col (by label)").isEqualTo(new Date(4L));
+        then(rs.next()).as("has second row").isTrue();
+        then(rs.getString(1)).as("2nd row/1st col (by index)").isEqualTo("label");
+        then(rs.getFloat(2)).as("2nd row/2nd col (by index)").isEqualTo(4.56F);
+        then(rs.getDate(3)).as("2nd row/3rd col (by index)").isEqualTo(new Date(4L));
+        then(rs.getString("str")).as("2nd row/1st col (by label)").isEqualTo("label");
+        then(rs.getFloat("f")).as("2nd row/2nd col (by label)").isEqualTo(4.56F);
+        then(rs.getDate("date")).as("2nd row/3rd col (by label)").isEqualTo(new Date(4L));
 
         // No third row
-        assertThat(rs.next()).as("has third row").isFalse();
+        then(rs.next()).as("has third row").isFalse();
     }
 
     @Test
@@ -120,28 +120,28 @@ public class BugFreeJDBCFramework {
 
         // Test empty SELECT
         PreparedStatement selectStmt = con.prepareStatement("SELECT *");
-        assertThat(selectStmt.executeQuery().next())
+        then(selectStmt.executeQuery().next())
             .as("has first row")
             .isFalse();
 
         // Test EXEC with warning
         PreparedStatement execStmt = con.prepareStatement("EXEC proc");
         ResultSet execRs = execStmt.executeQuery();
-        assertThat(execRs.next()).as("has first row").isFalse();
-        assertThat(execStmt.getWarnings().getMessage())
+        then(execRs.next()).as("has first row").isFalse();
+        then(execStmt.getWarnings().getMessage())
             .as("reason")
             .isEqualTo("Warn EXEC");
 
         // Test empty UPDATE
         PreparedStatement updateStmt = con.prepareStatement("UPDATE x");
-        assertThat(updateStmt.executeUpdate())
+        then(updateStmt.executeUpdate())
             .as("updated count")
             .isEqualTo(0);
 
         // Test DELETE with warning
         PreparedStatement deleteStmt = con.prepareStatement("DELETE y");
-        assertThat(deleteStmt.executeUpdate()).as("updated count").isEqualTo(0);
-        assertThat(deleteStmt.getWarnings().getMessage())
+        then(deleteStmt.executeUpdate()).as("updated count").isEqualTo(0);
+        then(deleteStmt.getWarnings().getMessage())
             .as("reason")
             .isEqualTo("Warn DELETE");
     }
@@ -153,8 +153,8 @@ public class BugFreeJDBCFramework {
         PreparedStatement stmt = con.prepareStatement("SELECT * FROM table");
         ResultSet rs = stmt.executeQuery();
 
-        assertThat(rs.next()).as("has first row").isTrue();
-        assertThat(rs.getBoolean(1)).as("single column").isTrue();
+        then(rs.next()).as("has first row").isTrue();
+        then(rs.getBoolean(1)).as("single column").isTrue();
     }
 
     @Test
@@ -165,9 +165,22 @@ public class BugFreeJDBCFramework {
         stmt.executeUpdate();
 
         ResultSet keys = stmt.getGeneratedKeys();
-        assertThat(keys.next()).as("has generated key").isTrue();
-        assertThat(keys.getInt(1)).as("first key").isEqualTo(100);
-        assertThat(keys.next()).as("has second key").isFalse();
+        then(keys.next()).as("has generated key").isTrue();
+        then(keys.getInt(1)).as("first key").isEqualTo(100);
+        then(keys.next()).as("has second key").isFalse();
     }
-    
+
+    @Test
+    public void testJavaUseCase6() throws Exception {
+        final String SQL = "INSERT INTO table(x) VALUE('y')";
+
+        Connection con = JDBCDriverStub.useCase6();
+
+        PreparedStatement stmt = con.prepareStatement(SQL);
+        stmt.executeUpdate();
+        ResultSet rs = stmt.getResultSet();
+        then(rs.next()).as("has result set").isTrue();
+        then(rs.getString(1)).as("result set cntent").isEqualTo(SQL);
+    }
+
 }

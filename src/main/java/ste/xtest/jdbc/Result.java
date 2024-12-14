@@ -7,7 +7,7 @@ import java.sql.SQLWarning;
  *
  * @author Cedric Chantepie
  */
-public interface Result<SELF extends Result> {
+public interface Result {
 
     /**
      * Returns result with given |warning|.
@@ -15,7 +15,7 @@ public interface Result<SELF extends Result> {
      * @param warning the SQL warning
      * @return new result with given warning
      */
-    public SELF withWarning(SQLWarning warning);
+    public Result withWarning(SQLWarning warning);
 
     /**
      * Returns result with warning for given |reason|.
@@ -23,7 +23,7 @@ public interface Result<SELF extends Result> {
      * @param reason the warning reason
      * @return new result with specified warning
      */
-    public SELF withWarning(String reason);
+    public Result withWarning(String reason);
 
     /**
      * Returns associated warning.

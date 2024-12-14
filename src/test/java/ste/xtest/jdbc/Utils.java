@@ -47,7 +47,7 @@ public class Utils {
         @Override
         public QueryResult whenSQLQuery(String sql, List<StatementHandler.Parameter> parameters) throws SQLException {
             executed.add(Pair.of(sql, parameters));
-            return new QueryResult.Default(new RowList(List.of(List.of(executed.size())), false));
+            return new QueryResult(new RowList(List.of(List.of(executed.size())), false));
 
         }
 

@@ -8,101 +8,80 @@ import java.util.List;
  *
  * @author Cedric Chantepie
  */
-public interface QueryResult extends Result<QueryResult> {
+public class QueryResult implements Result {
+
+    public final RowList rowList;
+    public final SQLWarning warning;
 
     /**
-     * Returns underlying row list.
-     * @return the list of rows in this result
+     * Empty query result
      */
-    public RowList getRowList();
+    public static final QueryResult Empty = new QueryResult(new RowList(List.of()));
 
-    // --- Shared ---
+    public QueryResult(final RowList list) {
+        this(list, null);
+    }
 
     /**
-     * Nil query result
+     * Bulk constructor
+     *
+     * @param list the list of rows for this result
+     * @param warning the SQL warning
      */
-    public static final QueryResult Empty = new Default(new RowList(List.of()));
+    public QueryResult(final RowList list, final SQLWarning warning) {
+        this.rowList = list;
+        this.warning = warning;
+    } // end of <init>
 
-    // --- Inner classes ---
 
     /**
-     * Default implementation.
+     * {@inheritDoc}
      */
-    final class Default implements QueryResult {
-        final RowList rowList;
-        final SQLWarning warning;
+    public RowList getRowList() {
+        return this.rowList;
+    } // end of getRowList
 
-        /**
-         * Rows constructor.
-         *
-         * @param list the list of rows for this result
-         */
-        protected Default(final RowList list) {
-            this(list, null);
-        } // end of <init>
+    /**
+     * {@inheritDoc}
+     */
+    public QueryResult withWarning(final SQLWarning warning) {
+        return new QueryResult(this.rowList, warning);
+    }
 
-        /**
-         * Bulk constructor
-         *
-         * @param list the list of rows for this result
-         * @param warning the SQL warning
-         */
-        private Default(final RowList list, final SQLWarning warning) {
-            this.rowList = list;
-            this.warning = warning;
-        } // end of <init>
+    /**
+     * {@inheritDoc}
+     */
+    public QueryResult withWarning(final String reason) {
+        return withWarning(new SQLWarning(reason));
+    }
 
-        // ---
+    /**
+     * {@inheritDoc}
+     */
+    public SQLWarning getWarning() {
+        return this.warning;
+    }
 
-        /**
-         * {@inheritDoc}
-         */
-        public RowList getRowList() {
-            return this.rowList;
-        } // end of getRowList
+    /**
+     * {@inheritDoc}
+     */
+    public boolean equals(final Object o) {
+        if (o == null || !(o instanceof QueryResult)) {
+            return false;
+        } // end of if
 
-        /**
-         * {@inheritDoc}
-         */
-        public QueryResult withWarning(final SQLWarning warning) {
-            return new Default(this.rowList, warning);
-        } // end of withWarning
+        final QueryResult other = (QueryResult) o;
 
-        /**
-         * {@inheritDoc}
-         */
-        public QueryResult withWarning(final String reason) {
-            return withWarning(new SQLWarning(reason));
-        } // end of withWarning
+        return ((this.rowList == null && other.rowList == null) ||
+                (this.rowList != null &&
+                 this.rowList.equals(other.rowList)));
 
-        /**
-         * {@inheritDoc}
-         */
-        public SQLWarning getWarning() {
-            return this.warning;
-        } // end of getWarning
+    }
 
-        /**
-         * {@inheritDoc}
-         */
-        public boolean equals(final Object o) {
-            if (o == null || !(o instanceof QueryResult.Default)) {
-                return false;
-            } // end of if
-
-            final QueryResult.Default other = (QueryResult.Default) o;
-
-            return ((this.rowList == null && other.rowList == null) ||
-                    (this.rowList != null &&
-                     this.rowList.equals(other.rowList)));
-
-        } // end of equals
-
-        /**
-         * {@inheritDoc}
-         */
-        public int hashCode() {
-            return (this.rowList == null) ? -1 : this.rowList.hashCode();
-        } // end of hashCode
-    } // end of class Default
-} // end of interface QueryResult
+    /**
+     * {@inheritDoc}
+     */
+    public int hashCode() {
+        return (this.rowList == null) ? -1 : this.rowList.hashCode();
+    }
+}

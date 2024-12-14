@@ -1725,7 +1725,7 @@ public class BugFreeXPreparedStatement {
 
             @Override
             public QueryResult whenSQLQuery(String s, List<StatementHandler.Parameter> parameters) {
-                return new QueryResult.Default(RowLists.stringList());
+                return new QueryResult(RowLists.stringList());
             }
         };
 
@@ -1826,7 +1826,7 @@ public class BugFreeXPreparedStatement {
         final StatementHandler h = new Utils.EmptyStatementHandler() {
             @Override
             public QueryResult whenSQLQuery(String s, List<StatementHandler.Parameter> parameters) {
-                return new QueryResult.Default(RowLists.stringList()).withWarning(W);
+                return new QueryResult(RowLists.stringList()).withWarning(W);
             }
         };
 

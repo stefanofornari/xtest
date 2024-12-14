@@ -158,7 +158,7 @@ public class BugFreeCompositeHandler {
         final RowList ROWS = RowLists.stringList();
 
         assertThat(new CompositeHandler()
-            .withQueryHandler((String s, List<Parameter> p) -> new QueryResult.Default(ROWS))
+            .withQueryHandler((String s, List<Parameter> p) -> new QueryResult(ROWS))
             .whenSQLQuery("SELECT *", AbstractStatement.NO_PARAMS)
             .getRowList()
         ).isEqualTo(ROWS);
@@ -171,7 +171,7 @@ public class BugFreeCompositeHandler {
 
         assertThat(
             new CompositeHandler().withQueryHandler(
-                (String s, List<Parameter> p) -> new QueryResult.Default(ROWS)
+                (String s, List<Parameter> p) -> new QueryResult(ROWS)
             ).whenSQLQuery("SELECT *", AbstractStatement.NO_PARAMS).getRowList()
         ).isEqualTo(ROWS);
     }
@@ -181,7 +181,7 @@ public class BugFreeCompositeHandler {
         final SQLWarning W = new SQLWarning("TEST");
 
         final QueryResult R = new CompositeHandler()
-            .withQueryHandler((String s, List<Parameter> p) -> new QueryResult.Default(RowLists.stringList()).withWarning(W))
+            .withQueryHandler((String s, List<Parameter> p) -> new QueryResult(RowLists.stringList()).withWarning(W))
             .whenSQLQuery("SELECT *", AbstractStatement.NO_PARAMS);
 
         assertThat((Exception)R.getWarning())

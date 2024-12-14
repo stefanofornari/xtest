@@ -7,9 +7,7 @@ import java.sql.SQLWarning;
  *
  * @author Cedric Chantepie
  */
-public final class UpdateResult implements Result<UpdateResult> {
-    // --- Shared ---
-
+public final class UpdateResult extends QueryResult {
     /**
      * No result instance
      */
@@ -23,74 +21,72 @@ public final class UpdateResult implements Result<UpdateResult> {
     // --- Properties ---
 
     public final int count;
-    public final SQLWarning warning;
     public final RowList generatedKeys;
-
-    // --- Constructors ---
 
     /**
      * Bulk constructor.
      */
     private UpdateResult(final int count,
+                         final RowList resultSet,
                          final RowList generatedKeys,
                          final SQLWarning warning) {
 
+        super(resultSet, warning);
         this.count = count;
         this.generatedKeys = generatedKeys;
-        this.warning = warning;
-    } // end of <init>
+    }
 
     /**
      * With-warning constructor.
      */
     private UpdateResult(final int count, final SQLWarning warning) {
-        this(count, null, warning);
-    } // end of <init>
-
-    /**
-     * No result constructor.
-     */
-    private UpdateResult() {
-        this(0, null);
-    } // end of <init>
+        this(count, null, null, warning);
+    }
 
     /**
      * Count constructor.
      */
     public UpdateResult(final int count) {
          this(count, null);
-    } // end of <init>
+    }
+
+    /**
+     * No result constructor.
+     */
+    private UpdateResult() {
+        this(0);
+    }
 
     // ---
 
     /**
-     * Returns either null if there is no row resulting from update,
+     * Returns either null if there is no generated keys resulting from update,
      * or associated row list.
      */
     public RowList getGeneratedKeys() {
         return this.generatedKeys;
-    } // end of getGeneratedKeys
+    }
 
     /**
      * Returns update count.
      */
     public int getUpdateCount() {
         return this.count;
-    } // end of getUpdateCount
+    }
 
     /**
      * Returns result with updated row |keys|.
      * @param keys Generated keys
      */
     public UpdateResult withGeneratedKeys(final RowList keys) {
-        return new UpdateResult(this.count, keys, this.warning);
-    } // end of withGeneratedKeys
+        return new UpdateResult(count, rowList, keys, warning);
+    }
 
     /**
      * {@inheritDoc}
      */
     public UpdateResult withWarning(final SQLWarning warning) {
-        return new UpdateResult(this.count, warning);
+        return new UpdateResult(count, rowList, generatedKeys, warning);
     } // end of withWarning
 
     /**
@@ -98,12 +94,16 @@ public final class UpdateResult implements Result<UpdateResult> {
      */
     public UpdateResult withWarning(final String reason) {
         return withWarning(new SQLWarning(reason));
-    } // end of withWarning
+    }
+
+    public UpdateResult withResultSet(final RowList rowList) {
+        return new UpdateResult(count, rowList, generatedKeys, warning);
+    }
 
     /**
      * {@inheritDoc}
      */
     public SQLWarning getWarning() {
         return this.warning;
-    } // end of getWarning
-} // end of interface UpdateResult
+    }
+}

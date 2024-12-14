@@ -50,13 +50,13 @@ public class JDBCDriverStub {
                     public QueryResult apply(String sql, List<Parameter> params) {
 
                         if (sql.startsWith("SELECT ")) {
-                            return new QueryResult.Default(new RowList(String.class));
+                            return new QueryResult(new RowList(String.class));
                         }
 
                         // ... EXEC that_proc (see previous withQueryDetection)
                         // Prepare list of 2 rows
                         // with 3 columns of types String, Float, Date
-                        return new QueryResult.Default(
+                        return new QueryResult(
                                 new RowList(String.class, Float.class, Date.class)
                                         .withLabel(1, "String") // Optional: set labels
                                         .withLabel(3, "Date")
@@ -71,106 +71,126 @@ public class JDBCDriverStub {
 
         // ... then connection is managed through |handler|
         return DriverManager.getConnection(jdbcUrl);
-    } // end of useCase1
+    }
 
     /**
      * Use case #2 - Column definitions
      */
     public static Connection useCase2() throws SQLException {
         final StatementHandler handler = new CompositeHandler().
-                withQueryDetection("^SELECT ").
-                withQueryHandler(new CompositeHandler.QueryHandler() {
-                    public QueryResult apply(String sql,
-                            List<Parameter> params) {
+            withQueryDetection("^SELECT ").
+            withQueryHandler(new CompositeHandler.QueryHandler() {
+                public QueryResult apply(String sql,
+                        List<Parameter> params) {
 
-                        // Prepare list of 2 rows
-                        // with 3 columns of types String, Float, Date
-                        return new QueryResult.Default(
-                                new RowList(
-                                        Column(String.class, "str"),
-                                        Column(Float.class, "f"),
-                                        Column(Date.class, "date")
-                                ).append(List.of("text", 2.3f, new Date(3l)))
-                                        .append(List.of("label", 4.56f, new Date(4l)))
-                        );
-                    }
-                });
+                    // Prepare list of 2 rows
+                    // with 3 columns of types String, Float, Date
+                    return new QueryResult(
+                        new RowList(
+                            Column(String.class, "str"),
+                            Column(Float.class, "f"),
+                            Column(Date.class, "date")
+                        ).append(List.of("text", 2.3f, new Date(3l)))
+                            .append(List.of("label", 4.56f, new Date(4l)))
+                    );
+                }
+            });
 
         // Register prepared handler with expected ID 'my-handler-id'
         XDriver.register("my-handler-id", handler);
 
         // ... then connection is managed through |handler|
         return DriverManager.getConnection(jdbcUrl);
-    } // end of useCase2
+    }
 
     /**
      * Use case #3 - Warnings
      */
     public static Connection useCase3() throws SQLException {
         final StatementHandler handler = new CompositeHandler().
-                withQueryDetection("^SELECT ").
-                withQueryDetection("^EXEC ").
-                withQueryHandler(new CompositeHandler.QueryHandler() {
-                    public QueryResult apply(String sql,
-                            List<Parameter> params) {
+            withQueryDetection("^SELECT ").
+            withQueryDetection("^EXEC ").
+            withQueryHandler(new CompositeHandler.QueryHandler() {
+                public QueryResult apply(String sql,
+                        List<Parameter> params) {
 
-                        if (sql.startsWith("EXEC ")) {
-                            return QueryResult.Empty.withWarning(new SQLWarning("Warn EXEC"));
+                    if (sql.startsWith("EXEC ")) {
+                        return QueryResult.Empty.withWarning(new SQLWarning("Warn EXEC"));
 
-                        } // end of if
+                    } // end of if
 
-                        return QueryResult.Empty;
-                    }
-                }).
-                withUpdateHandler(new CompositeHandler.UpdateHandler() {
-                    // Handle execution of update statement (not query)
-                    public UpdateResult apply(String sql,
-                            List<Parameter> parameter) {
+                    return QueryResult.Empty;
+                }
+            }).
+            withUpdateHandler(new CompositeHandler.UpdateHandler() {
+                // Handle execution of update statement (not query)
+                public UpdateResult apply(String sql,
+                        List<Parameter> parameter) {
 
-                        if (sql.startsWith("DELETE ")) {
-                            return UpdateResult.Nothing.withWarning(new SQLWarning("Warn DELETE"));
-                        } // end of if
+                    if (sql.startsWith("DELETE ")) {
+                        return UpdateResult.Nothing.withWarning(new SQLWarning("Warn DELETE"));
+                    } // end of if
 
-                        return UpdateResult.Nothing;
-                    }
-                });
+                    return UpdateResult.Nothing;
+                }
+            });
 
         // Register prepared handler with expected ID 'my-handler-id'
         XDriver.register("my-handler-id", handler);
 
         // ... then connection is managed through |handler|
         return DriverManager.getConnection(jdbcUrl);
-    } // end of useCase3
+    }
 
     /**
      * Use case #4 - Generated keys
      */
     public static Connection useCase4() throws SQLException {
         return XDriver.
-                connection(new CompositeHandler().
-                       withQueryDetection("^SELECT ").
-                       withQueryHandler(new CompositeHandler.QueryHandler() {
-                               public QueryResult apply(String sql, List<Parameter> ps) {
-                                    return new QueryResult.Default(RowLists.booleanList(true));
-                               }
-                           }));
-    } // end of useCase4
+            connection(new CompositeHandler().
+                withQueryDetection("^SELECT ").
+                withQueryHandler(new CompositeHandler.QueryHandler() {
+                    public QueryResult apply(String sql, List<Parameter> ps) {
+                        return new QueryResult(RowLists.booleanList(true));
+                    }
+                })
+            );
+    }
 
     /**
      * Use case #5 - Generated keys
      */
     public static Connection useCase5() throws SQLException {
         return XDriver.
-                connection(new CompositeHandler().
-                        withUpdateHandler(new CompositeHandler.UpdateHandler() {
-                            public UpdateResult apply(String sql,
-                                    List<Parameter> ps) {
+            connection(new CompositeHandler().
+                withUpdateHandler(new CompositeHandler.UpdateHandler() {
+                    public UpdateResult apply(String sql,
+                            List<Parameter> ps) {
 
-                                // One update with generated keys
-                                return UpdateResult.One.
-                                        withGeneratedKeys(RowLists.intList(100));
-                            }
-                        }));
+                        // One update with generated keys
+                        return UpdateResult.One.
+                                withGeneratedKeys(RowLists.intList(100));
+                    }
+                })
+            );
 
-    } // end of useCase5
-} // end of class JavaUseCases
+    }
+
+    /**
+     * Use case #5 - Result Set for updates and inserts
+     */
+    public static Connection useCase6() throws SQLException {
+        return XDriver.
+            connection(new CompositeHandler().
+                withUpdateHandler(new CompositeHandler.UpdateHandler() {
+                    public UpdateResult apply(String sql,
+                            List<Parameter> ps) {
+
+                        // One update with generated keys
+                        return UpdateResult.One.
+                                withResultSet(RowLists.stringList(sql));
+                    }
+                })
+            );
+    }
+}
