@@ -53,7 +53,7 @@ public final class UpdateResult extends QueryResult {
     /**
      * No result constructor.
      */
-    private UpdateResult() {
+    public UpdateResult() {
         this(0);
     }
 
@@ -79,14 +79,14 @@ public final class UpdateResult extends QueryResult {
      * @param keys Generated keys
      */
     public UpdateResult withGeneratedKeys(final RowList keys) {
-        return new UpdateResult(count, rowList, keys, warning);
+        return new UpdateResult(count, resultSet, keys, warning);
     }
 
     /**
      * {@inheritDoc}
      */
     public UpdateResult withWarning(final SQLWarning warning) {
-        return new UpdateResult(count, rowList, generatedKeys, warning);
+        return new UpdateResult(count, resultSet, generatedKeys, warning);
     } // end of withWarning
 
     /**
@@ -96,8 +96,8 @@ public final class UpdateResult extends QueryResult {
         return withWarning(new SQLWarning(reason));
     }
 
-    public UpdateResult withResultSet(final RowList rowList) {
-        return new UpdateResult(count, rowList, generatedKeys, warning);
+    public UpdateResult withResultSet(final RowList rows) {
+        return new UpdateResult(count, rows, generatedKeys, warning);
     }
 
     /**
