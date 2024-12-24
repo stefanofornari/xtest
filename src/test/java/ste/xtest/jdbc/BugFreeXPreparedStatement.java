@@ -1620,18 +1620,13 @@ public class BugFreeXPreparedStatement {
         XPreparedStatement s = statement();
         ResultSet query = s.executeQuery();
 
-        assertThat(query)
-                .as("resultset")
-                .isNotNull();
+        assertThat(query).as("resultset").isNotNull();
 
         ResultSet generatedKeys = s.getGeneratedKeys();
         assertThat(generatedKeys.getStatement())
-                .as("keys statement")
-                .isEqualTo(s);
+                .as("keys statement").isEqualTo(s);
 
-        assertThat(generatedKeys.next())
-                .as("has keys")
-                .isFalse();
+        assertThat(generatedKeys.next()).as("has keys").isFalse();
     }
 
     @Test

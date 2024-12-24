@@ -68,7 +68,7 @@ import static ste.xtest.jdbc.ParameterMetaData.Str;
  * @author Cedric Chantepie
  */
 public class XPreparedStatement
-    extends AbstractStatement implements java.sql.PreparedStatement {
+    extends XStatement implements java.sql.PreparedStatement {
 
     // --- Shared ---
 
@@ -198,11 +198,13 @@ public class XPreparedStatement
             this.updateCount = -1;
             this.generatedKeys = EMPTY_GENERATED_KEYS.withStatement(this);
 
-            this.warning = res.getWarning();
+            warning = res.getWarning();
+            XResultSet rs = res.getResultSet();
+            // rs.setFetchSize(maxRows); TODO: remove
+            rs.setStatement(this);
+            rs.setWarnings(warning);  // TODO: do the other way around: res.resultSet shall have warnings;
 
-            return (this.result = res.getRowList().
-                withStatement(this).withWarning(this.warning));
-
+            return (this.result = rs);
         } catch (SQLException se) {
             throw se;
         } catch (Exception e) {
@@ -270,7 +272,7 @@ public class XPreparedStatement
             generatedKeys = (res.generatedKeys == null)
                 ? EMPTY_GENERATED_KEYS.withStatement(this)
                 : generateKeysResultSet(res);
-            result = res.getRowList();
+            result = res.getResultSet();
             updateCount = res.getUpdateCount();
         } catch (SQLException se) {
             throw se;

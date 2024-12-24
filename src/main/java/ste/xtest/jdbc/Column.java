@@ -32,7 +32,7 @@ public final class Column<T> {
     /**
      * Bulk constructor.
      */
-    Column(final Class<T> columnClass,
+    public Column(final Class<T> columnClass,
            final String name,
            final boolean nullable) {
 
@@ -56,7 +56,7 @@ public final class Column<T> {
      * @param columnClass the class of the column value
      * @param name the colunm name
      */
-    Column(final Class<T> columnClass, final String name) {
+    public Column(final Class<T> columnClass, final String name) {
         this(columnClass, name, false);
     } // end of <init>
 

@@ -1,7 +1,12 @@
+20241224
+- ste.xtest.jdbc major refactoring
+- added ste.xtest.jdbc.DBResultSet to wrap a generic ResultSet
+- released 3.8.1
+
 20241208
 - added ste.xtest.jdbc - a stub of a JDBC driver
-- released 3.8.0
 - using HttpClient stub in envjs
+- released 3.8.0
 
 20241020
 - added logging to ste.xtest.concurrent.PausableThreadPoolExecutor

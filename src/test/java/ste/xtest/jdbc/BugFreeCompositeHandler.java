@@ -110,21 +110,21 @@ public class BugFreeCompositeHandler {
     public void shouldHandleUpdatesSuccessfully() throws Exception {
         assertThat(new CompositeHandler()
             .withUpdateHandler((String s, List<Parameter> p) -> new UpdateResult(1))
-            .whenSQLUpdate("TEST", AbstractStatement.NO_PARAMS)
+            .whenSQLUpdate("TEST", XStatement.NO_PARAMS)
             .getUpdateCount())
             .as("count")
             .isEqualTo(1);
 
         assertThat(new CompositeHandler()
             .withUpdateHandler((String s, List<Parameter> p) -> new UpdateResult(3))
-            .whenSQLUpdate("TEST", AbstractStatement.NO_PARAMS)
+            .whenSQLUpdate("TEST", XStatement.NO_PARAMS)
             .getUpdateCount())
             .as("count")
             .isEqualTo(3);
 
         assertThat(new CompositeHandler()
             .withUpdateHandler((String s, List<Parameter> p) -> new UpdateResult(10))
-            .whenSQLUpdate("TEST", AbstractStatement.NO_PARAMS)
+            .whenSQLUpdate("TEST", XStatement.NO_PARAMS)
             .getUpdateCount())
             .as("count")
             .isEqualTo(10);
@@ -134,7 +134,7 @@ public class BugFreeCompositeHandler {
     public void shouldThrowExceptionForUpdateStatementWithoutHandler() {
         assertThatThrownBy(() ->
             new CompositeHandler()
-                .whenSQLUpdate("DELETE * FROM table", AbstractStatement.NO_PARAMS))
+                .whenSQLUpdate("DELETE * FROM table", XStatement.NO_PARAMS))
             .isInstanceOf(SQLException.class)
             .hasMessage("No update handler: DELETE * FROM table");
     }
@@ -159,8 +159,8 @@ public class BugFreeCompositeHandler {
 
         assertThat(new CompositeHandler()
             .withQueryHandler((String s, List<Parameter> p) -> new QueryResult(ROWS))
-            .whenSQLQuery("SELECT *", AbstractStatement.NO_PARAMS)
-            .getRowList()
+            .whenSQLQuery("SELECT *", XStatement.NO_PARAMS)
+            .getResultSet()
         ).isEqualTo(ROWS);
     }
 
@@ -172,7 +172,7 @@ public class BugFreeCompositeHandler {
         assertThat(
             new CompositeHandler().withQueryHandler(
                 (String s, List<Parameter> p) -> new QueryResult(ROWS)
-            ).whenSQLQuery("SELECT *", AbstractStatement.NO_PARAMS).getRowList()
+            ).whenSQLQuery("SELECT *", XStatement.NO_PARAMS).getResultSet()
         ).isEqualTo(ROWS);
     }
 
@@ -182,7 +182,7 @@ public class BugFreeCompositeHandler {
 
         final QueryResult R = new CompositeHandler()
             .withQueryHandler((String s, List<Parameter> p) -> new QueryResult(RowLists.stringList()).withWarning(W))
-            .whenSQLQuery("SELECT *", AbstractStatement.NO_PARAMS);
+            .whenSQLQuery("SELECT *", XStatement.NO_PARAMS);
 
         assertThat((Exception)R.getWarning())
             .isInstanceOf(SQLWarning.class)
@@ -195,7 +195,7 @@ public class BugFreeCompositeHandler {
 
         final UpdateResult R = new CompositeHandler()
             .withUpdateHandler((String s, List<Parameter> p) -> new UpdateResult(0).withWarning(W))
-            .whenSQLUpdate("UPDATE", AbstractStatement.NO_PARAMS);
+            .whenSQLUpdate("UPDATE", XStatement.NO_PARAMS);
 
         assertThat((Exception)R.getWarning())
             .isInstanceOf(SQLWarning.class)

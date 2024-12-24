@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.sql.Array;
 import java.sql.Date;
 import java.sql.JDBCType;
+import java.sql.Ref;
 import java.sql.Time;
 
 /**

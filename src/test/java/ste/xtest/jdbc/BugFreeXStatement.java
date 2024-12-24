@@ -27,62 +27,9 @@ import static org.assertj.core.api.Assertions.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
 import org.junit.Test;
 
-public class BugFreeAbstractStatement {
-    private static final String JDBC_URL = "jdbc:xtest:test";
-    private XConnection defaultCon;
-    private StatementHandler defaultHandler;
-
-    @Before
-    public void setup() {
-        defaultHandler = new StatementHandler() {
-            @Override
-            public QueryResult whenSQLQuery(String sql, List<StatementHandler.Parameter> parameters) throws SQLException {
-                return new QueryResult(new RowList());
-            }
-
-            @Override
-            public UpdateResult whenSQLUpdate(String sql, List<StatementHandler.Parameter> parameters) throws SQLException {
-                return new UpdateResult(0);
-            }
-
-            @Override
-            public boolean isQuery(String sql) {
-                return sql.toUpperCase().startsWith("SELECT ");
-            }
-
-        };
-
-        final ConnectionHandler connectionHandler = new ConnectionHandler() {
-            private ResourceHandler resourceHandler;
-
-            @Override
-            public StatementHandler getStatementHandler() {
-                return defaultHandler;
-            }
-
-            @Override
-            public ResourceHandler getResourceHandler() {
-                return resourceHandler;
-            }
-
-            @Override
-            public ConnectionHandler withResourceHandler(ResourceHandler handler) {
-                resourceHandler = handler; return this;
-            }
-        };
-        defaultCon = new ste.xtest.jdbc.XConnection(JDBC_URL, null, connectionHandler);
-    }
-
-    private Statement createStatement(XConnection connection, StatementHandler handler) {
-        return new AbstractStatement(connection, handler) {};
-    }
-
-    private Statement createStatement() {
-        return createStatement(defaultCon, defaultHandler);
-    }
+public class BugFreeXStatement extends BugFreeX {
 
     @Test
     public void testConstructorShouldRefuseNullConnection() {

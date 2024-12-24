@@ -7,6 +7,8 @@ import java.sql.SQLException;
 /**
  * Base for rule-based (immutable/thread-safe) statement handler.
  *
+ * TODO: simplify this design
+ *
  * @author Cedric Chantepie
  */
 public abstract class AbstractCompositeHandler<T extends AbstractCompositeHandler> implements StatementHandler {
@@ -184,7 +186,6 @@ public abstract class AbstractCompositeHandler<T extends AbstractCompositeHandle
         /**
          * Handles given query.
          *
-         * @param sql the SQL statement
          * @param parameters the parameters for the executed query
          * @return Query result
          * @throws SQLException if fails to handle the query
@@ -201,7 +202,6 @@ public abstract class AbstractCompositeHandler<T extends AbstractCompositeHandle
         /**
          * Handles given update.
          *
-         * @param sql the SQL statement
          * @param parameters the parameters for the executed updated
          * @return Update result
          * @throws SQLException if fails to handle the update

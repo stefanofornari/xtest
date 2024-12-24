@@ -17,6 +17,7 @@ import java.sql.SQLWarning;
 import java.sql.Timestamp;
 import java.sql.Array;
 import java.sql.Date;
+import java.sql.ResultSet;
 import java.sql.Time;
 
 import javax.sql.rowset.serial.SerialBlob;
@@ -33,18 +34,55 @@ import org.apache.commons.io.IOUtils;
  *
  * @author Cedric Chantepie
  */
-public class RowList extends AbstractResultSet {
+public class RowList extends XResultSet {
 
     public static String NO_ROWS_FETCHED = "No rows fetched yet";
 
-    public final List<List> rows;
+    /**
+     * Closed?
+     */
+    protected boolean closed = false;
+
+    /**
+     * Fetch size
+     */
+    protected int fetchSize = 0;
+
+    /**
+     * Fetch direction
+     */
+    protected int fetchDirection = FETCH_FORWARD;
+
+    /**
+     * Current row
+     */
+    protected int currentRow = 0;
+
+    /**
+     * Result set type
+     *
+     * @see java.sql.ResultSet#TYPE_FORWARD_ONLY
+     * @see java.sql.ResultSet#TYPE_SCROLL_INSENSITIVE
+     * @see java.sql.ResultSet#TYPE_SCROLL_SENSITIVE
+     */
+    protected int cursorType;
+
+    /**
+     * Cursor name
+     */
+    protected final String cursorName;
+
+    /**
+     * Cycling?
+     */
+    protected boolean cycling = false;
+
+    protected final List<List> rows;
     public final RowListMetaData metadata;
 
-    final AbstractStatement statement;
-    final SQLWarning warning;
+    protected SQLWarning warnings;
 
     private Object last;
-
 
     /**
      * Constructor
@@ -59,7 +97,6 @@ public class RowList extends AbstractResultSet {
      * Constructor from classes
      *
      * @param classList
-     * @param rows the list of rows
      */
     public RowList(List<Class<?>> classList) {
         this(classList, null, null, null, null, null, null, false);
@@ -69,13 +106,12 @@ public class RowList extends AbstractResultSet {
      * Constructor from classes
      *
      * @param classList
-     * @param rows the list of rows
      */
     public RowList(Class<?>... classList) {
         this(
             List.of(classList), // columnClasses
             new ArrayList(),    // columnLabels
-            new ArrayList(),          // columnNullables
+            new ArrayList(),    // columnNullables
             new ArrayList(),    // rows
             null,               // last
             null,               // statement
@@ -93,8 +129,7 @@ public class RowList extends AbstractResultSet {
     /**
      * Constructor from classes
      *
-     * @param classList
-     * @param rows the list of rows
+     * @param columns the list of columns
      */
     public RowList(Column... columns) {
         this(new RowListMetaData(columns), new ArrayList(), null, null, null, false);
@@ -116,7 +151,7 @@ public class RowList extends AbstractResultSet {
     public RowList(
         final List<List> rows,
         final Object last,
-        final AbstractStatement statement,
+        final XStatement statement,
         final SQLWarning warning,
         final boolean cycling) {
         this(new ArrayList(), new ArrayList(), new ArrayList(), rows, last, statement, warning, cycling);
@@ -135,7 +170,7 @@ public class RowList extends AbstractResultSet {
         final RowListMetaData metadata,
         final List<List> rows,
         final Object last,
-        final AbstractStatement statement,
+        final XStatement statement,
         final SQLWarning warning,
         final boolean cycling) {
         this(metadata.columnClasses, metadata.columnLabels, metadata.columnNullables, rows, last, statement, warning, cycling);
@@ -160,10 +195,15 @@ public class RowList extends AbstractResultSet {
         final List<Boolean> columnNullables,
         final List<List> rows,
         final Object last,
-        final AbstractStatement statement,
+        final XStatement statement,
         final SQLWarning warning,
         final boolean cycling
     ) {
+        this.cursorName = String.format("cursor-%d", System.identityHashCode(this));
+
+        this.cursorType = ResultSet.TYPE_SCROLL_SENSITIVE;
+        this.cycling = cycling;
+
         this.rows = (rows != null) ? rows : new ArrayList();
         this.metadata = new RowListMetaData(
             (columnClasses != null) ? columnClasses : new ArrayList(),
@@ -177,16 +217,12 @@ public class RowList extends AbstractResultSet {
         });
 
         this.statement = statement;
-        this.warning = warning;
+        this.warnings = warning;
         this.last = null;
 
-        super.fetchSize = this.rows.size(); // TODO: check how fetch size works
-                                            // with other JDBC driver; shall next()
-                                            // return false after just the fetch size?
-                                            // what about isAfterLast() ?
-        super.cycling = cycling;
+        this.fetchSize = this.rows.size();
 
-        if (this.statement != null && super.fetchSize > 0 &&
+        if (this.statement != null && this.fetchSize > 0 &&
             "true".equals(this.statement.connection.getProperties().
                           get("ste.xtest.jdbc.resultSet.initOnFirstRow"))) {
 
@@ -196,9 +232,8 @@ public class RowList extends AbstractResultSet {
     } // end of <init>
 
     public RowList(final RowList source) {
-        this(
-            source.metadata, source.rows, source.last,
-            source.statement, source.warning, source.cycling
+        this(source.metadata, source.rows, source.last,
+            source.statement, source.warnings, source.cycling
         );
     }
 
@@ -274,15 +309,15 @@ public class RowList extends AbstractResultSet {
      * @param statement the associated statement
      * @return Result set associated with given statement
      */
-    public RowList withStatement(final AbstractStatement statement) {
-        return new RowList(metadata, rows, last, statement, warning, cycling);
+    public RowList withStatement(final XStatement statement) {
+        return new RowList(metadata, rows, last, statement, warnings, cycling);
     } // end of withStatement
 
     /**
      * Returns updated resultset, with fetch size.
      */
     public RowList withFetchSize(final int fetchSize) {
-        RowList newRowList = new RowList(rows, last, statement, warning, cycling);
+        RowList newRowList = new RowList(rows, last, statement, warnings, cycling);
         newRowList.fetchSize = fetchSize;
 
         return newRowList;
@@ -292,7 +327,14 @@ public class RowList extends AbstractResultSet {
      * Returns updated resultset, with fetch cycling.
      */
     public RowList withCycling(final boolean cycling) {
-        return new RowList(rows, last, statement, warning, cycling);
+        return new RowList(rows, last, statement, warnings, cycling);
+    }
+
+    /**
+     * Returns whether is cycling?
+     */
+    public boolean isCycling() {
+        return this.cycling;
     }
 
     /**
@@ -390,7 +432,7 @@ public class RowList extends AbstractResultSet {
         }
 
         return new RowList(classes, labels, nullables, projected,
-                           this.last, this.statement, this.warning,
+                           this.last, this.statement, this.warnings,
                            this.cycling);
 
     } // end of withProjection
@@ -398,9 +440,26 @@ public class RowList extends AbstractResultSet {
     /**
      * {@inheritDoc}
      */
+    @Override
     public SQLWarning getWarnings() throws SQLException {
-        return this.warning;
-    } // end of getWarnings
+        return this.warnings;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWarnings(final SQLWarning warnings) {
+        this.warnings = warnings;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void clearWarnings() {
+        this.warnings = null;
+    }
 
     /**
      * {@inheritDoc}
@@ -437,30 +496,51 @@ public class RowList extends AbstractResultSet {
 
     } // end of hashCode
 
-    // --- ResultSet implementation ---
+    // ------------------------------------------ Basic ResultSet implementation
 
     /**
      * {@inheritDoc}
      */
-    public AbstractStatement getStatement() {
+    public void close() throws SQLException {
+        closed = true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isClosed() throws SQLException {
+        return closed;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public XStatement getStatement() {
         return this.statement;
-    } // end of getStatement
+    }
 
     /**
      * {@inheritDoc}
      */
-    public void setFetchSize(final int maxRows) throws SQLException {
+    public ResultSetMetaData getMetaData() throws SQLException {
+        return metadata;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setFetchSize(final int fetchSize) throws SQLException {
         checkClosed();
 
         synchronized(this) {
-            if (maxRows > rows.size()) {
+            if (fetchSize > rows.size()) {
                 return;
             }
 
             //rows = rows.subList(0, maxRows);  TODO: remove
-            fetchSize = maxRows;
+            this.fetchSize = fetchSize;
         }
-    } // end of setFetchSize
+    }
 
     /**
      * {@inheritDoc}
@@ -1321,15 +1401,208 @@ public class RowList extends AbstractResultSet {
             }
         }
         throw new SQLException("Invalid column label " + columnLabel + " in " + metadata.columnLabels);
-    } // end of findColumn
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getType() throws SQLException {
+        return cursorType;
+    }
+
+    public void makeForwardOnly() {
+        cursorType = ResultSet.TYPE_FORWARD_ONLY;
+    }
+
+    // --------------------------------------------------- Cursor implementation
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getCursorName() throws SQLException {
+        return this.cursorName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isFirst() throws SQLException {
+        return (this.currentRow == 1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isLast() throws SQLException {
+        return (this.currentRow == this.fetchSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void beforeFirst() throws SQLException {
+        checkNotForwardOnly();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isBeforeFirst() throws SQLException {
+        return (this.currentRow < 1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void afterLast() throws SQLException {
+        checkNotForwardOnly();
+
+        this.currentRow = this.fetchSize + 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean first() throws SQLException {
+        return absolute(1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean last() throws SQLException {
+        return absolute(-1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getRow() throws SQLException {
+        return this.currentRow;
+    }
 
     /**
      * {@inheritDoc}
      *
      */
     public boolean isAfterLast() throws SQLException {
-        return (currentRow > rows.size());
-    } // end of isAfterLast
+        return rows.isEmpty() ? false : (currentRow > rows.size());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean absolute(final int row) throws SQLException {
+        final int r = (row < 0) ? this.fetchSize + 1 + row : row;
+
+        if ((r < this.currentRow) && (cursorType == ResultSet.TYPE_FORWARD_ONLY)) {
+            throw new SQLException("backward move on forward only cursor");
+        } // end of if
+
+        if (r > this.fetchSize) {
+            if (!this.cycling) {
+                this.currentRow = this.fetchSize + 1;
+
+                return false;
+            } else {
+                this.currentRow = 1;
+
+                return true;
+            }
+        } // end of if
+
+        this.currentRow = r;
+
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean relative(final int howMany) throws SQLException {
+        if (rows == null) {
+            throw new SQLException("no rows available");
+        }
+        if (howMany == 0) return true;
+        if ((howMany < 0) && (cursorType == ResultSet.TYPE_FORWARD_ONLY)) {
+            throw new SQLException("backward move");
+        }
+
+        return absolute(this.currentRow + howMany);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean previous() throws SQLException {
+        checkNotForwardOnly(); // TODO check for closed resultset
+
+        if (rows.isEmpty()) {
+            return false;
+        }
+
+        return relative(-1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean next() throws SQLException {
+        if (rows.isEmpty()) {
+            return false;
+        }
+        return relative(1);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setFetchDirection(final int direction) throws SQLException {
+        if (direction == FETCH_REVERSE || direction == FETCH_UNKNOWN) {
+            checkNotForwardOnly();
+        } // end of if
+
+        // ---
+
+        this.fetchDirection = direction;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getFetchDirection() throws SQLException {
+        return this.fetchDirection;
+    }
+
+    // ------------------------------------------------------- Protected methods
+
+    /**
+     * Throws a SQLException("Result set is closed") if connection is closed.
+     * @throws SQLException if connection is closed
+     */
+    protected void checkClosed() throws SQLException {
+        if (this.closed) {
+            throw new SQLException("Result set is closed");
+        }
+    }
+
+    // --------------------------------------------------------- Private methods
+
+    private boolean isOn() throws SQLException {
+        return (!isBeforeFirst() && !isAfterLast());
+    }
+
+    /**
+     * Throws a SQLException("Type of result set is forward only")
+     * if {java.sql.ResultSet#TYPE_FORWARD_ONLY}.
+     * @throws SQLException if {java.sql.ResultSet#TYPE_FORWARD_ONLY}
+     */
+    protected void checkNotForwardOnly() throws SQLException {
+        if (this.cursorType == TYPE_FORWARD_ONLY) {
+            throw new SQLException("type of result set is forward only");
+        }
+    }
 
     /**
      * Convert not null value.
@@ -1420,14 +1693,6 @@ public class RowList extends AbstractResultSet {
     } // end of convert
 
     /**
-     * {@inheritDoc}
-     */
-    public ResultSetMetaData getMetaData() throws SQLException {
-        return metadata;
-
-    } // end of getMetaData
-
-    /**
      * Tries to get bytes from raw |value|.
      *
      * @param value the binary value
@@ -1512,7 +1777,7 @@ public class RowList extends AbstractResultSet {
         // - is the size correct
         // - are nullable columns constraints respected
         //
-        rows.add(row); fetchSize += row.size();
+        rows.add(row); ++fetchSize;
 
         return this;
     }

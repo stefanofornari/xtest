@@ -814,7 +814,7 @@ public class XConnection implements java.sql.Connection {
     /**
      * Plain statement (not prepared or callable).
      */
-    private static final class PlainStatement extends AbstractStatement {
+    private static final class PlainStatement extends XStatement {
         PlainStatement(final XConnection connection,
                        final StatementHandler handler) {
 
