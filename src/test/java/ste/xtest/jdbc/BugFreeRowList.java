@@ -6,6 +6,7 @@
  * the terms of the GNU Affero General Public License version 3 as published by
  * the Free Software Foundation with the addition of the following permission
  * added to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED
+ * added to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED
  * WORK IN WHICH THE COPYRIGHT IS OWNED BY Stefano Fornari, Stefano Fornari
  * DISCLAIMS THE WARRANTY OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
  *
@@ -33,9 +34,39 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Arrays;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import ste.xtest.jdbc.Utils.EmptyConnectionHandler;
 
 public class BugFreeRowList {
+
+    @Test
+    public void testNewResultSet() throws SQLException {
+        ResultSet rs = new RowList();
+
+        assertFalse("closed", rs.isClosed());
+        assertNull("statement", rs.getStatement());
+        assertEquals("concurrency", ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
+        assertEquals("type", ResultSet.TYPE_SCROLL_SENSITIVE, rs.getType());
+        assertNotNull("cursor name", rs.getCursorName());
+        assertNull("warnings", rs.getWarnings());
+    }
+
+    @Test
+    public void setGetWarnings() throws SQLException {
+        final SQLWarning W = new SQLWarning();
+        final XResultSet RS = RowLists.stringList();
+
+        then(RS.getWarnings() == null).isTrue();
+
+        RS.setWarnings(W); then(RS.getWarnings() == W).isTrue();
+    }
 
     @Test
     public void testNumberColumnGetters() throws SQLException {
@@ -265,7 +296,7 @@ public class BugFreeRowList {
         final String url = "jdbc:xtest:test";
         final ConnectionHandler ch = new EmptyConnectionHandler();
         final XConnection con = new XConnection(url, null, ch);
-        final AbstractStatement stmt = new AbstractStatement(con, ch.getStatementHandler()) {};
+        final XStatement stmt = new XStatement(con, ch.getStatementHandler()) {};
 
         final RowList r = RowLists.stringList().withCycling(true).withStatement(stmt);
 
@@ -860,4 +891,328 @@ public class BugFreeRowList {
                 .isInstanceOf(SQLException.class)
                 .hasMessageContaining("Not a " + columnType.getSimpleName());
     }
+
+    @Test
+    public void testFetchSize() throws SQLException {
+        ResultSet rs = RowLists.stringList("one", "two", "three");
+        assertEquals("initial size", 3, rs.getFetchSize());
+
+        rs.setFetchSize(2);
+        assertEquals("updated size", 2, rs.getFetchSize());
+    }
+
+    @Test
+    public void testInitialFetchDirection() throws SQLException {
+        assertEquals("direction", ResultSet.FETCH_FORWARD,
+            new RowList().getFetchDirection());
+    }
+
+    @Test
+    public void testSetFetchDirection() throws SQLException {
+        ResultSet rs = new RowList();
+        rs.setFetchDirection(ResultSet.FETCH_REVERSE);
+        assertEquals("direction", ResultSet.FETCH_REVERSE, rs.getFetchDirection());
+        rs.setFetchDirection(ResultSet.FETCH_UNKNOWN);
+        assertEquals("direction", ResultSet.FETCH_UNKNOWN, rs.getFetchDirection());
+    }
+
+    @Test
+    public void testScrollableSetFetchDirection() throws SQLException {
+        ResultSet rs = new RowList();
+
+        rs.setFetchDirection(ResultSet.FETCH_REVERSE);
+        assertEquals("reverse direction", ResultSet.FETCH_REVERSE,
+            rs.getFetchDirection());
+
+        rs.setFetchDirection(ResultSet.FETCH_UNKNOWN);
+        assertEquals("unknown direction", ResultSet.FETCH_UNKNOWN,
+            rs.getFetchDirection());
+    }
+
+    @Test
+    public void testInitialRow() throws SQLException {
+        assertEquals("initial row", 0, new RowList().getRow());
+    }
+
+    public void testPreviousOnEmptyRowList() throws SQLException {
+        assertFalse(new RowList().previous());
+    }
+
+    @Test
+    public void testRelativeMove() throws SQLException {
+        RowList rs = RowLists.stringList("one", "two", "three");
+        rs.makeForwardOnly();
+
+        assertTrue("move by 0", rs.relative(0));
+
+        assertThrows(SQLException.class, () -> rs.relative(-2));
+
+        rs.setFetchSize(1);
+        assertEquals("current row", 0, rs.getRow());
+        assertTrue("forward move", rs.relative(1));
+        assertEquals("new row", 1, rs.getRow());
+    }
+
+    @Test
+    public void testNext() throws SQLException {
+        RowList rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+
+        assertFalse("not cycling", rs.isCycling());
+        assertEquals("current row", 0, rs.getRow());
+        assertTrue("move to next", rs.next());
+        assertEquals("new row", 1, rs.getRow());
+        assertFalse("no more rows", rs.next());
+    }
+
+    @Test
+    public void testNextWithCycling() throws SQLException {
+        RowList rs = new RowList(List.of(List.of("one")), true);
+        rs.setFetchSize(1);
+
+        assertTrue("cycling", rs.isCycling());
+        assertTrue("first next", rs.next());
+        assertTrue("second next", rs.next());
+        assertEquals("row", 1, rs.getRow());
+    }
+
+    @Test
+    public void testAbsoluteMoveZero() throws SQLException {
+        RowList rs = RowLists.stringList("one");
+        assertTrue("moved to zero", rs.absolute(0));
+    }
+
+    @Test
+    public void testAbsoluteMoveBackward() throws SQLException {
+        RowList rs = RowLists.stringList("one", "two", "three");
+        rs.makeForwardOnly();
+
+        rs.setFetchSize(1);
+        rs.next();
+
+        assertEquals("current row", 1, rs.getRow());
+
+        assertThrows(SQLException.class, () -> rs.absolute(0));
+    }
+
+    @Test
+    public void testAbsoluteMoveForward() throws SQLException {
+        ResultSet rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+        assertTrue("forward move to 1", rs.absolute(1));
+    }
+
+    @Test
+    public void testAbsoluteMoveToLastZero() throws SQLException {
+        ResultSet rs = RowLists.stringList();
+        assertTrue("move to last", rs.absolute(-1));
+        assertEquals("new row", 0, rs.getRow());
+    }
+
+    @Test
+    public void testAbsoluteMoveToLastOne() throws SQLException {
+        ResultSet rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+        assertTrue("move to last", rs.absolute(-1));
+        assertEquals("new row", 1, rs.getRow());
+    }
+
+    @Test
+    public void testAbsoluteMoveAfterLastZero() throws SQLException {
+        XResultSet rs = RowLists.stringList();
+        assertFalse("move after last", rs.absolute(1));
+        assertFalse("after last", rs.isAfterLast());
+    }
+
+    @Test
+    public void testAbsoluteMoveAfterLastOne() throws SQLException {
+        ResultSet rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+        assertFalse("move after last", rs.absolute(2));
+        assertTrue("after last", rs.isAfterLast());
+    }
+
+    @Test
+    public void testBeforeFirstNotScrollable() throws SQLException {
+        RowList rs = RowLists.stringList("one");
+        rs.makeForwardOnly();
+        assertThrows(SQLException.class, () -> rs.beforeFirst());
+    }
+
+    @Test
+    public void testBeforeFirstScrollable() throws SQLException {
+        ResultSet rs = RowLists.stringList();
+        rs.beforeFirst();
+        assertEquals("row", 0, rs.getRow());
+        assertTrue("before first", rs.isBeforeFirst());
+    }
+
+    @Test
+    public void testBeforeFirstBackwardNotScrollable() throws SQLException {
+        RowList rs = RowLists.stringList("one");
+        rs.setFetchSize(1); rs.makeForwardOnly();
+
+        assertTrue("move first", rs.first());
+        assertEquals("row", 1, rs.getRow());
+
+        assertThrows(SQLException.class, () -> rs.beforeFirst());
+    }
+
+    @Test
+    public void testMoveToFirstWithoutRows() throws SQLException {
+        ResultSet rs = RowLists.stringList();
+        assertFalse("first", rs.first());
+        assertEquals("row", 1, rs.getRow());
+        assertFalse("after last", rs.isAfterLast());
+    }
+
+    @Test
+    public void testMoveToFirstWithOneRow() throws SQLException {
+        ResultSet rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+
+        assertTrue("first", rs.first());
+        assertEquals("row", 1, rs.getRow());
+    }
+
+    @Test
+    public void testMoveToFirstBackward() throws SQLException {
+        RowList rs = RowLists.stringList("one", "two", "three");
+        rs.makeForwardOnly();
+
+        assertTrue("forward move", rs.absolute(2));
+        assertEquals("row", 2, rs.getRow());
+
+        assertThrows(SQLException.class, () -> rs.first());
+    }
+
+    @Test
+    public void testMoveToLastEmpty() throws SQLException {
+        ResultSet rs = RowLists.stringList();
+        assertTrue("last", rs.last());
+        assertEquals("row", 0, rs.getRow());
+    }
+
+    @Test
+    public void testMoveToLastWithRow() throws SQLException {
+        ResultSet rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+
+        assertTrue("last", rs.last());
+        assertEquals("row", 1, rs.getRow());
+    }
+
+    @Test(expected = SQLException.class)
+    public void testAfterLastNotScrollable() throws SQLException {
+        RowList rs = RowLists.stringList("one");
+        rs.setFetchSize(1); rs.makeForwardOnly();
+        rs.afterLast();
+    }
+
+    @Test
+    public void testAfterLastScrollable() throws SQLException {
+        RowList rs = RowLists.stringList("one");
+        rs.setFetchSize(1);
+        rs.afterLast();
+        assertEquals("row", 2, rs.getRow());
+    }
+
+    @Test
+    public void testColumnUpdates() {
+        XResultSet rs = new RowList();
+
+        // Testing all update methods throw SQLFeatureNotSupportedException
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNull(0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBoolean(0, true));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateByte(0, (byte)1));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateShort(0, (short)1));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateInt(0, (int)1));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateLong(0, 1l));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateFloat(0, 1.0f));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateDouble(0, 1.0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBigDecimal(0, BigDecimal.ONE));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateString(0, "value"));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBytes(0, new byte[0]));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateDate(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateTime(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateTimestamp(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateObject(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateObject(0, null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateArray(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRowId(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNString(0, "value"));
+
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNull("col"));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBoolean("col", true));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateByte("col", (byte)1));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateShort("col", (short)1));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateInt("col", (int)1));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateLong("col", 1l));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateFloat("col", 1.0f));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateDouble("col", 1.0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBigDecimal("col", BigDecimal.ONE));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateString("col", "value"));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBytes("col", new byte[0]));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateDate("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateTime("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateTimestamp("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateObject("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateObject("col", null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRef("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateArray("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRowId("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNString("col", "value"));
+    }
+
+    @Test
+    public void testStreamUpdates() {
+        XResultSet rs = new RowList();
+
+        // Testing all stream update methods throw SQLFeatureNotSupportedException
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateAsciiStream(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBinaryStream(0, null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBlob(0, null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateClob(0, null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNClob(0, null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNCharacterStream(0, null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBinaryStream(0, null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateAsciiStream(0, null, 0));
+
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateAsciiStream("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBinaryStream("col", null));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBlob("col", null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateClob("col", null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNClob("col", null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateNCharacterStream("col", null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateBinaryStream("col", null, 0));
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateAsciiStream("col", null, 0));
+    }
+
+    @Test
+    public void testRowOperations() {
+        ResultSet rs = new RowList();
+
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.updateRow());
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.insertRow());
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.deleteRow());
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.refreshRow());
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.cancelRowUpdates());
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.moveToInsertRow());
+        assertThrows(SQLFeatureNotSupportedException.class, () -> rs.moveToCurrentRow());
+    }
+
+    @Test
+    public void testClosedSet() throws SQLException {
+        RowList rs = new RowList();
+        rs.close();
+
+        assertTrue("closed", rs.isClosed());
+        try {
+            rs.checkClosed();
+            fail("Should throw SQLException");
+        } catch (SQLException e) {
+            assertEquals("Result set is closed", e.getMessage());
+        }
+    }
+
 }

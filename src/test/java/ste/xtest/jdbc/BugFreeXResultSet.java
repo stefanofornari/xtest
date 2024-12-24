@@ -22,9 +22,37 @@
 
 package ste.xtest.jdbc;
 
-/**
- * To represent JDBCType.REF
- */
-public class Ref {
+import org.junit.Test;
+import static org.junit.Assert.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import static org.assertj.core.api.BDDAssertions.then;
 
+public class BugFreeXResultSet extends BugFreeX {
+
+    @Test
+    public void wrapping() throws SQLException {
+        XResultSet rs = createXResultSet();
+
+        assertTrue("is wrapper for java.sql.ResultSet",
+            rs.isWrapperFor(ResultSet.class));
+
+        assertNotNull("unwrapped", rs.unwrap(ResultSet.class));
+    }
+
+    @Test
+    public void holdability() throws SQLException {
+        assertEquals("holdability", ResultSet.CLOSE_CURSORS_AT_COMMIT,
+            createXResultSet().getHoldability());
+    }
+
+    @Test
+    public void set_get_statement() throws SQLException {
+        final XStatement S = createStatement();
+        final XResultSet RS = createXResultSet();
+
+        then(RS.getStatement()).isNull();
+
+        RS.setStatement(S); then(RS.getStatement()).isSameAs(S);
+    }
 }

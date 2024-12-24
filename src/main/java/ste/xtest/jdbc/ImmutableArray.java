@@ -72,7 +72,9 @@ public final class ImmutableArray<T> implements Array {
      * @param baseClass the class of array elements
      * @return Empty array for given class
      */
-    public static <A> ImmutableArray<A> getInstance(final Class<A> baseClass) { return new ImmutableArray<A>(baseClass, Collections.unmodifiableList(Collections.<A>emptyList())); }
+    public static <A> ImmutableArray<A> getInstance(final Class<A> baseClass) {
+        return new ImmutableArray<A>(baseClass, Collections.unmodifiableList(Collections.<A>emptyList()));
+    }
 
     /**
      * Returns array with copy of given |elements|.

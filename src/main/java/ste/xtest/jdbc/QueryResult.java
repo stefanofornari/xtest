@@ -1,5 +1,6 @@
 package ste.xtest.jdbc;
 
+import java.sql.ResultSet;
 import java.sql.SQLWarning;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public class QueryResult implements Result {
 
-    public final RowList resultSet;
+    public final XResultSet resultSet;
     public final SQLWarning warning;
 
     /**
@@ -25,19 +26,24 @@ public class QueryResult implements Result {
     /**
      * Bulk constructor
      *
-     * @param list the list of rows for this result
+     * @param rs the result set for this result - can be null
      * @param warning the SQL warning
      */
-    public QueryResult(final RowList list, final SQLWarning warning) {
-        this.resultSet = list;
-        this.warning = warning;
-    } // end of <init>
-
+    public QueryResult(final ResultSet rs, final SQLWarning w) {
+        if (rs != null) {
+            resultSet = (rs instanceof XResultSet)
+                      ? (XResultSet)rs
+                      : new DBResultSet(rs);
+        } else {
+            resultSet = null;
+        }
+        warning = w;
+    }
 
     /**
      * {@inheritDoc}
      */
-    public RowList getRowList() {
+    public XResultSet getResultSet() {
         return this.resultSet;
     } // end of getRowList
 

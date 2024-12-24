@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  *
  * @author Cedric Chantepie
  */
-public class CompositeHandler
+ public class CompositeHandler
     extends AbstractCompositeHandler<CompositeHandler> {
 
     // --- Constructors ---

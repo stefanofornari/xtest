@@ -1,5 +1,6 @@
 package ste.xtest.jdbc;
 
+import java.sql.ResultSet;
 import java.sql.SQLWarning;
 
 /**
@@ -26,11 +27,10 @@ public final class UpdateResult extends QueryResult {
     /**
      * Bulk constructor.
      */
-    private UpdateResult(final int count,
-                         final RowList resultSet,
-                         final RowList generatedKeys,
-                         final SQLWarning warning) {
-
+    public UpdateResult(final int count,
+                        final ResultSet resultSet,
+                        final RowList generatedKeys,
+                        final SQLWarning warning) {
         super(resultSet, warning);
         this.count = count;
         this.generatedKeys = generatedKeys;
@@ -39,7 +39,7 @@ public final class UpdateResult extends QueryResult {
     /**
      * With-warning constructor.
      */
-    private UpdateResult(final int count, final SQLWarning warning) {
+    public UpdateResult(final int count, final SQLWarning warning) {
         this(count, null, null, warning);
     }
 
@@ -96,7 +96,7 @@ public final class UpdateResult extends QueryResult {
         return withWarning(new SQLWarning(reason));
     }
 
-    public UpdateResult withResultSet(final RowList rows) {
+    public UpdateResult withResultSet(final ResultSet rows) {
         return new UpdateResult(count, rows, generatedKeys, warning);
     }
 
