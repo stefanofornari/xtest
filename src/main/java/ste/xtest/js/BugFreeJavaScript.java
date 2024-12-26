@@ -111,6 +111,7 @@ public abstract class BugFreeJavaScript extends BugFree {
             cx,
             new String[] {
                 "/js/xtest.init.js",
+                "/js/urlparser.js",
                 "/js/env.rhino.1.2.js",
                 "/js/sprintf-0.0.7.min.js",
                 "/js/jquery-1.11.1.min.js",
