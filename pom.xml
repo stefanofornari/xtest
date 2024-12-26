@@ -19,7 +19,7 @@
 
     <groupId>com.github.stefanofornari</groupId>
     <artifactId>xtest</artifactId>
-    <version>3.8.2</version>
+    <version>3.8.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
@@ -342,7 +342,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/xtest.git</connection>
         <url>https://github.com/stefanofornari/xtest</url>
-        <tag>xtest-3.8.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
