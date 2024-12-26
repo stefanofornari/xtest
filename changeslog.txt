@@ -1,3 +1,8 @@
+20241226
+- moved urlparse class from env.rhino.1.2.js for better testing and understanding
+- fixed issue with urls not building correctly in case of relative urls
+- released 3.8.2
+
 20241224
 - ste.xtest.jdbc major refactoring
 - added ste.xtest.jdbc.DBResultSet to wrap a generic ResultSet
