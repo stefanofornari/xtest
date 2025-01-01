@@ -191,21 +191,27 @@ public class XPreparedStatement
 
         // ---
 
+        try {
+            final QueryResult res = this.handler.whenSQLQuery(sql, params);
 
-        final QueryResult res = this.handler.whenSQLQuery(sql, params);
+            // Not an update, so no update count or generated keys
+            this.updateCount = -1;
+            this.generatedKeys = EMPTY_GENERATED_KEYS.withStatement(this);
 
-        // Not an update, so no update count or generated keys
-        this.updateCount = -1;
-        this.generatedKeys = EMPTY_GENERATED_KEYS.withStatement(this);
+            warning = res.getWarning();
+            XResultSet rs = res.getResultSet();
+            // rs.setFetchSize(maxRows); TODO: remove
+            rs.setStatement(this);
+            rs.setWarnings(warning);  // TODO: do the other way around: res.resultSet shall have warnings;
 
-        warning = res.getWarning();
-        XResultSet rs = res.getResultSet();
-        // rs.setFetchSize(maxRows); TODO: remove
-        rs.setStatement(this);
-        rs.setWarnings(warning);  // TODO: do the other way around: res.resultSet shall have warnings;
-
-        return (this.result = rs);
-    }
+            return (this.result = rs);
+        } catch (SQLException se) {
+            throw se;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new SQLException(e.getMessage(), e);
+        } // end of catch
+    } // end of executeQuery
 
     /**
      * {@inheritDoc}
@@ -260,14 +266,20 @@ public class XPreparedStatement
 
         // ---
 
-        final UpdateResult res = this.handler.whenSQLUpdate(sql, params);
-        warning = res.getWarning();
-        generatedKeys = (res.generatedKeys == null)
-            ? EMPTY_GENERATED_KEYS.withStatement(this)
-            : generateKeysResultSet(res);
-        result = res.getResultSet();
-        updateCount = res.getUpdateCount();
-    }
+        try {
+            final UpdateResult res = this.handler.whenSQLUpdate(sql, params);
+            warning = res.getWarning();
+            generatedKeys = (res.generatedKeys == null)
+                ? EMPTY_GENERATED_KEYS.withStatement(this)
+                : generateKeysResultSet(res);
+            result = res.getResultSet();
+            updateCount = res.getUpdateCount();
+        } catch (SQLException se) {
+            throw se;
+        } catch (Exception e) {
+            throw new SQLException(e.getMessage(), e);
+        } // end of catch
+    } // end of update
 
     /**
      * {@inheritDoc}
