@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2015 Stefano Fornari
+ * Copyright (C) 2025 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -75,7 +75,7 @@ public class BugFreeXMLHttpRequest extends BugFreeEnvjs {
 
         NativeArray a = (NativeArray)this.get("states");
         then(a.getLength()).isEqualTo(2);
-        then(a.get(0, null)).isEqualTo(1.0);
+        then(a.get(0, null)).isEqualTo(1);
         then(a.get(1, null)).isEqualTo(4.0);
     }
 

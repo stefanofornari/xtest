@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2014 Stefano Fornari
+ * Copyright (C) 2025 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -70,7 +70,7 @@ public class BugFreeImgLoading extends BugFreeEnvjs {
         exec("var error = false;");
         loadScript(TEST_SCRIPT_1);
         then(exec("document.getElementsByTagName('img')[0].src")).isEqualTo("loadthis.jpg");
-        then(exec("loaded.length")).isEqualTo(1.0);
+        then(exec("loaded.length")).isEqualTo(1);
         then(exec("loaded[0]")).isEqualTo("loadthis.jpg");
     }
 
@@ -84,7 +84,7 @@ public class BugFreeImgLoading extends BugFreeEnvjs {
         exec("var error = true;");
         loadScript(TEST_SCRIPT_1);
         then(exec("document.getElementsByTagName('img')[0].src")).isEqualTo("default.png");
-        then(exec("loaded.length")).isEqualTo(2.0);
+        then(exec("loaded.length")).isEqualTo(2);
         then(exec("loaded[0]")).isEqualTo("loadthis.jpg");
         then(exec("loaded[1]")).isEqualTo("default.png");
     }

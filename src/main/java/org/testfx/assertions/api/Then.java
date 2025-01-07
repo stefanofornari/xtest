@@ -22,7 +22,6 @@
 package org.testfx.assertions.api;
 
 import javafx.css.Styleable;
-import javafx.geometry.Dimension2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -32,10 +31,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextInputControl;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.stage.Window;
 import org.testfx.service.query.NodeQuery;
 
 /**
@@ -57,16 +54,6 @@ public class Then extends org.testfx.assertions.api.Assertions {
     }
 
     /**
-     * Create assertion for {@link Color}.
-     *
-     * @param actual the actual value
-     * @return the created assertion object
-     */
-    public static ColorAssert then(Color actual) {
-        return assertThat(actual);
-    }
-
-    /**
      * Create assertion for {@link ComboBox}.
      *
      * @param actual the actual value
@@ -74,16 +61,6 @@ public class Then extends org.testfx.assertions.api.Assertions {
      * @return the created assertion object
      */
     public static <T> ComboBoxAssert<T> then(ComboBox<T> actual) {
-        return assertThat(actual);
-    }
-
-    /**
-     * Create assertion for {@link Dimension2D}.
-     *
-     * @param actual the actual value
-     * @return the created assertion object
-     */
-    public static Dimension2DAssert then(Dimension2D actual) {
         return assertThat(actual);
     }
 
@@ -186,16 +163,6 @@ public class Then extends org.testfx.assertions.api.Assertions {
      * @return the created assertion object
      */
     public static TextInputControlAssert then(TextInputControl actual) {
-        return assertThat(actual);
-    }
-
-    /**
-     * Create assertion for {@link Window}.
-     *
-     * @param actual the actual value
-     * @return the created assertion object
-     */
-    public static WindowAssert then(Window actual) {
         return assertThat(actual);
     }
 

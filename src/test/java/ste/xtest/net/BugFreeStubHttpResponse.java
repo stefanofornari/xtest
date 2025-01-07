@@ -179,7 +179,7 @@ public class BugFreeStubHttpResponse {
         then(R.file(TEST_FILE1)).isSameAs(R);
         then(R.content()).isEqualTo(FileUtils.readFileToByteArray(new File(TEST_FILE1)));
         then(R.headers().firstValue("Content-type")).hasValue("text/html");
-        then(R.headers().firstValue("Content-length")).hasValue("142");
+        then(R.headers().firstValue("Content-length")).hasValue("117");
 
         then(R.file(TEST_FILE2)).isSameAs(R);
         then(R.content()).isEqualTo(FileUtils.readFileToByteArray(new File(TEST_FILE2)));

@@ -38,6 +38,8 @@ public class BugFreeEnvjs extends BugFreeJavaScript {
     public BugFreeEnvjs() throws ScriptException, IOException {
         super();
         loadScript("/js/ecma5-adapter.js");
+        loadScript("/js/jquery-1.11.1.min.js");
+        loadScript("/js/xtest.setup.js");
         loadScript("/js/angular-rhino.js");
     }
 

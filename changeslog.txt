@@ -1,3 +1,8 @@
+next
+- new xtes.web package to test web applications using webkit's rendering and
+  javascript engine
+- bumped to JavaFX 21
+
 20241226
 - moved urlparse class from env.rhino.1.2.js for better testing and understanding
 - fixed issue with urls not building correctly in case of relative urls

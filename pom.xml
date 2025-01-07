@@ -58,9 +58,9 @@
             <version>4.13.2</version>
         </dependency>
         <dependency>
-            <groupId>rhino</groupId>
-            <artifactId>js</artifactId>
-            <version>1.7R2</version>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>1.8.0</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -111,17 +111,22 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>18.0.1</version>
+            <version>21.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>21.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.testfx</groupId>
             <artifactId>testfx-core</artifactId>
-            <version>4.0.16-alpha</version>
+            <version>4.0.18</version>
         </dependency>
         <dependency>
             <groupId>org.testfx</groupId>
             <artifactId>testfx-junit</artifactId>
-            <version>4.0.15-alpha</version>
+            <version>4.0.18</version>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -144,8 +149,20 @@
         <dependency>
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-netty</artifactId>
-            <version>5.11.2</version>
+            <version>5.15.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>21.0.2</version><!-- update -->
+            <scope>test</scope>
+            <exclusions><!-- remove -->
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-base</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -187,6 +204,16 @@
                     <reuseForks>false</reuseForks>
                     <parallel>classes</parallel>
                     <threadCountClasses>1</threadCountClasses>
+                    <systemPropertyVariables>
+                        <testfx.robot>glass</testfx.robot>
+                        <testfx.headless>true</testfx.headless>
+                        <prism.order>true</prism.order>
+                        <prism.order>sw</prism.order>
+                        <prism.text>t2k</prism.text>
+                        <java.awt.headless>true</java.awt.headless>
+                        <java.util.logging.config.file>src/test/resources/logging.properties</java.util.logging.config.file>
+                        <artifactVersion>${project.version}</artifactVersion> <!-- used to make the project version available to junits -->
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 

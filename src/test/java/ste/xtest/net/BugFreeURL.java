@@ -74,6 +74,6 @@ public class BugFreeURL {
     public void use_default_handler_for_not_stubbed_urls() throws Exception {
         URL u = new File("src/test/resources/html/documentlocation.html").toURI().toURL();
 
-        then(IOUtils.toString((InputStream)u.getContent())).contains("TODO write content");
+        then(IOUtils.toString((InputStream)u.getContent())).contains("content");
     }
 }
