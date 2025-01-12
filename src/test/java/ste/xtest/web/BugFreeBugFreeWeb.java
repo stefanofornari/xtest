@@ -54,13 +54,13 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         // assuming the html has a <head> tag
         //
         loadPage("src/test/resources/html/hellowithscript1.html");
-        then((String)exec("xtest")).contains("\"matchMediaStub\"");
+        then((String) exec("xtest")).contains("\"matchMediaStub\"");
 
         //
         // assuming the html has not a <head> tag
         //
         loadPage("src/test/resources/html/hellowithscript2.html");
-        then((String)exec("xtest")).contains("\"matchMediaStub\"");
+        then((String) exec("xtest")).contains("\"matchMediaStub\"");
     }
 
     @Test
@@ -79,26 +79,25 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
             server = startClientAndServer();
 
             server.when(
-                request()
-                    .withMethod("GET")
-                    .withPath("/hello")
+                    request()
+                            .withMethod("GET")
+                            .withPath("/hello")
             ).respond(
-                response()
-                    .withStatusCode(200)
-                    .withBody("hello")
-                    .withContentType(MediaType.TEXT_PLAIN)
+                    response()
+                            .withStatusCode(200)
+                            .withBody("hello")
+                            .withContentType(MediaType.TEXT_PLAIN)
             );
 
             server.when(
-                request()
-                    .withMethod("GET")
-                    .withPath("/nowhere")
-
+                    request()
+                            .withMethod("GET")
+                            .withPath("/nowhere")
             ).respond(
-                response()
-                    .withStatusCode(404)
-                    .withBody("not found")
-                    .withContentType(MediaType.TEXT_PLAIN)
+                    response()
+                            .withStatusCode(404)
+                            .withBody("not found")
+                            .withContentType(MediaType.TEXT_PLAIN)
             );
 
             then(loadPage("http://localhost:" + server.getPort() + "/hello")).isTrue();
@@ -127,7 +126,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         // cyclycally steXTestEnv
         //
         JSONAssertions.then(
-            new JSONObject((String)exec("JSON.stringify(" + XTEST_ENV_VAR + ")"))
+                new JSONObject((String) exec("JSON.stringify(" + XTEST_ENV_VAR + ")"))
         ).contains("matchMediaStub");
     }
 
@@ -146,18 +145,97 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
      * <code>engine.executeScript()</code> returns an Object that can be either
      * a primitive java type like Integer and String or a JSObject. The latter
      * is tricky because a JSObject can be manipulated only within the main FX
-     * thread. To make it handier for most of the cases, instead of returning
-     * a JSObject we want a JSONObject.
+     * thread. To make it handier for most of the cases, instead of returning a
+     * JSObject we want a JSONObject.
      */
     @Test
     public void exec_returns_a_JSONObjects() throws Exception {
         final String PAGE = "src/test/resources/html/hello.html";
         loadPage(PAGE); // any page is ok
 
-        JSONObject o = (JSONObject)exec("document");
+        JSONObject o = (JSONObject) exec("document");
         JSONAssertions.then(o).contains("location");
         o = o.getJSONObject("location");
         JSONAssertions.then(o).containsEntry("pathname", "blank");
+    }
+
+    @Test
+    public void metch_media_stub_is_installed() throws Exception {
+        loadPage("src/test/resources/html/hello.html");
+
+        exec(XTEST_ENV_VAR + ".matchMediaStub.setMedia({ width: '600px' });");
+        then((boolean) exec("window.matchMedia('(min-width: 500px)').matches")).isTrue();
+        then((boolean) exec("window.matchMedia('(min-width: 700px)').matches")).isFalse();
+    }
+
+    @Test
+    public void metch_media_stub_listener() throws Exception {
+        loadPage("src/test/resources/html/hello.html");
+        darkMode(true);
+        exec("var v=0; window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { v=1 })");
+        darkMode(false);
+        then(exec("v")).isEqualTo(1);
+    }
+
+    @Test
+    public void capture_console_log() {
+        loadPage("src/test/resources/html/hello.html");
+        exec("""
+            console.log('log 1');
+            console.info('log at info 1');
+            console.warn('log at warning 1');
+            console.error('log at error 1');
+            console.debug('log at debug 1');
+        """);
+        then((String) exec("__XTEST__.log")) // todo add log();
+                .contains("L log 1\n")
+                .contains("I log at info 1\n")
+                .contains("W log at warning 1\n")
+                .contains("E log at error 1\n")
+                .contains("D log at debug 1\n");
+
+        exec("""
+            console.log('log 2');
+            console.info('log at info 2');
+            console.warn('log at warning 2');
+            console.error('log at error 2');
+            console.debug('log at debug 2');
+        """);
+        then((String) exec("__XTEST__.log"))
+                .contains("L log 2\n")
+                .contains("I log at info 2\n")
+                .contains("W log at warning 2\n")
+                .contains("E log at error 2\n")
+                .contains("D log at debug 2\n");
+    }
+
+    @Test
+    public void date_object_stub() {
+        loadPage("src/test/resources/html/hello.html");
+
+        then(exec("DateStub.fixedDate")).isNull();  // it means also the stub
+        // is installed
+
+        //
+        // regardless current time, it returns the provided object
+        //
+        then(exec("""
+            DateStub.fixedDate=new Date(1736676010098);
+            `${new Date().getTime()}`
+        """)).isEqualTo("1736676010098");
+
+        //
+        // same if called again
+        //
+        then(exec("`${new Date().getTime()}`")).isEqualTo("1736676010098");
+
+        //
+        // default behavior if fixedDate is cleared
+        //
+        then(exec("""
+            DateStub.fixedDate = null;
+            `${new Date().getTime()}`
+        """)).isNotEqualTo("1736676010098");
     }
 
     @Test
@@ -184,7 +262,6 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         //
         // val() is the content for element that have an input
         //
-
         then(val("#textarea1").trim()).isEqualTo("textarea content");
         then(val("#testdiv1")).isEqualTo("");  // not an input
         then(val("#nothing")).isEqualTo("undefined"); // nothing
@@ -211,11 +288,11 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         loadPage("src/test/resources/html/hello.html");
 
         darkMode(true);
-        then((boolean)exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
-        then((boolean)exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
         darkMode(false);
-        then((boolean)exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
-        then((boolean)exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
     }
 
     @Test
@@ -231,55 +308,5 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         then(visible("#textarea1")).isFalse();
         then(visible("#nothing")).isFalse(); // nothing
         then(visible(null)).isFalse(); // null
-    }
-
-    @Test
-    public void metch_media_stub_is_installed() throws Exception {
-        loadPage("src/test/resources/html/hello.html");
-
-        exec(XTEST_ENV_VAR + ".matchMediaStub.setMedia({ width: '600px' });");
-        then((boolean)exec("window.matchMedia('(min-width: 500px)').matches")).isTrue();
-        then((boolean)exec("window.matchMedia('(min-width: 700px)').matches")).isFalse();
-    }
-
-    @Test
-    public void metch_media_stub_listener() throws Exception {
-        loadPage("src/test/resources/html/hello.html");
-        darkMode(true);
-        exec("var v=0; window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { v=1 })");
-        darkMode(false);
-        then(exec("v")).isEqualTo(1);
-    }
-
-    @Test
-    public void capture_console_log() {
-        loadPage("src/test/resources/html/hello.html");
-        exec("""
-            console.log('log 1');
-            console.info('log at info 1');
-            console.warn('log at warning 1');
-            console.error('log at error 1');
-            console.debug('log at debug 1');
-        """);
-        then((String)exec("__XTEST__.log"))  // todo add log();
-            .contains("L log 1\n")
-            .contains("I log at info 1\n")
-            .contains("W log at warning 1\n")
-            .contains("E log at error 1\n")
-            .contains("D log at debug 1\n");
-
-        exec("""
-            console.log('log 2');
-            console.info('log at info 2');
-            console.warn('log at warning 2');
-            console.error('log at error 2');
-            console.debug('log at debug 2');
-        """);
-        then((String)exec("__XTEST__.log"))
-            .contains("L log 2\n")
-            .contains("I log at info 2\n")
-            .contains("W log at warning 2\n")
-            .contains("E log at error 2\n")
-            .contains("D log at debug 2\n");
     }
 }

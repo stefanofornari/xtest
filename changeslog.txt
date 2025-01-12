@@ -4,6 +4,7 @@ next
 - added xtest.ste.web.WebFiddle, an up to open JSFiddle directly in a WebView
   (useful to use exect JS engine provided by WebEngine)
 - bumped to JavaFX 21
+- added stub for Date object
 
 20241226
 - moved urlparse class from env.rhino.1.2.js for better testing and understanding

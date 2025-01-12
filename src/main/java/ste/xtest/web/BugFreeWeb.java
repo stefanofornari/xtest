@@ -91,6 +91,8 @@ public class BugFreeWeb extends ApplicationTest {
         try {
             setup.append(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
             setup.append("\n");
+            setup.append(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
+            setup.append("\n");
             setup.append(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
             setup.append("</script>\n");
         } catch (IOException x) {

@@ -62,3 +62,4 @@ const consoleLogging = (function(srdConsole){
 }(window.console));
 
 window.console = consoleLogging;
+Date = DateStub;
