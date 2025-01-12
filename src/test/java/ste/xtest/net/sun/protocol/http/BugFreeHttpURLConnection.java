@@ -52,7 +52,7 @@ public class BugFreeHttpURLConnection {
 
     @Before
     public void before() {
-         server = startClientAndServer(43210);
+         server = startClientAndServer();
     }
 
     @After
@@ -75,7 +75,7 @@ public class BugFreeHttpURLConnection {
 
         StringBuilder response = new StringBuilder();
         try {
-            HttpURLConnection c = new HttpURLConnection(new URL("http://localhost:43210/test1"), new Handler());
+            HttpURLConnection c = new HttpURLConnection(new URL("http://localhost:" + server.getPort() + "/test1"), new Handler());
             BufferedReader in = new BufferedReader(new InputStreamReader(c.getInputStream()));
 
             String inputLine;
