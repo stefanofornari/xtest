@@ -49,7 +49,8 @@ public class BugFreePausableThreadPoolExecutor {
         new WaitFor(50); then(i[0]).isZero();
 
         tp.go();
-        new WaitFor(10); then(i[0]).isEqualTo(1);
+        new WaitFor(100); then(i[0]).isEqualTo(1); // it may take some time
+                                                   // to be scheduled by the JVM
 
         //
         // Let's do it again to make sure it is reusable
