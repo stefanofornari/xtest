@@ -1,6 +1,8 @@
 next
-- new xtes.web package to test web applications using webkit's rendering and
+- new xtest.web package to test web applications using webkit's rendering and
   javascript engine
+- added xtest.ste.web.WebFiddle, an up to open JSFiddle directly in a WebView
+  (useful to use exect JS engine provided by WebEngine)
 - bumped to JavaFX 21
 
 20241226
