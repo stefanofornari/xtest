@@ -23,6 +23,7 @@ package ste.xtest.web;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +38,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.testfx.framework.junit.ApplicationTest;
@@ -47,11 +49,13 @@ import org.w3c.dom.Document;
  *
  */
 public class BugFreeWeb extends ApplicationTest {
-    public static final String XTEST_ENV_VAR = "steXTestEnv";
+    public static final String XTEST_ENV_VAR = "__XTEST__";
 
-    WebEngine engine = null;
-    CountDownLatch latch = null;
-    boolean loaded[] = new boolean[1];
+    protected WebEngine engine = null;
+    protected CountDownLatch latch = null;
+    protected boolean loaded[] = new boolean[1];
+
+    protected String content = null; // last loaded content
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -64,16 +68,7 @@ public class BugFreeWeb extends ApplicationTest {
 
         final Worker w = (Worker)engine.getLoadWorker();
         w.stateProperty().addListener((observable, oldValue, newValue) -> {
-            //System.out.println(observable + " " + oldValue + " " + newValue);
-            if (loaded[0] = (newValue == Worker.State.SUCCEEDED)) {
-                try {
-                    engine.executeScript(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
-                    engine.executeScript(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
-                } catch (IOException x) {
-                    x.printStackTrace();
-                    throw new RuntimeException(x);
-                }
-            }
+            loaded[0] = (newValue == Worker.State.SUCCEEDED);
             if (loaded[0] || (newValue == Worker.State.FAILED)) {
                 latch.countDown();
             }
@@ -83,19 +78,78 @@ public class BugFreeWeb extends ApplicationTest {
         stage.show();
     }
 
-    public boolean loadPage(String page) {
+    public boolean loadPage(final String page) {
         latch = new CountDownLatch(1);
 
-        runLater(() -> {
-            engine.load(url(page));
-        });
+        final URI uri = URI.create(url(page));
+        final String baseURL = String.format(
+            "%s://%s%s/",
+            uri.getScheme(), StringUtils.defaultString(uri.getRawAuthority(), ""), new File(uri.getPath()).getParent()
+        );
 
+        final StringBuilder setup = new StringBuilder("<head><script>");
         try {
-            latch.await(5, TimeUnit.SECONDS);
-        } catch (InterruptedException x) {
+            setup.append(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
+            setup.append("\n");
+            setup.append(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
+            setup.append("</script>\n");
+        } catch (IOException x) {
+            x.printStackTrace();
+        }
+
+        try (InputStream in = URI.create(url(page)).toURL().openStream()) {
+            //
+            // Add the script as first thing in <head> if there is a <head> tag,
+            // or att the <head> section if it does not already exist
+            //
+            String content = IOUtils.toString(in, "UTF8");
+            if (content.contains("head")) {
+                content = content.replace("<head>", setup.toString());
+            } else if (content.contains("<html>")) {
+                setup.insert(0, "<html><head>");
+                setup.append("</head>");
+                content = content.replace("<html>", setup.toString());
+            } else {
+                content = "<html>" + setup.toString() + content + "</html>";
+            }
+
+            //
+            // If the page does not contain a base URL, set it to the parent of the
+            // provided URL. This is to make sure when the content is loaded,
+            // relative urls are still correctly resolved
+            //
+            if (!content.contains("<base ")) {
+                content = content.replace(
+                    "<head>",
+                    String.format("<head><base href=\"%s\">", baseURL)
+                );
+            }
+
+            final String html = content;
+            runLater(() -> {
+                engine.loadContent(html);
+                this.content = html;
+            });
+
+            try {
+                latch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException x) {
+            }
+        } catch (IOException x) {
+            x.printStackTrace();
+            loaded[0] = false;
         }
 
         return loaded[0];
+    }
+
+    public void darkMode(boolean darkMode) {
+        exec(
+            String.format(
+                "%s.matchMediaStub.setMedia({'prefers-color-scheme': '%s'})",
+                XTEST_ENV_VAR, (darkMode) ? "dark" : "light"
+            )
+        );
     }
 
     public String body() {
@@ -123,6 +177,7 @@ public class BugFreeWeb extends ApplicationTest {
     }
 
     /**
+     * Returns the runtime value of the given element
      *
      * @param selector the jquery selector of the element to get the val from
      *
@@ -134,10 +189,36 @@ public class BugFreeWeb extends ApplicationTest {
                                   : (String)exec("$('" + selector + "').val()");
     }
 
+    /**
+     * Returns if the given element is visible or not
+     *
+     * @param selector the jquery selector of the element to get the val from
+     *
+     * @return the same as the jquery call $(selector).val()
+     */
     public boolean visible(final String selector) {
         checkJQuery();
         return (selector == null) ? false
                                   : (boolean)exec("$('" + selector + "').is(':visible')");
+    }
+
+    /**
+     * Returns if the given element is visible or not
+     *
+     * @param selector the jquery selector of the element to get the val from
+     *
+     * @return the same as the jquery call $(selector).val()
+     */
+    public String[] classes(final String selector) {
+        checkJQuery();
+
+        final String list = (String)exec("$('" + selector + "').attr('class')");
+
+        if ("undefined".equals(list) || list.isBlank()) {
+            return new String[0];
+        }
+
+        return list.split("\\s+");
     }
 
     public Object exec(final String script) {

@@ -43,6 +43,26 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         then(body()).isNull();
     }
 
+    /**
+     * Any XTest setup or stub scripts shall be executed before any other
+     * javascript code in page.
+     *
+     */
+    @Test
+    public void setup_before__scripts() {
+        //
+        // assuming the html has a <head> tag
+        //
+        loadPage("src/test/resources/html/hellowithscript1.html");
+        then((String)exec("xtest")).contains("\"matchMediaStub\"");
+
+        //
+        // assuming the html has not a <head> tag
+        //
+        loadPage("src/test/resources/html/hellowithscript2.html");
+        then((String)exec("xtest")).contains("\"matchMediaStub\"");
+    }
+
     @Test
     public void load_page_from_file() throws Exception {
         then(loadPage("src/test/resources/html/documentlocation.html")).isTrue();
@@ -84,8 +104,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
             then(loadPage("http://localhost:" + server.getPort() + "/hello")).isTrue();
             then(body().trim()).isEqualTo("hello");
 
-            then(loadPage("http://localhost:" + server.getPort() + "/nowhere")).isTrue();
-            then(body().trim()).isEqualTo("not found");
+            then(loadPage("http://localhost:" + server.getPort() + "/nowhere")).isFalse();
         } finally {
             if (server != null) {
                 server.stop();
@@ -138,7 +157,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         JSONObject o = (JSONObject)exec("document");
         JSONAssertions.then(o).contains("location");
         o = o.getJSONObject("location");
-        JSONAssertions.then(o).containsEntry("pathname", "/home/ste/Projects/xtest/src/test/resources/html/hello.html");
+        JSONAssertions.then(o).containsEntry("pathname", "blank");
     }
 
     @Test
@@ -173,6 +192,33 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
     }
 
     @Test
+    public void classes_returns_the_classes_of_an_element() {
+        thenThrownBy(() -> {
+            classes("#something");
+        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
+
+        loadPage("src/test/resources/html/classes.html");
+
+        then(classes("body")).containsExactlyInAnyOrder("class1", "class2");
+        then(classes("#oneclass")).containsExactly("class3");
+        then(classes("#noclass")).isEmpty();
+        then(classes("#emptyclass")).isEmpty();
+        then(classes("#blankclass")).isEmpty();
+    }
+
+    @Test
+    public void darkMode_sets_media_prefers_color_scheme() {
+        loadPage("src/test/resources/html/hello.html");
+
+        darkMode(true);
+        then((boolean)exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
+        then((boolean)exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
+        darkMode(false);
+        then((boolean)exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
+        then((boolean)exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
+    }
+
+    @Test
     public void visible_returns_if_an_element_is_visible() {
         thenThrownBy(() -> {
             visible("#something");
@@ -185,5 +231,55 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         then(visible("#textarea1")).isFalse();
         then(visible("#nothing")).isFalse(); // nothing
         then(visible(null)).isFalse(); // null
+    }
+
+    @Test
+    public void metch_media_stub_is_installed() throws Exception {
+        loadPage("src/test/resources/html/hello.html");
+
+        exec(XTEST_ENV_VAR + ".matchMediaStub.setMedia({ width: '600px' });");
+        then((boolean)exec("window.matchMedia('(min-width: 500px)').matches")).isTrue();
+        then((boolean)exec("window.matchMedia('(min-width: 700px)').matches")).isFalse();
+    }
+
+    @Test
+    public void metch_media_stub_listener() throws Exception {
+        loadPage("src/test/resources/html/hello.html");
+        darkMode(true);
+        exec("var v=0; window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { v=1 })");
+        darkMode(false);
+        then(exec("v")).isEqualTo(1);
+    }
+
+    @Test
+    public void capture_console_log() {
+        loadPage("src/test/resources/html/hello.html");
+        exec("""
+            console.log('log 1');
+            console.info('log at info 1');
+            console.warn('log at warning 1');
+            console.error('log at error 1');
+            console.debug('log at debug 1');
+        """);
+        then((String)exec("__XTEST__.log"))  // todo add log();
+            .contains("L log 1\n")
+            .contains("I log at info 1\n")
+            .contains("W log at warning 1\n")
+            .contains("E log at error 1\n")
+            .contains("D log at debug 1\n");
+
+        exec("""
+            console.log('log 2');
+            console.info('log at info 2');
+            console.warn('log at warning 2');
+            console.error('log at error 2');
+            console.debug('log at debug 2');
+        """);
+        then((String)exec("__XTEST__.log"))
+            .contains("L log 2\n")
+            .contains("I log at info 2\n")
+            .contains("W log at warning 2\n")
+            .contains("E log at error 2\n")
+            .contains("D log at debug 2\n");
     }
 }

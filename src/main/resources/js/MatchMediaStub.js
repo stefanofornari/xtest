@@ -49,7 +49,7 @@ class MatchMediaStub {
 
     #parseFeature(expr) {
         const feature = {};
-        const regExp = /\s*([a-z-]+)\s*:\s*((?:[a-z-]+|"[^"]+"|'[^']+'|\([^\)]+\)|\d+(?:\.\d+)?[a-z]*)+)\s*/;
+        const regExp = /\s*((min|max)-)?([a-z-]+)\s*:\s*((?:[a-z-]+|"[^"]+"|'[^']+'|\([^\)]+\)|\d+(?:\.\d+)?[a-z]*)+)\s*/;
         const match = regExp.exec(expr);
 
         if (!match) {
@@ -57,8 +57,9 @@ class MatchMediaStub {
             return feature;
         }
 
-        feature.modifier = match[1];
-        feature.value = this.#stripQuotes(match[2]);
+        feature.modifier = match[2];
+        feature.name = match[3];
+        feature.value = this.#stripQuotes(match[4]);
 
         return feature;
     }
@@ -78,8 +79,8 @@ class MatchMediaStub {
             const feature = this.#parseFeature(expressionMatch);
 
             const expressions = [{
-                feature: feature.modifier || feature.value,
-                modifier: feature.modifier ? undefined : 'min',
+                feature: feature.name || feature.modifier,
+                modifier: feature.modifier ? feature.modifier : undefined,
                 value: feature.value
             }];
 
@@ -279,23 +280,24 @@ class MatchMediaStub {
     }
 
     setMedia(media) {
-        const changedFeatures = new Set();
+        let changedFeatures = new Array();  // we should use Set but in some
+                                            // webkit versions it does not work
         Object.keys(media).forEach((feature) => {
-            changedFeatures.add(feature);
+            if (changedFeatures.indexOf(feature) < 0) {
+                changedFeatures.push(feature);
+            }
             this.state[feature] = media[feature];
         });
 
         for (const [MQL, cache] of this.MQLs) {
             let found = false;
             for (const feature of cache.features) {
-                if (changedFeatures.has(feature)) {
+                if (changedFeatures.indexOf(feature) >= 0) {
                     found = true;
                     break;
                 }
             }
-            if (!found) {
-                continue;
-            }
+
             const matches = this.match(MQL.media, this.state);
             if (matches === cache.previousMatched) {
                 continue;

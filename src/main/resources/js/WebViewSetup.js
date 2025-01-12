@@ -20,12 +20,45 @@
  * MA 02110-1301 USA.
  */
 
-var steXTestEnv = {
+var __XTEST__ = {
     matchMediaStub: new MatchMediaStub(),
-    lastResult: null
+    lastResult: null,
+    log: ""
 };
 
-window.matchMedia = (media) => {
-    steXTestEnv.matchMediaStub.matchMedia(media);
+window.matchMedia = (query) => {
+    return __XTEST__.matchMediaStub.matchMedia(query);
 };
 
+//
+// capturing console messages
+//
+const consoleLogging = (function(srdConsole){
+    return {
+        out: function(severity, arguments) {
+            __XTEST__.log += `${severity} ${Array.from(arguments).join(" ")}\n`
+        },
+        log: function(...text){
+            srdConsole.log(...text);
+            this.out("L", text)
+        },
+        info: function (...text) {
+            srdConsole.info(...text);
+            this.out("I", text)
+        },
+        warn: function (...text) {
+            srdConsole.warn(...text);
+            this.out("W", text)
+        },
+        error: function (...text) {
+            srdConsole.error(...text);
+            this.out("E", text)
+        },
+        debug: function (...text) {
+            srdConsole.debug(...text);
+            this.out("D", text)
+        }
+    };
+}(window.console));
+
+window.console = consoleLogging;

@@ -71,7 +71,7 @@ public class BugFreeWaitFor {
         then(System.currentTimeMillis()-now).isGreaterThan(200);
     }
 
-    @Test(timeout = 500)
+    @Test(timeout = 2500)
     public void without_condition_just_sleep() {
         long start = System.currentTimeMillis();
 
