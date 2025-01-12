@@ -190,6 +190,17 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>ste.xtest.web.WebFiddle</mainClass>
+                    <options>
+                        <option>-Djava.util.logging.config.file=src/main/resources/logging.properties</option>
+                    </options>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
