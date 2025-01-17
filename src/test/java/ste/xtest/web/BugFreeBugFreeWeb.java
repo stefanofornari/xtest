@@ -285,12 +285,14 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void darkMode_sets_media_prefers_color_scheme() {
+        initialMedia("{'prefers-color-scheme': 'light'}");
         loadPage("src/test/resources/html/hello.html");
 
-        darkMode(true);
+        then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
+        darkMode(true); then(media).isEqualTo("{'prefers-color-scheme': 'dark'}");
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
-        darkMode(false);
+        darkMode(false); then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
     }

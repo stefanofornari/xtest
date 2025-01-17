@@ -21,7 +21,7 @@
  */
 
 var __XTEST__ = {
-    matchMediaStub: new MatchMediaStub(),
+    matchMediaStub: null,
     lastResult: null,
     log: ""
 };

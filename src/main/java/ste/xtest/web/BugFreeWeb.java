@@ -54,6 +54,7 @@ public class BugFreeWeb extends ApplicationTest {
     protected WebEngine engine = null;
     protected CountDownLatch latch = null;
     protected boolean loaded[] = new boolean[1];
+    protected String media = null;
 
     protected String content = null; // last loaded content
 
@@ -94,6 +95,10 @@ public class BugFreeWeb extends ApplicationTest {
             setup.append(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
             setup.append("\n");
             setup.append(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
+            setup.append("\n");
+            setup.append(XTEST_ENV_VAR).append(".matchMediaStub = new MatchMediaStub(")
+                .append((media != null) ? media : "{}").append(");");
+
             setup.append("</script>\n");
         } catch (IOException x) {
             x.printStackTrace();
@@ -145,13 +150,17 @@ public class BugFreeWeb extends ApplicationTest {
         return loaded[0];
     }
 
+    public void initialMedia(final String media) {
+        this.media = media;
+    }
+
     public void darkMode(boolean darkMode) {
-        exec(
-            String.format(
-                "%s.matchMediaStub.setMedia({'prefers-color-scheme': '%s'})",
-                XTEST_ENV_VAR, (darkMode) ? "dark" : "light"
-            )
-        );
+        final String newMedia =
+            String.format("{'prefers-color-scheme': '%s'}", (darkMode) ? "dark" : "light");
+
+        exec(XTEST_ENV_VAR + ".matchMediaStub.setMedia(" + newMedia + ")");
+
+        media = newMedia;
     }
 
     public String body() {
