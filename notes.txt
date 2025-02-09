@@ -1,0 +1,8 @@
+Use WebComponent?
+-----------------
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_components
+- https://hartenfeller.dev/blog/web-components-step-by-step
+- check if supported by Tesla browser
+- probably not as it makes quite difficult to general styles when using shadow
+  DOM;
