@@ -21,11 +21,13 @@
  */
 package ste.xtest.web;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -36,11 +38,16 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import netscape.javascript.JSObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.FileUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
 import org.testfx.framework.junit.ApplicationTest;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 import org.w3c.dom.Document;
@@ -49,6 +56,7 @@ import org.w3c.dom.Document;
  *
  */
 public class BugFreeWeb extends ApplicationTest {
+
     public static final String XTEST_ENV_VAR = "__XTEST__";
 
     protected WebEngine engine = null;
@@ -58,16 +66,65 @@ public class BugFreeWeb extends ApplicationTest {
 
     protected String content = null; // last loaded content
 
+    final protected List<Throwable> errors = new ArrayList();
+
+    protected LocalFileServer localFileServer = null;
+
+    private Path localFileServerRoot = null;
+
+    public BugFreeWeb() {
+        try {
+            //
+            // Create a LocalFileServer serving from a temporary directory
+            //
+            localFileServerRoot = Files.createTempDirectory("xtest-http-root");
+            localFileServer = new LocalFileServer(
+                localFileServerRoot.toString(),
+                "/js/MatchMediaStub.js", "/js/DateStub.js", "/js/WebViewSetup.js"
+            );
+
+            //
+            // Let's make sure the directory is deleted at JVM shutdown
+            //
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    FileUtils.deleteDirectory(localFileServerRoot.toFile());
+                } catch (IOException x) {
+                    x.printStackTrace();
+                }
+            }));
+
+            //
+            // Start listening
+            //
+            localFileServer.start();
+        } catch (IOException x) {
+            x.printStackTrace();
+        }
+    }
+
+    @Before
+    public void before() throws Exception {
+        errors.clear();
+    }
+
+    @After
+    public void after() {
+        if (!errors.isEmpty()) {
+            System.out.println("ERRORS\n----------\n" + errors + "\n----------");
+        }
+        printConsole();
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
         WebView web = new WebView();
         engine = web.getEngine();
         engine.setOnError((error) -> {
-            System.out.println("ERROR: " + error);  // do something more interesting!
-            error.getException().printStackTrace();
+            errors.add(error.getException());
         });
 
-        final Worker w = (Worker)engine.getLoadWorker();
+        final Worker w = (Worker) engine.getLoadWorker();
         w.stateProperty().addListener((observable, oldValue, newValue) -> {
             loaded[0] = (newValue == Worker.State.SUCCEEDED);
             if (loaded[0] || (newValue == Worker.State.FAILED)) {
@@ -79,73 +136,33 @@ public class BugFreeWeb extends ApplicationTest {
         stage.show();
     }
 
+    /**
+     * Load the provided resource after injecting the framework stubs/mocks and
+     * setup script.
+     *
+     * To do so, the resource is directly read from the provided URL, xtest
+     * scripts are injected in the content and saved in a file with the same
+     * name and prefix xtest-. Finally, the modified resource is loaded in the
+     * WebEngine.
+     *
+     * @param page url of the resource to load
+     *
+     * @return true if the resource successfully loaded, false otherwse
+     */
     public boolean loadPage(final String page) {
         latch = new CountDownLatch(1);
 
-        final URI uri = URI.create(url(page));
-        final String baseURL = String.format(
-            "%s://%s%s/",
-            uri.getScheme(), StringUtils.defaultString(uri.getRawAuthority(), ""), new File(uri.getPath()).getParent()
-        );
+        runLater(() -> {
+            engine.load(url(page));
+        });
 
-        final StringBuilder setup = new StringBuilder("<head><script>");
         try {
-            setup.append(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
-            setup.append("\n");
-            setup.append(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
-            setup.append("\n");
-            setup.append(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
-            setup.append("\n");
-            setup.append(XTEST_ENV_VAR).append(".matchMediaStub = new MatchMediaStub(")
-                .append((media != null) ? media : "{}").append(");");
+            latch.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException x) { }
 
-            setup.append("</script>\n");
-        } catch (IOException x) {
-            x.printStackTrace();
-        }
-
-        try (InputStream in = URI.create(url(page)).toURL().openStream()) {
-            //
-            // Add the script as first thing in <head> if there is a <head> tag,
-            // or att the <head> section if it does not already exist
-            //
-            String content = IOUtils.toString(in, "UTF8");
-            if (content.contains("head")) {
-                content = content.replace("<head>", setup.toString());
-            } else if (content.contains("<html>")) {
-                setup.insert(0, "<html><head>");
-                setup.append("</head>");
-                content = content.replace("<html>", setup.toString());
-            } else {
-                content = "<html>" + setup.toString() + content + "</html>";
-            }
-
-            //
-            // If the page does not contain a base URL, set it to the parent of the
-            // provided URL. This is to make sure when the content is loaded,
-            // relative urls are still correctly resolved
-            //
-            if (!content.contains("<base ")) {
-                content = content.replace(
-                    "<head>",
-                    String.format("<head><base href=\"%s\">", baseURL)
-                );
-            }
-
-            final String html = content;
-            runLater(() -> {
-                engine.loadContent(html);
-                this.content = html;
-            });
-
-            try {
-                latch.await(5, TimeUnit.SECONDS);
-            } catch (InterruptedException x) {
-            }
-        } catch (IOException x) {
-            x.printStackTrace();
-            loaded[0] = false;
-        }
+        runLater(() -> {
+            this.content = documentContent(engine.getDocument());
+        });
 
         return loaded[0];
     }
@@ -155,8 +172,8 @@ public class BugFreeWeb extends ApplicationTest {
     }
 
     public void darkMode(boolean darkMode) {
-        final String newMedia =
-            String.format("{'prefers-color-scheme': '%s'}", (darkMode) ? "dark" : "light");
+        final String newMedia
+                = String.format("{'prefers-color-scheme': '%s'}", (darkMode) ? "dark" : "light");
 
         exec(XTEST_ENV_VAR + ".matchMediaStub.setMedia(" + newMedia + ")");
 
@@ -184,7 +201,7 @@ public class BugFreeWeb extends ApplicationTest {
     public String text(final String selector) throws IllegalStateException {
         checkJQuery();
         return (selector == null) ? ""
-                                  : (String)exec("$('" + selector + "').text()");
+                : (String) exec("$('" + selector + "').text()");
     }
 
     /**
@@ -197,7 +214,7 @@ public class BugFreeWeb extends ApplicationTest {
     public String val(final String selector) {
         checkJQuery();
         return (selector == null) ? ""
-                                  : (String)exec("$('" + selector + "').val()");
+                : (String) exec("$('" + selector + "').val()");
     }
 
     /**
@@ -210,7 +227,7 @@ public class BugFreeWeb extends ApplicationTest {
     public boolean visible(final String selector) {
         checkJQuery();
         return (selector == null) ? false
-                                  : (boolean)exec("$('" + selector + "').is(':visible')");
+                : (boolean) exec("$('" + selector + "').is(':visible')");
     }
 
     /**
@@ -223,7 +240,7 @@ public class BugFreeWeb extends ApplicationTest {
     public String[] classes(final String selector) {
         checkJQuery();
 
-        final String list = (String)exec("$('" + selector + "').attr('class')");
+        final String list = (String) exec("$('" + selector + "').attr('class')");
 
         if ("undefined".equals(list) || list.isBlank()) {
             return new String[0];
@@ -232,18 +249,32 @@ public class BugFreeWeb extends ApplicationTest {
         return list.split("\\s+");
     }
 
+    /**
+     * Trigger a click on the given element
+     *
+     * @param selector the jquery selector of the element to get the val from
+     *
+     * @return the same as the jquery call $(selector).click()
+     */
+    public void click(final String selector) {
+        checkJQuery();
+        exec("$('" + selector + "').click()");
+    }
+
+    // ----------------------------------------------------------------- storage
+    // ------------------------------------------------------------------ script
     public Object exec(final String script) {
         final Object[] result = new Object[1];
 
         runLater(() -> {
             result[0] = engine.executeScript(script);
             if (result[0] instanceof JSObject) {
-                JSObject env = (JSObject)engine.executeScript(XTEST_ENV_VAR);
+                JSObject env = (JSObject) engine.executeScript(XTEST_ENV_VAR);
                 env.setMember("lastResult", result[0]);
-                String lastResult = (String)engine.executeScript("JSON.stringify(" + XTEST_ENV_VAR + ".lastResult)");
+                String lastResult = (String) engine.executeScript("JSON.stringify(" + XTEST_ENV_VAR + ".lastResult)");
                 try {
                     result[0] = ((lastResult != null) && (lastResult.length() > 0) && (lastResult.charAt(0) == '{'))
-                              ? new JSONObject(lastResult) : lastResult;
+                            ? new JSONObject(lastResult) : lastResult;
                 } catch (JSONException x) {
                     //
                     // if for any reasons stringify does not return proper JSON
@@ -257,14 +288,22 @@ public class BugFreeWeb extends ApplicationTest {
         return result[0];
     }
 
-    // --------------------------------------------------------- private methods
+    public String console() {
+        return (String) exec("__XTEST__.log");
+    }
 
+    public void printConsole() {
+        System.out.println(console());
+    }
+
+    // --------------------------------------------------------- private methods
     private void runLater(final Runnable r) {
         Platform.runLater(() -> {
-            try { r.run(); }
-            catch (Throwable t) {
+            try {
+                r.run();
+            } catch (Throwable t) {
                 engine.getOnError().handle(
-                    new WebErrorEvent(engine, WebErrorEvent.ANY, "error in FX thread", t)
+                        new WebErrorEvent(engine, WebErrorEvent.ANY, "error in FX thread", t)
                 );
             }
         });
@@ -279,21 +318,47 @@ public class BugFreeWeb extends ApplicationTest {
         }
     }
 
-    private String url(final String page) {
-        URI uri = URI.create(page);
-        if (uri.getScheme() == null) {
+    private String url(final String page) throws IllegalArgumentException {
+        final URI uri = URI.create(page);
+        final String scheme = uri.getScheme();
+        final String query = uri.getRawQuery();
+
+        String url = null;
+        if (scheme == null) {
             //
             // relative filename
             //
-            uri = new File(page).getAbsoluteFile().toURI();
+            url = String.format("http://localhost:%d/%s", localFileServer.server.getAddress().getPort(), page);
+        } else {
+            //
+            // file:// is not supported because it can be notrelativized to the local
+            // file server root
+            //
+            if (scheme.equalsIgnoreCase("file")) {
+                throw new IllegalArgumentException("protocole scheme file: is not supported");
+            }
+
+            url = uri.toString();
         }
 
-        return uri.toString();
+        return url + ((query == null) ? "?" : "&") + "__XTEST__";
     }
 
     private void checkJQuery() throws IllegalAccessError {
         if (exec("$") == null) {
             throw new IllegalStateException("jQuery not found");
         }
+    }
+
+    private String documentContent(Document document) {
+        StringWriter sw = new StringWriter();
+        try {
+            TransformerFactory.newInstance().newTransformer().transform(
+                new DOMSource(document), new StreamResult(sw)
+            );
+        } catch (TransformerException x) {
+            sw.append(x.getMessage());
+        }
+        return sw.toString();
     }
 }

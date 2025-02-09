@@ -32,4 +32,14 @@
             <arguments>-DskipTests</arguments>
         </properties>
     </action>
+    <action>
+            <actionName>CUSTOM-WebFiddle</actionName>
+            <displayName>WebFiddle</displayName>
+            <goals>
+                <goal>javafx:run</goal>
+            </goals>
+            <properties>
+                <mainClass>ste.xtest.web.WebFiddle</mainClass>
+            </properties>
+        </action>
 </actions>

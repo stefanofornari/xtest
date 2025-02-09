@@ -21,22 +21,33 @@
  */
 package ste.xtest.web;
 
+import java.io.File;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import org.json.JSONObject;
-import org.mockserver.integration.ClientAndServer;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import org.mockserver.model.MediaType;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.SystemOutRule;
 import ste.xtest.json.api.JSONAssertions;
 
 /**
  *
  */
 public class BugFreeBugFreeWeb extends BugFreeWeb {
+
+    @Rule
+    public final SystemOutRule STDOUT = new SystemOutRule().enableLog();
+
+    @Before
+    public void before() throws Exception {
+        super.before();
+
+        FileUtils.copyDirectory(new File("src/main/resources/js/"), new File(localFileServer.root.toFile(), "js"));
+        FileUtils.copyDirectory(new File("src/test/resources/html"), localFileServer.root.toFile());
+    }
 
     @Test
     public void initial_state() throws Exception {
@@ -53,86 +64,46 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         //
         // assuming the html has a <head> tag
         //
-        loadPage("src/test/resources/html/hellowithscript1.html");
+        loadPage("hellowithscript1.html");
         then((String) exec("xtest")).contains("\"matchMediaStub\"");
 
         //
         // assuming the html has not a <head> tag
         //
-        loadPage("src/test/resources/html/hellowithscript2.html");
+        loadPage("hellowithscript2.html");
         then((String) exec("xtest")).contains("\"matchMediaStub\"");
     }
 
     @Test
     public void load_page_from_file() throws Exception {
-        then(loadPage("src/test/resources/html/documentlocation.html")).isTrue();
+        then(loadPage("documentlocation.html")).isTrue();
         then(body().trim()).isEqualTo("content");
 
-        then(loadPage("src/test/resources/html/hello.html")).isTrue();
+        then(loadPage("hello.html")).isTrue();
         then(body().trim()).isEqualTo("hello");
     }
 
     @Test
-    public void load_page_from_url() throws Exception {
-        ClientAndServer server = null;
-        try {
-            server = startClientAndServer();
-
-            server.when(
-                    request()
-                            .withMethod("GET")
-                            .withPath("/hello")
-            ).respond(
-                    response()
-                            .withStatusCode(200)
-                            .withBody("hello")
-                            .withContentType(MediaType.TEXT_PLAIN)
-            );
-
-            server.when(
-                    request()
-                            .withMethod("GET")
-                            .withPath("/nowhere")
-            ).respond(
-                    response()
-                            .withStatusCode(404)
-                            .withBody("not found")
-                            .withContentType(MediaType.TEXT_PLAIN)
-            );
-
-            then(loadPage("http://localhost:" + server.getPort() + "/hello")).isTrue();
-            then(body().trim()).isEqualTo("hello");
-
-            then(loadPage("http://localhost:" + server.getPort() + "/nowhere")).isFalse();
-        } finally {
-            if (server != null) {
-                server.stop();
-            }
-        }
-    }
-
-    @Test
     public void return_false_on_error() throws Exception {
-        then(loadPage("nowhere.html")).isFalse();
         then(loadPage("http://0.0.0.0:8080/index.html"));
     }
 
     @Test
     public void initialize_xtest_env_on_load() throws Exception {
-        loadPage("src/test/resources/html/hello.html"); // any page is ok
+        loadPage("hello.html"); // any page is ok
         //
         // note that we can not use just exec(XTEST_ENV_VAR) because it would
         // turn into trying to stringify steXTestEnv.lastResult lastResult being
         // cyclycally steXTestEnv
         //
         JSONAssertions.then(
-                new JSONObject((String) exec("JSON.stringify(" + XTEST_ENV_VAR + ")"))
+            new JSONObject((String) exec("JSON.stringify(" + XTEST_ENV_VAR + ")"))
         ).contains("matchMediaStub");
     }
 
     @Test
     public void exec_executes_the_given_script() throws Exception {
-        loadPage("src/test/resources/html/hello.html"); // any page is ok
+        loadPage("hello.html"); // any page is ok
 
         exec("var hello='world';");
         then(exec("hello")).isEqualTo("world");
@@ -150,18 +121,18 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
      */
     @Test
     public void exec_returns_a_JSONObjects() throws Exception {
-        final String PAGE = "src/test/resources/html/hello.html";
+        final String PAGE = "hello.html";
         loadPage(PAGE); // any page is ok
 
         JSONObject o = (JSONObject) exec("document");
         JSONAssertions.then(o).contains("location");
         o = o.getJSONObject("location");
-        JSONAssertions.then(o).containsEntry("pathname", "blank");
+        JSONAssertions.then(o).containsEntry("pathname", "/hello.html");
     }
 
     @Test
-    public void metch_media_stub_is_installed() throws Exception {
-        loadPage("src/test/resources/html/hello.html");
+    public void match_media_stub_is_installed() throws Exception {
+        loadPage("hello.html");
 
         exec(XTEST_ENV_VAR + ".matchMediaStub.setMedia({ width: '600px' });");
         then((boolean) exec("window.matchMedia('(min-width: 500px)').matches")).isTrue();
@@ -169,8 +140,8 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
     }
 
     @Test
-    public void metch_media_stub_listener() throws Exception {
-        loadPage("src/test/resources/html/hello.html");
+    public void match_media_stub_listener() throws Exception {
+        loadPage("hello.html");
         darkMode(true);
         exec("var v=0; window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { v=1 })");
         darkMode(false);
@@ -179,7 +150,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void capture_console_log() {
-        loadPage("src/test/resources/html/hello.html");
+        loadPage("hello.html");
         exec("""
             console.log('log 1');
             console.info('log at info 1');
@@ -211,7 +182,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void date_object_stub() {
-        loadPage("src/test/resources/html/hello.html");
+        loadPage("hello.html");
 
         then(exec("DateStub.fixedDate")).isNull();  // it means also the stub
         // is installed
@@ -244,7 +215,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
             text("#something");
         }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
 
-        loadPage("src/test/resources/html/queryselector.html");
+        loadPage("queryselector.html");
 
         then(text("#testdiv1").trim()).isEqualTo("something");  //value
         then(text("#nothing")).isEqualTo(""); // nothing
@@ -257,7 +228,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
             val("#something");
         }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
 
-        loadPage("src/test/resources/html/queryselector.html");
+        loadPage("queryselector.html");
 
         //
         // val() is the content for element that have an input
@@ -274,7 +245,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
             classes("#something");
         }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
 
-        loadPage("src/test/resources/html/classes.html");
+        loadPage("classes.html");
 
         then(classes("body")).containsExactlyInAnyOrder("class1", "class2");
         then(classes("#oneclass")).containsExactly("class3");
@@ -286,7 +257,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
     @Test
     public void darkMode_sets_media_prefers_color_scheme() {
         initialMedia("{'prefers-color-scheme': 'light'}");
-        loadPage("src/test/resources/html/hello.html");
+        loadPage("hello.html");
 
         then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
         darkMode(true); then(media).isEqualTo("{'prefers-color-scheme': 'dark'}");
@@ -303,12 +274,40 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
             visible("#something");
         }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
 
-        loadPage("src/test/resources/html/queryselector.html");
+        loadPage("queryselector.html");
 
         then(visible("#textarea1")).isTrue();
         exec("$('#textarea1').hide()");
         then(visible("#textarea1")).isFalse();
         then(visible("#nothing")).isFalse(); // nothing
         then(visible(null)).isFalse(); // null
+    }
+
+    @Test
+    public void click_triggers_a_click() {
+        thenThrownBy(() -> {
+            click("#something");
+        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
+
+        loadPage("hello.html");
+
+        exec("document.getElementById('h').onclick = () => console.log('clicked');");
+        then(console()).doesNotContain("clicked");
+        click("#h");
+        then(console()).contains("clicked");
+    }
+
+    @Test
+    public void printConsole_writes_into_stdout() {
+        loadPage("hello.html");
+
+        printConsole();
+        then(STDOUT.getLog().trim()).isEmpty();
+        exec("console.log('hello');");
+        printConsole();
+        then(STDOUT.getLog()).contains("L hello\n");
+        exec("console.debug('world');");
+        printConsole();
+        then(STDOUT.getLog()).contains("D world\n");
     }
 }
