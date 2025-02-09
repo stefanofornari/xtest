@@ -1,10 +1,11 @@
-next
+20250209
 - new xtest.web package to test web applications using webkit's rendering and
   javascript engine
 - added xtest.ste.web.WebFiddle, an up to open JSFiddle directly in a WebView
   (useful to use exect JS engine provided by WebEngine)
 - bumped to JavaFX 21
 - added stub for Date object
+- released 3.9.0
 
 20241226
 - moved urlparse class from env.rhino.1.2.js for better testing and understanding
