@@ -45,15 +45,6 @@ public class LocalFileServer {
             bootstrap.append("\n");
         }
         bootstrap.append(XTEST_ENV_VAR).append(".matchMediaStub = new MatchMediaStub({});");
-        /*
-        setup.append(XTEST_ENV_VAR).append(".matchMediaStub = new MatchMediaStub(")
-            .append((media != null) ? media : "{}").append(");");
-
-            setup.append("</script>\n");
-        } catch (IOException x) {
-            x.printStackTrace();
-        }
-        */
 
         server = HttpServer.create(
             new InetSocketAddress(0),

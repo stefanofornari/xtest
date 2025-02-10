@@ -154,6 +154,7 @@ public class BugFreeWeb extends ApplicationTest {
 
         runLater(() -> {
             engine.load(url(page));
+
         });
 
         try {
@@ -162,6 +163,12 @@ public class BugFreeWeb extends ApplicationTest {
 
         runLater(() -> {
             this.content = documentContent(engine.getDocument());
+            //
+            // set initial environment
+            //
+            exec(
+                XTEST_ENV_VAR + ".matchMediaStub = new MatchMediaStub(" + ((media != null) ? media : "{}") + ");"
+            );
         });
 
         return loaded[0];

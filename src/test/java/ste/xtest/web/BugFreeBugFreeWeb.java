@@ -259,13 +259,25 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         initialMedia("{'prefers-color-scheme': 'light'}");
         loadPage("hello.html");
 
+        //
+        // initial media
+        //
         then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
+
+        //
+        // switch to dark
+        //
         darkMode(true); then(media).isEqualTo("{'prefers-color-scheme': 'dark'}");
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
+
+        //
+        // switch to light
+        //
         darkMode(false); then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
-        then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
     }
 
     @Test
