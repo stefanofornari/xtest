@@ -1,3 +1,9 @@
+20250223
+- BugFreeWeb now load content through a web browser to fully support "same origin"
+  contraints in scripts
+- fixed an issue with initial light/dark mode
+- added HttpExchangeStub, HttpContextStub to stub com.sun.net.httpserver.HttpExchange
+- released 3.9.2
 20250210
 - fixed an issue with the initial media matcher
 - released 3.9.1
