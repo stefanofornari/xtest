@@ -60,7 +60,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
      *
      */
     @Test
-    public void setup_before__scripts() {
+    public void setup_before_scripts() throws Exception {
         //
         // assuming the html has a <head> tag
         //
@@ -97,7 +97,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         // cyclycally steXTestEnv
         //
         JSONAssertions.then(
-            new JSONObject((String) exec("JSON.stringify(" + XTEST_ENV_VAR + ")"))
+                new JSONObject((String) exec("JSON.stringify(" + XTEST_ENV_VAR + ")"))
         ).contains("matchMediaStub");
     }
 
@@ -264,18 +264,26 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         //
         then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
+
+        initialMedia("{'prefers-color-scheme': 'dark'}");
+        loadPage("hello.html");
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
+        then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
 
         //
         // switch to dark
         //
-        darkMode(true); then(media).isEqualTo("{'prefers-color-scheme': 'dark'}");
+        darkMode(true);
+        then(media).isEqualTo("{'prefers-color-scheme': 'dark'}");
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isTrue();
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isFalse();
 
         //
         // switch to light
         //
-        darkMode(false); then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
+        darkMode(false);
+        then(media).isEqualTo("{'prefers-color-scheme': 'light'}");
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: dark)').matches")).isFalse();
         then((boolean) exec("window.matchMedia('(prefers-color-scheme: light)').matches")).isTrue();
     }

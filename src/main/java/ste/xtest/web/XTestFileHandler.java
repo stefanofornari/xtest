@@ -30,20 +30,37 @@ import java.net.URI;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 public class XTestFileHandler implements HttpHandler {
-    private final String rootDirectory;
-    private final String bootstrapCode;
+    public final String root;
+    public final List<String> bootstrapScripts;
 
-    public XTestFileHandler(String rootDirectory, String bootstrapCode) {
-        this.rootDirectory = rootDirectory;
-        this.bootstrapCode = "<script>" + bootstrapCode + "</script>";
+    public XTestFileHandler(final String root, List<String> bootstrapScripts) {
+        if (root == null) {
+            throw new IllegalArgumentException("root can not be null");
+        }
+        this.root = new File(root).getAbsolutePath();
+        this.bootstrapScripts= bootstrapScripts;
+    }
+
+    public XTestFileHandler(final String root) {
+        this(root, null);
+    }
+
+    public XTestFileHandler() {
+        this(".", null);
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         String requestMethod = exchange.getRequestMethod();
+
+        //
+        // never cache
+        //
+        exchange.getResponseHeaders().set("Cache-Control", "no-store,max-age=0");
 
         if (!requestMethod.equals("GET") && !requestMethod.equals("HEAD")) {
             sendError(exchange, 405, "Method Not Allowed");
@@ -62,7 +79,7 @@ public class XTestFileHandler implements HttpHandler {
             }
 
             // Construct the full file path
-            File file = new File(rootDirectory + path);
+            File file = new File(root + path);
 
             if (!file.exists() || !file.isFile()) {
                 sendError(exchange, 404, "Not Found");
@@ -77,22 +94,35 @@ public class XTestFileHandler implements HttpHandler {
 
             // Set response headers
             exchange.getResponseHeaders().set("Content-Type", contentType);
-            exchange.getResponseHeaders().set("Cache-Control", "no-store,max-age=0"); // never chache
 
             String content = FileUtils.readFileToString(file, "UTF-8");
 
             //
-            // if the query string contains __XTEST__, let's inject xtest scripts
+            // If __XTEST_BOOTSTRAP__=1 is given in the url, inject the bootstrap
+            // script into the content
             //
-            final String query = requestUri.getQuery();
-            if ((query != null) && (query.contains("__XTEST__")) && (!bootstrapCode.isBlank())) {
-                if (content.contains("head")) {
-                    content = content.replace("<head>", bootstrapCode);
-                } else if (content.contains("<html>")) {
-                    content = content.replace("<html>", "<html><head>" + bootstrapCode + "</head>");
-                } else {
-                    content = "<html>" + bootstrapCode + content + "</html>";
+            // TODO: do it only for HTML files
+            //
+            final String query = exchange.getRequestURI().getQuery();
+            if (
+                (query != null) && query.contains("__XTEST_BOOTSTRAP__=1")
+                && (bootstrapScripts != null) && !bootstrapScripts.isEmpty()
+            ) {
+                //
+                // TODO: manage <html ...> and <head ...>
+                //
+                final String script = script();
+                if (script != null) {
+                    if (content.contains("<head>")) {
+                        content = content.replace("<head>", "<head>" + script);
+                    } else if (content.contains("<html>")) {
+                        content = content.replace("<html>", "<html><head>" + script + "</head>");
+                    } else {
+                        content = "<html>" + script + content + "</html>";
+                    }
                 }
+
+                FileUtils.writeByteArrayToFile(new File("/tmp/out.txt"), content.getBytes());
             }
 
             long fileLength = content.getBytes().length;
@@ -119,6 +149,25 @@ public class XTestFileHandler implements HttpHandler {
     }
 
     // --------------------------------------------------------- private methods
+
+    //
+    // we want the final script to be built all the times to give the
+    // opportunity the caller to change the bootstrap script by changing the
+    // content of the bootstrapScripts list.
+    //
+    private String script() {
+        if ((bootstrapScripts == null) || bootstrapScripts.isEmpty()) {
+            return null;
+        }
+
+        final StringBuilder script = new StringBuilder("<script>\n");
+        for (final String s: bootstrapScripts) {
+            script.append(s).append("\n");
+        }
+        script.append("</script>\n");
+
+        return script.toString();
+    }
 
     private void sendError(HttpExchange exchange, int code, String message)
     throws IOException {

@@ -24,6 +24,7 @@ package ste.xtest.web;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import netscape.javascript.JSObject;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
@@ -62,7 +64,7 @@ public class BugFreeWeb extends ApplicationTest {
     protected WebEngine engine = null;
     protected CountDownLatch latch = null;
     protected boolean loaded[] = new boolean[1];
-    protected String media = null;
+    protected String media = "{}";
 
     protected String content = null; // last loaded content
 
@@ -71,16 +73,25 @@ public class BugFreeWeb extends ApplicationTest {
     protected LocalFileServer localFileServer = null;
 
     private Path localFileServerRoot = null;
+    private List<String> bootstrapScripts = new ArrayList();
 
     public BugFreeWeb() {
         try {
+            //
+            // Prepare bootstrapScript with the scripts to be executed before
+            // every other scritp to prepare the xtest environment
+            //
+            bootstrapScripts.add(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
+            bootstrapScripts.add(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
+            bootstrapScripts.add(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
+            bootstrapScripts.add("__XTEST__.matchMediaStub = new MatchMediaStub('" + media + "');");
+
             //
             // Create a LocalFileServer serving from a temporary directory
             //
             localFileServerRoot = Files.createTempDirectory("xtest-http-root");
             localFileServer = new LocalFileServer(
-                localFileServerRoot.toString(),
-                "/js/MatchMediaStub.js", "/js/DateStub.js", "/js/WebViewSetup.js"
+                localFileServerRoot.toString(), bootstrapScripts
             );
 
             //
@@ -97,6 +108,10 @@ public class BugFreeWeb extends ApplicationTest {
             //
             // Start listening
             //
+            System.out.println(
+                "Starting local server on port " + localFileServer.server.getAddress().getPort() +
+                " serving from " + localFileServerRoot
+            );
             localFileServer.start();
         } catch (IOException x) {
             x.printStackTrace();
@@ -154,7 +169,6 @@ public class BugFreeWeb extends ApplicationTest {
 
         runLater(() -> {
             engine.load(url(page));
-
         });
 
         try {
@@ -163,12 +177,6 @@ public class BugFreeWeb extends ApplicationTest {
 
         runLater(() -> {
             this.content = documentContent(engine.getDocument());
-            //
-            // set initial environment
-            //
-            exec(
-                XTEST_ENV_VAR + ".matchMediaStub = new MatchMediaStub(" + ((media != null) ? media : "{}") + ");"
-            );
         });
 
         return loaded[0];
@@ -176,6 +184,7 @@ public class BugFreeWeb extends ApplicationTest {
 
     public void initialMedia(final String media) {
         this.media = media;
+        bootstrapScripts.set(3, "__XTEST__.matchMediaStub = new MatchMediaStub(" + media + ");");
     }
 
     public void darkMode(boolean darkMode) {
@@ -261,7 +270,6 @@ public class BugFreeWeb extends ApplicationTest {
      *
      * @param selector the jquery selector of the element to get the val from
      *
-     * @return the same as the jquery call $(selector).click()
      */
     public void click(final String selector) {
         checkJQuery();
@@ -348,7 +356,7 @@ public class BugFreeWeb extends ApplicationTest {
             url = uri.toString();
         }
 
-        return url + ((query == null) ? "?" : "&") + "__XTEST__";
+        return url + ((query == null) ? "?" : "&") + "__XTEST_BOOTSTRAP__=1";
     }
 
     private void checkJQuery() throws IllegalAccessError {

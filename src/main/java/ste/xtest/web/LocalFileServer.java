@@ -25,33 +25,28 @@ import com.sun.net.httpserver.*;
 import com.sun.net.httpserver.SimpleFileServer.OutputLevel;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
-import org.apache.commons.io.IOUtils;
-import static ste.xtest.web.BugFreeWeb.XTEST_ENV_VAR;
+import java.util.List;
 
 public class LocalFileServer {
 
     public final Path root;
     public final HttpServer server;
 
-    public LocalFileServer(final String root, final String... bootstrapScripts)
+    public LocalFileServer(final String root, final List<String> bootstrapScripts)
     throws IOException {
         this.root = Path.of(root).toAbsolutePath();
-
-        final StringBuilder bootstrap = new StringBuilder();
-        for(final String SCRIPT: bootstrapScripts) {
-            bootstrap.append(IOUtils.resourceToString(SCRIPT, Charset.defaultCharset()));
-            bootstrap.append("\n");
-        }
-        bootstrap.append(XTEST_ENV_VAR).append(".matchMediaStub = new MatchMediaStub({});");
 
         server = HttpServer.create(
             new InetSocketAddress(0),
             10, "/",
-            new XTestFileHandler(root, bootstrap.toString()),
+            new XTestFileHandler(root, bootstrapScripts),
             SimpleFileServer.createOutputFilter(System.out, OutputLevel.VERBOSE)
         );
+    }
+
+    public LocalFileServer(final String root) throws IOException {
+        this(root, List.of());
     }
 
     public void start() {
@@ -61,7 +56,6 @@ public class LocalFileServer {
     public void stop() {
         server.stop(0);
     }
-
 
     public static void main(String[] args) throws IOException {
         final LocalFileServer lfs = new LocalFileServer(args[0]);
