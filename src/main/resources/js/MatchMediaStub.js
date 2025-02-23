@@ -11,31 +11,54 @@ class MatchMediaStub {
 
     // CSS Media Query Parser implementation
     #toDpi(value) {
-        const matches = value.match(/^(\d+)dpi$/);
-        return matches ? Number(matches[1]) : null;
+        if (value) {
+            const matches = value.match(/^(\d+)dpi$/);
+            return matches ? Number(matches[1]) : null;
+        }
+
+        return null;
     }
 
     #toDpcm(value) {
-        const matches = value.match(/^(\d+)dpcm$/);
-        return matches ? Number(matches[1]) * 2.54 : null;
+        if (value) {
+            const matches = value.match(/^(\d+)dpcm$/);
+            return matches ? Number(matches[1]) * 2.54 : null;
+        }
+
+        return null;
     }
 
     #toPixels(value) {
-        const matches = value.match(/^(\d+)px$/);
-        return matches ? Number(matches[1]) : null;
+        if (value) {
+            const matches = value.match(/^(\d+)px$/);
+            return matches ? Number(matches[1]) : null;
+        }
+
+        return null;
     }
 
     #toMillimeters(value) {
-        const matches = value.match(/^(\d+)mm$/);
-        return matches ? Number(matches[1]) : null;
+        if (value) {
+            const matches = value.match(/^(\d+)mm$/);
+            return matches ? Number(matches[1]) : null;
+        }
+
+        return null;
     }
 
     #toInches(value) {
-        const matches = value.match(/^(\d+)in$/);
-        return matches ? Number(matches[1]) : null;
+        if (value) {
+            const matches = value.match(/^(\d+)in$/);
+            return matches ? Number(matches[1]) : null;
+        }
+        return null;
     }
 
     #stripQuotes(str) {
+        if (!str || str.trim().length === 0) {
+            return str;
+        }
+
         const quotes = ["'", '"'];
         return quotes.includes(str.charAt(0)) && quotes.includes(str.charAt(str.length - 1))
             ? str.slice(1, -1)
