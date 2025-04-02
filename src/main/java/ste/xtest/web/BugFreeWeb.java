@@ -73,7 +73,8 @@ public class BugFreeWeb extends ApplicationTest {
     protected LocalFileServer localFileServer = null;
 
     private Path localFileServerRoot = null;
-    private List<String> bootstrapScripts = new ArrayList();
+    private final List<String> bootstrapScripts = new ArrayList();
+    private final List<String> postLoadScripts = new ArrayList();
 
     public BugFreeWeb() {
         try {
@@ -85,6 +86,12 @@ public class BugFreeWeb extends ApplicationTest {
             bootstrapScripts.add(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
             bootstrapScripts.add(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
             bootstrapScripts.add("__XTEST__.matchMediaStub = new MatchMediaStub('" + media + "');");
+
+            //
+            // Scripts that must be executed after the page is loaded (some JS
+            // object are created at page load (e.d. document)
+            //
+            postLoadScripts.add(IOUtils.resourceToString("/js/Fullscreen.js", Charset.defaultCharset()));
 
             //
             // Create a LocalFileServer serving from a temporary directory
@@ -143,6 +150,9 @@ public class BugFreeWeb extends ApplicationTest {
         w.stateProperty().addListener((observable, oldValue, newValue) -> {
             loaded[0] = (newValue == Worker.State.SUCCEEDED);
             if (loaded[0] || (newValue == Worker.State.FAILED)) {
+                for (final String script: postLoadScripts) {
+                    engine.executeScript(script);
+                }
                 latch.countDown();
             }
         });

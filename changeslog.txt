@@ -1,3 +1,7 @@
+20250402
+- added stub for fullscreen mode in BugFreeWeb
+- released 3.10.0
+
 20250223
 - BugFreeWeb now load content through a web browser to fully support "same origin"
   contraints in scripts
