@@ -21,7 +21,6 @@
  */
 package ste.xtest.web;
 
-import java.io.File;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
@@ -41,8 +40,8 @@ public class WebFiddle extends Application {
         //stage.getIcons().add(new Image(WebFiddle.class.getResourceAsStream("/images/easy-wallet-icon-64x64.png")));
 
         final WebView webView = new WebView();
-        //webView.getEngine().load("https://jsfiddle.net/");
-        webView.getEngine().load("file:///" + new File("src/test/resources/html/hello.html").getAbsoluteFile());
+        webView.getEngine().load("https://jsfiddle.net/");
+        //webView.getEngine().load("file:///" + new File("src/test/resources/html/hello.html").getAbsoluteFile());
         Scene scene = new Scene(webView);
 
         stage.setScene(scene);
