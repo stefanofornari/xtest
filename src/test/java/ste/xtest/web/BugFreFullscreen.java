@@ -63,7 +63,7 @@ public class BugFreFullscreen extends BugFreeWeb {
     @Test
     public void exit_full_screen_for_any_element() throws Exception {
         exec("document.getElementById('e1').requestFullscreen();"); // enter fullscreen
-        exec("document.getElementById('e1').exitFullscreen();"); // enter fullscreen
+        exec("document.exitFullscreen();"); // enter fullscreen
         then(exec("document.fullscreenElement")).isNull();
     }
 }

@@ -1,3 +1,7 @@
+20250403
+- fixed exitFullscreen
+- released 3.10.1
+
 20250402
 - added stub for fullscreen mode in BugFreeWeb
 - released 3.10.0

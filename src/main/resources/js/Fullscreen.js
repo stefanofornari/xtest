@@ -11,15 +11,15 @@ Object.defineProperty(document, 'fullscreenElement', {
   configurable: true
 });
 
+document.exitFullscreen = function() {
+    document.fullscreenElement = null;
+};
+
 document.getElementById = function(id) {
     const e = document.originalGetElementById(id);
     if (e) {
         e.requestFullscreen = function() {
             document.fullscreenElement = this;
-        };
-
-        e.exitFullscreen = function() {
-            document.fullscreenElement = null;
         };
     }
 
