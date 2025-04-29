@@ -80,11 +80,12 @@ public class BugFreeWeb extends ApplicationTest {
         try {
             //
             // Prepare bootstrapScript with the scripts to be executed before
-            // every other scritp to prepare the xtest environment
+            // every other script to prepare the xtest environment
             //
             bootstrapScripts.add(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
             bootstrapScripts.add(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
             bootstrapScripts.add(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
+            bootstrapScripts.add(IOUtils.resourceToString("/js/SubtleCrypto.js", Charset.defaultCharset()));
             bootstrapScripts.add("__XTEST__.matchMediaStub = new MatchMediaStub('" + media + "');");
 
             //
@@ -133,7 +134,9 @@ public class BugFreeWeb extends ApplicationTest {
     @After
     public void after() {
         if (!errors.isEmpty()) {
-            System.out.println("ERRORS\n----------\n" + errors + "\n----------");
+            System.out.println("ERRORS\n----------\n");
+            errors.forEach((error) -> System.out.println(error));
+            System.out.println("\n----------");
         }
         printConsole();
     }

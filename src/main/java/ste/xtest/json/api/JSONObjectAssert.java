@@ -247,11 +247,11 @@ public class JSONObjectAssert extends AbstractAssert<JSONObjectAssert, JSONObjec
             maps.assertContains(info, map, array(entry));
             return myself;
         } catch (IOException x) {
-                throw Failures.instance().failure(
-                    info,
-                    new BasicErrorMessageFactory("Exception in contains: %s", x.getMessage())
-                );
-            }
+            throw Failures.instance().failure(
+                info,
+                new BasicErrorMessageFactory("Exception in contains: %s", x.getMessage())
+            );
+        }
     }
 
     /**
