@@ -32,7 +32,7 @@ import ste.xtest.json.api.JSONAssertions;
 /**
  * The web toolkit included in JavaFX does not support crypto.subtle. Aim of
  * this functionality is to provide a very basic and fake crypto.subtle API for
- * specification and testing purposes. Note that only what needed for a secret 
+ * specification and testing purposes. Note that only what needed for a secret
  * based encryption/description is currently implemented. More functionality
  * will be added as needed.
  */
@@ -69,7 +69,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         //
         // Unknown format
         //
-        exec("crypto.subtle.importKey('unknown', new ArrayBuffer(), {}, false, []);");
+        exec("crypto.subtle.importKey('unknown', new TextEncoder().encode('1234'), {}, false, []);");
         then(errors).hasSize(1).element(0).hasToString("netscape.javascript.JSException: Error: key format UNKNOWN not supported for importKey");
 
         //
@@ -80,9 +80,9 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             crypto.subtle.importKey('raw', pin, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
         """);
         JSONAssertions.then(key).isNotNull()
-            .containsEntry("type", "secret")
-            .containsEntry("extractable", false)
-            .containsEntry("data", "5348412d3235362d323631353430323635390000000000000000000000000000"); // Specific to xtest implementation
+                .containsEntry("type", "secret")
+                .containsEntry("extractable", false)
+                .containsEntry("data", "5348412d3235362d323631353430323635390000000000000000000000000000"); // Specific to xtest implementation
         JSONAssertions.then(key.getJSONObject("algorithm")).isEqualTo(new JSONObject("{\"name\":\"AES-GCM\"}"));
         JSONAssertions.then(key.getJSONArray("usages")).containsExactly("encrypt", "decrypt");
 
@@ -92,7 +92,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         key = (JSONObject) exec("""
             crypto.subtle.importKey(
                 "pkcs8",
-                new ArrayBuffer() ,
+                new TextEncoder().encode('1234'),
                 {
                   name: "RSA-PSS",
                   hash: "SHA-256",
@@ -102,19 +102,25 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             );
         """);
         JSONAssertions.then(key).isNotNull()
-            .containsEntry("type", "private")
-            .containsEntry("extractable", true)
-            .containsEntry("data", "{}");
+                .containsEntry("type", "private")
+                .containsEntry("extractable", true)
+                .containsEntry("data", "31323334");
         JSONAssertions.then(key.getJSONObject("algorithm")).isEqualTo(new JSONObject("{\"name\":\"RSA-PSS\"}"));
         JSONAssertions.then(key.getJSONArray("usages")).containsExactly("sign");
-        
+
         //
         // Fake JWT key import (jwt/ECDSA)
         //
         key = (JSONObject) exec("""
             crypto.subtle.importKey(
                 "jwt",
-                {},
+                {
+                  "kty": "RSA",
+                  "use": "sig",
+                  "kid": "my-key-id",
+                  "n": "ABCD",
+                  "e": "EFGH"
+                },
                 {
                   name: "ECDSA",
                   namedCurve: "P-384",
@@ -125,17 +131,32 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         """);
         JSONAssertions.then(key).isNotNull()
             .containsEntry("type", "private")
-            .containsEntry("extractable", true)
-            .containsEntry("data", "{}");
+            .containsEntry("extractable", true);
+        JSONAssertions.then(key.getJSONObject("data")).isEqualTo(
+            new JSONObject("{\"e\":\"EFGH\", \"kid\":\"my-key-id\", \"kty\":\"RSA\", \"n\":\"ABCD\", \"use\":\"sig\"}")
+        );
         JSONAssertions.then(key.getJSONObject("algorithm")).isEqualTo(new JSONObject("{\"name\":\"ECDSA\"}"));
         JSONAssertions.then(key.getJSONArray("usages")).containsExactly("sign");
-        
+
         //
-        // Corener cases
+        // Corner cases
         //
-        // TODO: - key datanull or empty
-        // TODO: - iv null or empty
-        
+        // Null or empty key data
+        final String[] VALUES = new String[]{
+            "undefined", "null", "[]", "new ArrayBuffer()"
+        };
+
+        for (final String VALUE : VALUES) {
+            then(
+                    exec(String.format("""
+                    try {
+                        crypto.subtle.importKey('raw', %s, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+                    } catch (error) {
+                        ret = error.toString();
+                    }
+                """, VALUE))
+            ).isEqualTo("Error: key data can not be null or empty");
+        }
     }
 
     @Test
@@ -145,8 +166,9 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         //
         exec("""
             const encoder = new TextEncoder();
+            const decoder = new TextDecoder();
             const iv = new Uint8Array([01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12]);
-            
+
             const key = crypto.subtle.importKey(
                 'raw',
                 encoder.encode('1234'),
@@ -156,7 +178,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             );
         """);
 
-        for (final String A: new String[] { "AES-GCM", "AES-GCM", "RSA-OAEP" }) {
+        for (final String A : new String[]{"AES-GCM", "AES-GCM", "RSA-OAEP"}) {
             then(exec(String.format("""
                 crypto.subtle.hex(crypto.subtle.encrypt(
                     { name: '%s', iv: iv },
@@ -165,52 +187,89 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             ));
             """, A))).isEqualTo("313233340102030405060708090a0b0c3a68656c6c6f20776f726c64");
         }
-        
+
         //
         // Invalid algorithm
         //
         then(
             exec("""
+            try {
+                ret = crypto.subtle.encrypt(
+                    { name: 'invalid', iv: iv },
+                    key,
+                    encoder.encode('hello world')
+                );
+            } catch (error) {
+                ret = error.toString();
+            }
+        """)
+        ).isEqualTo("Error: algorithm invalid not supported");
+
+        //
+        // Corner cases
+        //
+        // key data null or empty
+        String[] VALUES = new String[]{
+            "undefined", "null", "{}", "{data: null}", "{data: []}"
+        };
+
+        for (final String VALUE : VALUES) {
+            then(
+                exec(String.format("""
                 try {
                     ret = crypto.subtle.encrypt(
-                        { name: 'invalid', iv: iv },
+                        { name: 'AES-GCM', iv: iv },
+                        %s,
+                        encoder.encode('hello world')
+                    );
+                } catch (error) {
+                    ret = error.toString();
+                }
+            """, VALUE))
+            ).isEqualTo("Error: key can not be null or empty");
+        }
+
+        // algorithm null or empty or invalid
+        VALUES = new String[]{
+            "undefined", null, "{}", "{noname:\"something\"}"
+        };
+        for (final String VALUE : VALUES) {
+            then(
+                exec(String.format("""
+                try {
+                    ret = crypto.subtle.encrypt(
+                        %s,
                         key,
                         encoder.encode('hello world')
                     );
                 } catch (error) {
                     ret = error.toString();
                 }
-            """)
-        ).isEqualTo("Error: algorithm invalid not supported");
-        
-        //
-        // Corener cases
-        //
-        
-         // key data null or empty
-        String[] VALUES = new String[] {
-            "null", "{}", "{data: null}, {data: []}"
+            """, VALUE))
+            ).isEqualTo("Error: algorithm null, empty or invalid");
+        }
+
+        // iv null or empty
+        VALUES = new String[]{
+            "", ", iv: undefined", ", iv: null", ", iv: []", ", iv: new ArrayBuffer()"
         };
-        
-        for (String VALUE: VALUES) {
+        for (final String VALUE : VALUES) {
             then(
                 exec(String.format("""
-                    try {
-                        ret = crypto.subtle.encrypt(
-                            { name: 'AES-GCM', iv: iv },
-                            %s,
-                            encoder.encode('hello world')
-                        );
-                    } catch (error) {
-                        ret = error.toString();
-                    }
-                """, VALUE))
-            ).isEqualTo("Error: key can not be null or empty");
+                try {
+                    ret = crypto.subtle.encrypt(
+                        { name: 'AES-GCM' %s },
+                        key,
+                        encoder.encode('hello world')
+                    );
+                } catch (error) {
+                    ret = error.toString();
+                }
+            """, VALUE))
+            ).isEqualTo("Error: algorithm does not contain a valid iv");
         }
-        
-        // TODO: - iv null or empty
     }
-    
+
     @Test
     public void decrypt() throws Exception {
         //
@@ -219,8 +278,8 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         exec("""
             const encoder = new TextEncoder();
             const iv = new Uint8Array([65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76]);
-            const excrypted = crypto.subtle.unhex('313233344142434445464748494a4b4c3a68656c6c6f20776f726c64');
-            
+            const encrypted = crypto.subtle.unhex('313233344142434445464748494a4b4c3a68656c6c6f20776f726c64');
+
             const key = crypto.subtle.importKey(
                 'raw',
                 encoder.encode('1234'),
@@ -230,16 +289,16 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             );
         """);
 
-        for (final String A: new String[] { "AES-GCM", "AES-GCM", "RSA-OAEP" }) {
+        for (final String A : new String[]{"AES-GCM", "AES-GCM", "RSA-OAEP"}) {
             then(exec(String.format("""
                 new TextDecoder().decode(crypto.subtle.decrypt(
                     { name: '%s', iv: iv },
                     key,
-                    excrypted
+                    encrypted
                 ));
             """, A))).isEqualTo("hello world");
         }
-        
+
         //
         // Negative cases: return same as input
         //
@@ -250,55 +309,119 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                 new Uint8Array([32, 33, 34, 35, 36])
             ));
         """))).isEqualTo(" !\"#$");
-        
+
         then(exec(String.format("""
             new TextDecoder().decode(crypto.subtle.decrypt(
                 { name: 'AES-GCM', iv: iv },
                 { "type":"secret","algorithm":{ "name":"AES-GCM" },"data":"34333231" },
-                excrypted
+                encrypted
             ));
         """))).isNotEqualTo("1234:hello world");
-        
+
         then(exec(String.format("""
             new TextDecoder().decode(crypto.subtle.decrypt(
                 { name: 'AES-GCM', iv: new Uint8Array([65, 90]) },
                 { "type":"secret","algorithm":{ "name":"AES-GCM" },"data":"34333231" },
-                excrypted
+                encrypted
             ));
         """))).isNotEqualTo("1234:hello world:AZ");
-        
+
         //
         // Invalid algorithm
         //
         then(
             exec("""
+            try {
+                ret = crypto.subtle.decrypt(
+                    { name: 'invalid', iv: iv },
+                    key,
+                    encrypted
+                );
+            } catch (error) {
+                ret = error.toString();
+            }
+        """)
+        ).isEqualTo("Error: algorithm invalid not supported");
+
+        //
+        // Corner cases
+        //
+        // key data null or empty
+        String[] VALUES = new String[]{
+            "undefined", "null", "{}", "{data: null}", "{data: []}"
+        };
+
+        for (final String VALUE : VALUES) {
+            then(
+                exec(String.format("""
                 try {
                     ret = crypto.subtle.decrypt(
-                        { name: 'invalid', iv: iv },
-                        key,
-                        excrypted
+                        { name: 'AES-GCM', iv: iv },
+                        %s,
+                        encrypted
                     );
                 } catch (error) {
                     ret = error.toString();
                 }
-            """)
-        ).isEqualTo("Error: algorithm invalid not supported"); 
+            """, VALUE))
+            ).isEqualTo("Error: key can not be null or empty");
+        }
+
+        // algorithm null or empty or invalid
+        VALUES = new String[]{
+            "undefined", null, "{}", "{noname:\"something\"}"
+        };
+        for (final String VALUE : VALUES) {
+            then(
+                exec(String.format("""
+                try {
+                    ret = crypto.subtle.decrypt(
+                        %s,
+                        key,
+                        encrypted
+                    );
+                } catch (error) {
+                    ret = error.toString();
+                }
+            """, VALUE))
+            ).isEqualTo("Error: algorithm null, empty or invalid");
+        }
+
+        // iv null or empty
+        VALUES = new String[]{
+            "", ", iv: undefined", ", iv: null", ", iv: []", ", iv: new ArrayBuffer()"
+        };
+        for (final String VALUE : VALUES) {
+            then(
+                exec(String.format("""
+                try {
+                    ret = crypto.subtle.decrypt(
+                        { name: 'AES-GCM' %s },
+                        key,
+                        encrypted
+                    );
+                } catch (error) {
+                    ret = error.toString();
+                }
+            """, VALUE))
+            ).isEqualTo("Error: algorithm does not contain a valid iv");
+        }
     }
-    
+
     @Test
     public void not_implemented_interface_throws_exception() throws Exception {
         final String[][] METHODS = {
-            new String[] { "sign", "'RSA-PSS', {}, new ArrayBuffer()" },
-            new String[] { "verify", "{}, {}, new ArrayBuffer(), new ArrayBuffer()" },
-            new String[] { "generateKey", "{}, true, []" },
-            new String[] { "deriveKey", "{}, {}, {}, true, []" },
-            new String[] { "deriveBits", "{}, {}, 0" },
-            new String[] { "exportKey", "'raw', {}" },
-            new String[] { "wrapKey", "'raw', {}, {}, {}" },
-            new String[] { "unwrapKey", "'raw', {}, {}, {}, {}, true, []" }
+            new String[]{"sign", "'RSA-PSS', {}, new ArrayBuffer()"},
+            new String[]{"verify", "{}, {}, new ArrayBuffer(), new ArrayBuffer()"},
+            new String[]{"generateKey", "{}, true, []"},
+            new String[]{"deriveKey", "{}, {}, {}, true, []"},
+            new String[]{"deriveBits", "{}, {}, 0"},
+            new String[]{"exportKey", "'raw', {}"},
+            new String[]{"wrapKey", "'raw', {}, {}, {}"},
+            new String[]{"unwrapKey", "'raw', {}, {}, {}, {}, true, []"}
         };
-        
-        for (String[] METHOD: METHODS) {
+
+        for (String[] METHOD : METHODS) {
             then(exec(String.format("""
                 try {
                     crypto.subtle.%s(%s);
@@ -306,15 +429,14 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                     ret = error.toString();
                 }
             """, METHOD[0], METHOD[1])))
-            .isEqualTo(String.format("Error: %s() not yet implemented", METHOD[0]));
+                    .isEqualTo(String.format("Error: %s() not yet implemented", METHOD[0]));
         }
     }
 
     // --------------------------------------------------------- private methods
-    
     void checkDigest(final String algorithm, final String text, final String expected) {
         then(
-            exec(String.format("""
+                exec(String.format("""
                 try {
                     ret = crypto.subtle.hex(
                         crypto.subtle.digest('%s', new TextEncoder().encode('%s'))
