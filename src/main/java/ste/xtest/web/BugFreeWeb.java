@@ -46,10 +46,15 @@ import javax.xml.transform.stream.StreamResult;
 import netscape.javascript.JSObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.testfx.framework.junit.ApplicationTest;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 import org.w3c.dom.Document;
@@ -58,6 +63,16 @@ import org.w3c.dom.Document;
  *
  */
 public class BugFreeWeb extends ApplicationTest {
+
+    @Rule
+    public final TestRule watcherRule = new TestWatcher() {
+        protected void starting(Description description) {
+          String name = description.getMethodName();
+          System.out.printf(
+              "\n%s\n%s\n", name, StringUtils.repeat("-", name.length())
+          );
+        };
+    };
 
     public static final String XTEST_ENV_VAR = "__XTEST__";
 
