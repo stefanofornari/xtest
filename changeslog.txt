@@ -1,4 +1,7 @@
 20250502
+- released 3.11.0
+
+20250502
 - added fake implementation of crypto.subtle in xtest.web
 
 20250403
