@@ -31,9 +31,9 @@ import org.apache.commons.lang3.StringUtils;
  * @author ste
  */
 public class FileTransport extends Transport {
-    
+
     private PasswordAuthentication auth;
-    
+
     public static final String MAIL_FILE_PATH = "mail.file.path";
     public static final String MAIL_FILE_REQUIRE_SSL = "mail.file.require.ssl";
     public static final String MAIL_FILE_ALLOWED = "mail.file.allowed";
@@ -46,9 +46,9 @@ public class FileTransport extends Transport {
     @Override
     public void sendMessage(Message message, Address[] addresses) throws MessagingException {
         String path = getProperty(MAIL_FILE_PATH);
-        
+
         protocolConnect(null, -1, (auth != null) ? auth.getUserName() : null, (auth != null) ? auth.getPassword() : null);
-                
+
         //
         // if path is still missing, let's give up
         //
@@ -57,7 +57,7 @@ public class FileTransport extends Transport {
                 String.format("missing message path; make sure %s is set in either the session or System properties", MAIL_FILE_PATH)
             );
         }
-        
+
         //
         // We append multiple messages to the same output file
         //
@@ -69,10 +69,10 @@ public class FileTransport extends Transport {
             );
         }
     }
-    
+
     @Override
     protected boolean protocolConnect(
-        final String host, final int port, 
+        final String host, final int port,
         final String givenUser,
         final String givenPassword
     ) throws MessagingException {
@@ -88,40 +88,40 @@ public class FileTransport extends Transport {
         }
 	return true;
     }
-    
+
     public String getUsername() {
         return (auth != null) ? auth.getUserName() : null;
     }
-    
+
     public String getPassword() {
         return (auth != null) ? auth.getPassword() : null;
     }
-    
+
     /**
      * Returns the property value of the provided property; the property can be
-     * set as system property or session configuration property. The latter 
+     * set as system property or session configuration property. The latter
      * overrides the former.
-     * 
+     *
      * @param name the parameter value - NOT BLANK
-     * 
+     *
      * @return he property value of the provided property
      */
     public String getProperty(final String name) {
         if (StringUtils.isBlank(name)) {
             throw new IllegalArgumentException("name can not be empty");
         }
-        
+
         String value = session.getProperty(name);
-        
+
         if (value == null) {
             value = System.getProperty(name);
         }
-        
+
         return value;
     }
-    
+
     // ---------------------------------------------------------- private methos
-    
+
     private String getAllowedPassword(final String username) {
         //
         // check if new style (mail.file.allowed=user:password)
@@ -135,11 +135,11 @@ public class FileTransport extends Transport {
                 }
             }
         }
-        
+
         //
         // old style (mail.file.allowed.user=password)
         //
         return getProperty("mail.file.allowed."+ username);
     }
-    
+
 }

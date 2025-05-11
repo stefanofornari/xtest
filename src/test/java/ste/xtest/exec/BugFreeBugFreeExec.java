@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
@@ -130,12 +131,14 @@ public class BugFreeBugFreeExec {
         };
         E.before();
 
-        final Process P = E.start("java");
+        FileUtils.copyFile(new File("src/test/bin/runme"), new File(E.HOME, "runme"));
+
+        final Process P = E.start("./runme");
         then(P).isNotNull();
 
         P.waitFor(3, TimeUnit.SECONDS);
 
-        then(P.exitValue()).isEqualTo(1);
-        then(E.err()).contains("Usage: java [options] <mainclass> [args...]");
+        then(P.exitValue()).isEqualTo(0);
+        then(E.out()).contains("hello world from runme");
     }
 }
