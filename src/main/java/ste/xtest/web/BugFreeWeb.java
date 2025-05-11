@@ -165,12 +165,35 @@ public class BugFreeWeb extends ApplicationTest {
         });
 
         final Worker w = (Worker) engine.getLoadWorker();
+        w.exceptionProperty().addListener((bservable, oldValue, newValue) -> {
+            System.out.println("Exception in WebWorker");
+            System.out.println("----------------------");
+            System.out.println("old: " + oldValue);
+            System.out.println("new: " + newValue);
+            System.out.println("======================");
+
+        });
         w.stateProperty().addListener((observable, oldValue, newValue) -> {
-            loaded[0] = (newValue == Worker.State.SUCCEEDED);
-            if (loaded[0] || (newValue == Worker.State.FAILED)) {
+            System.out.printf(
+                "WebWorker: handling %s - %s %s\n",
+                engine.getLocation(), newValue, w.getMessage()
+            );
+
+            if (newValue == Worker.State.SUCCEEDED) {
+                System.out.printf(
+                    "WebWorker: successfully loaded  %s - %s\n",
+                    engine.getLocation(), engine.getTitle()
+                );
                 for (final String script: postLoadScripts) {
                     engine.executeScript(script);
                 }
+                loaded[0] = true;
+                latch.countDown();
+            } else if (newValue == Worker.State.FAILED) {
+                System.out.printf(
+                    "WebWorker: failed to load %s",
+                    engine.getLocation()
+                );
                 latch.countDown();
             }
         });
@@ -195,24 +218,31 @@ public class BugFreeWeb extends ApplicationTest {
     public boolean loadPage(final String page) {
         latch = new CountDownLatch(1);
 
+        loaded[0] = false;
         runLater(() -> {
             engine.load(url(page));
         });
 
         try {
             latch.await(5, TimeUnit.SECONDS);
-        } catch (InterruptedException x) { }
-
-        runLater(() -> {
-            this.content = documentContent(engine.getDocument());
-        });
+            runLater(() -> {
+                this.content = documentContent(engine.getDocument());
+            });
+        } catch (InterruptedException x) {
+            System.err.println("Page '" + page + "' not loaded in time!");
+        }
 
         return loaded[0];
     }
 
     public void initialMedia(final String media) {
         this.media = media;
-        bootstrapScripts.set(3, "__XTEST__.matchMediaStub = new MatchMediaStub(" + media + ");");
+        for (int i=0; i<bootstrapScripts.size(); ++i) {
+            final String s = bootstrapScripts.get(i);
+            if (s.startsWith("__XTEST__.matchMediaStub =")) {
+                bootstrapScripts.set(i, "__XTEST__.matchMediaStub = new MatchMediaStub(" + media + ");");
+            }
+        }
     }
 
     public void darkMode(boolean darkMode) {
@@ -346,7 +376,7 @@ public class BugFreeWeb extends ApplicationTest {
                 r.run();
             } catch (Throwable t) {
                 engine.getOnError().handle(
-                        new WebErrorEvent(engine, WebErrorEvent.ANY, "error in FX thread", t)
+                    new WebErrorEvent(engine, WebErrorEvent.ANY, "error in FX thread", t)
                 );
             }
         });

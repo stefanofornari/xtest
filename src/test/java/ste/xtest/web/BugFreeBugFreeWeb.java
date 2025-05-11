@@ -321,6 +321,7 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
     public void printConsole_writes_into_stdout() {
         loadPage("hello.html");
 
+        STDOUT.clearLog();
         printConsole();
         then(STDOUT.getLog().trim()).isEmpty();
         exec("console.log('hello');");

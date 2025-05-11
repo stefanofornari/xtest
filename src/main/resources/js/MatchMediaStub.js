@@ -201,7 +201,7 @@ class MatchMediaStub {
             preventDefault() {}
             stopImmediatePropagation() {}
             stopPropagation() {}
-        }
+        };
     }
 
     matchMedia(query) {
@@ -290,13 +290,13 @@ class MatchMediaStub {
             removeListener: (callback) => {
                 if (!callback) return;
                 removeListener(callback);
-            },
+            }
         };
 
         this.MQLs.set(mql, {
             previousMatched,
             clear,
-            features: this.#getFeaturesFromQuery(queryTyped),
+            features: this.#getFeaturesFromQuery(queryTyped)
         });
 
         return mql;
