@@ -1,3 +1,8 @@
+20250511
+- fixed some tests not working with NetBeans as flatpak
+- fixed a dark moode issue in BugFreeWeb
+- released 3.11.1
+
 20250502
 - released 3.11.0
 
