@@ -36,6 +36,8 @@ public class BugFreFullscreen extends BugFreeWeb {
 
     @Before
     public void before() throws Exception {
+        super.before();
+        
         FileUtils.copyDirectory(new File("src/main/resources/js/"), new File(localFileServer.root.toFile(), "js"));
         FileUtils.copyDirectory(new File("src/test/resources/html"), localFileServer.root.toFile());
 

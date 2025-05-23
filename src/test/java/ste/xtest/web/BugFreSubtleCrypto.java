@@ -41,6 +41,8 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
     @Before
     @Override
     public void before() throws Exception {
+        super.before();
+        
         FileUtils.copyDirectory(new File("src/main/resources/js/"), new File(localFileServer.root.toFile(), "js"));
         FileUtils.copyDirectory(new File("src/test/resources/html"), localFileServer.root.toFile());
 
