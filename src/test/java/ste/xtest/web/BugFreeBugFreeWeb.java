@@ -64,13 +64,13 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
         //
         // assuming the html has a <head> tag
         //
-        loadPage("hellowithscript1.html");
+        then(loadPage("hellowithscript1.html")).isTrue();
         then((String) exec("xtest")).contains("\"matchMediaStub\"");
 
         //
         // assuming the html has not a <head> tag
         //
-        loadPage("hellowithscript2.html");
+        then(loadPage("hellowithscript2.html")).isTrue();
         then((String) exec("xtest")).contains("\"matchMediaStub\"");
     }
 

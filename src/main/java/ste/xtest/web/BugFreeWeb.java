@@ -29,9 +29,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
@@ -58,27 +58,30 @@ import org.junit.runner.Description;
 import org.testfx.framework.junit.ApplicationTest;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 import org.w3c.dom.Document;
+import ste.xtest.concurrent.WaitFor;
 
 /**
  *
  */
 public class BugFreeWeb extends ApplicationTest {
 
+    final Logger LOG = Logger.getLogger("ste.xtest");
+
     @Rule
     public final TestRule watcherRule = new TestWatcher() {
         protected void starting(Description description) {
-          String name = description.getMethodName();
-          System.out.printf(
-              "\n%s\n%s\n", name, StringUtils.repeat("-", name.length())
+          final String name = description.getMethodName();
+          final String msg = String.format(
+              "\n%s\n%s", name, StringUtils.repeat("-", name.length())
           );
+          System.out.println(msg);
+          LOG.info(msg);
         };
     };
 
     public static final String XTEST_ENV_VAR = "__XTEST__";
 
     protected WebEngine engine = null;
-    protected CountDownLatch latch = null;
-    protected boolean loaded[] = new boolean[1];
     protected String media = "{}";
 
     protected String content = null; // last loaded content
@@ -88,33 +91,37 @@ public class BugFreeWeb extends ApplicationTest {
     protected LocalFileServer localFileServer = null;
 
     private Path localFileServerRoot = null;
-    private final List<String> bootstrapScripts = new ArrayList();
+    private final List<String> preLoadScripts = new ArrayList();
     private final List<String> postLoadScripts = new ArrayList();
 
+    private final static int PAGE_LOAD_TIMEOUT = 2500;
+
     public BugFreeWeb() {
+        System.out.println(System.currentTimeMillis() + " CREATE");
         try {
             //
             // Prepare bootstrapScript with the scripts to be executed before
             // every other script to prepare the xtest environment
             //
-            bootstrapScripts.add(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
-            bootstrapScripts.add(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
-            bootstrapScripts.add(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
-            bootstrapScripts.add(IOUtils.resourceToString("/js/SubtleCrypto.js", Charset.defaultCharset()));
-            bootstrapScripts.add("__XTEST__.matchMediaStub = new MatchMediaStub('" + media + "');");
+            preLoadScripts.add(IOUtils.resourceToString("/js/MatchMediaStub.js", Charset.defaultCharset()));
+            preLoadScripts.add(IOUtils.resourceToString("/js/DateStub.js", Charset.defaultCharset()));
+            preLoadScripts.add(IOUtils.resourceToString("/js/WebViewSetup.js", Charset.defaultCharset()));
+            preLoadScripts.add(IOUtils.resourceToString("/js/SubtleCrypto.js", Charset.defaultCharset()));
+            preLoadScripts.add("__XTEST__.matchMediaStub = new MatchMediaStub('" + media + "');");
 
             //
             // Scripts that must be executed after the page is loaded (some JS
             // object are created at page load (e.d. document)
             //
             postLoadScripts.add(IOUtils.resourceToString("/js/Fullscreen.js", Charset.defaultCharset()));
+            postLoadScripts.add("__XTEST__.ready=true");
 
             //
             // Create a LocalFileServer serving from a temporary directory
             //
             localFileServerRoot = Files.createTempDirectory("xtest-http-root");
             localFileServer = new LocalFileServer(
-                localFileServerRoot.toString(), bootstrapScripts
+                localFileServerRoot.toString(), preLoadScripts
             );
 
             //
@@ -127,15 +134,6 @@ public class BugFreeWeb extends ApplicationTest {
                     x.printStackTrace();
                 }
             }));
-
-            //
-            // Start listening
-            //
-            System.out.println(
-                "Starting local server on port " + localFileServer.server.getAddress().getPort() +
-                " serving from " + localFileServerRoot
-            );
-            localFileServer.start();
         } catch (IOException x) {
             x.printStackTrace();
         }
@@ -143,58 +141,77 @@ public class BugFreeWeb extends ApplicationTest {
 
     @Before
     public void before() throws Exception {
+        System.out.println(System.currentTimeMillis() + " BEFORE");
         errors.clear();
+        //
+        // Start listening
+        //
+        System.out.println(
+            "Starting local server on port " + localFileServer.server.getAddress().getPort() +
+            " serving from " + localFileServerRoot
+        );
+        localFileServer.start();
     }
 
     @After
     public void after() {
-        if (!errors.isEmpty()) {
-            System.out.println("ERRORS\n----------\n");
-            errors.forEach((error) -> System.out.println(error));
-            System.out.println("\n----------");
+        System.out.println(System.currentTimeMillis() + " AFTER");
+        //
+        // Stop listening
+        //
+        localFileServer.stop();
+
+        //
+        // Showing errors if any
+        if (!errors.isEmpty() && LOG.isLoggable(Level.INFO)) {
+            LOG.info("ERRORS\n----------\n");
+            errors.forEach((error) -> {
+                LOG.info(error.getMessage());
+            });
+            LOG.info("\n----------");
         }
         printConsole();
     }
 
     @Override
     public void start(Stage stage) throws Exception {
+        System.out.println(System.currentTimeMillis() + " START");
         WebView web = new WebView();
+
         engine = web.getEngine();
         engine.setOnError((error) -> {
             errors.add(error.getException());
         });
 
         final Worker w = (Worker) engine.getLoadWorker();
-        w.exceptionProperty().addListener((bservable, oldValue, newValue) -> {
-            System.out.println("Exception in WebWorker");
-            System.out.println("----------------------");
-            System.out.println("old: " + oldValue);
-            System.out.println("new: " + newValue);
-            System.out.println("======================");
-
+        w.exceptionProperty().addListener((observable, oldValue, newValue) -> {
+            if (LOG.isLoggable(Level.INFO)) {
+                LOG.info("Exception in WebWorker");
+                LOG.info("----------------------");
+                LOG.info("new: " + newValue);
+                LOG.info("======================");
+            }
         });
+
         w.stateProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.printf(
-                "WebWorker: handling %s - %s %s\n",
-                engine.getLocation(), newValue, w.getMessage()
-            );
+            LOG.finest(() -> String.format(
+                "WebWorker: handling %s - %s->%s %s",
+                engine.getLocation(), oldValue, newValue, w.getMessage()
+            ));
 
             if (newValue == Worker.State.SUCCEEDED) {
-                System.out.printf(
-                    "WebWorker: successfully loaded  %s - %s\n",
+                LOG.info(() -> String.format(
+                    "WebWorker: successfully loaded  %s - %s",
                     engine.getLocation(), engine.getTitle()
-                );
+                ));
                 for (final String script: postLoadScripts) {
                     engine.executeScript(script);
                 }
-                loaded[0] = true;
-                latch.countDown();
             } else if (newValue == Worker.State.FAILED) {
-                System.out.printf(
+                LOG.info(() -> String.format(
                     "WebWorker: failed to load %s",
                     engine.getLocation()
-                );
-                latch.countDown();
+                ));
             }
         });
 
@@ -216,31 +233,33 @@ public class BugFreeWeb extends ApplicationTest {
      * @return true if the resource successfully loaded, false otherwse
      */
     public boolean loadPage(final String page) {
-        latch = new CountDownLatch(1);
-
-        loaded[0] = false;
         runLater(() -> {
             engine.load(url(page));
         });
 
+        LOG.finest(() -> "Waiting for page to be ready");
         try {
-            latch.await(5, TimeUnit.SECONDS);
-            runLater(() -> {
-                this.content = documentContent(engine.getDocument());
+            new WaitFor(PAGE_LOAD_TIMEOUT, () -> {
+                return isPageReady();
             });
-        } catch (InterruptedException x) {
-            System.err.println("Page '" + page + "' not loaded in time!");
+        } catch (Throwable t) {
+            LOG.finest(() -> "Page not ready in " + PAGE_LOAD_TIMEOUT + " milliseconds " + t.getMessage());
+            return false;
         }
+        LOG.finest(() -> "Page fully loaded and ready");
+        runLater(() -> {
+            this.content = documentContent(engine.getDocument());
+        });
 
-        return loaded[0];
+        return true;
     }
 
     public void initialMedia(final String media) {
         this.media = media;
-        for (int i=0; i<bootstrapScripts.size(); ++i) {
-            final String s = bootstrapScripts.get(i);
+        for (int i=0; i<preLoadScripts.size(); ++i) {
+            final String s = preLoadScripts.get(i);
             if (s.startsWith("__XTEST__.matchMediaStub =")) {
-                bootstrapScripts.set(i, "__XTEST__.matchMediaStub = new MatchMediaStub(" + media + ");");
+                preLoadScripts.set(i, "__XTEST__.matchMediaStub = new MatchMediaStub(" + media + ");");
             }
         }
     }
@@ -334,8 +353,12 @@ public class BugFreeWeb extends ApplicationTest {
         exec("$('" + selector + "').click()");
     }
 
-    // ----------------------------------------------------------------- storage
-    // ------------------------------------------------------------------ script
+    /**
+     * Execute the provided script in the FX thread
+     *
+     * @param script the script to execute
+     * @return the last result as a plain or JSON object
+     */
     public Object exec(final String script) {
         final Object[] result = new Object[1];
 
@@ -367,6 +390,12 @@ public class BugFreeWeb extends ApplicationTest {
 
     public void printConsole() {
         System.out.println(console());
+    }
+
+    // ------------------------------------------------------- protected methods
+
+    protected boolean isPageReady() {
+        return "true".equals(String.valueOf(exec("__XTEST__ !== undefined && __XTEST__.ready === true")));
     }
 
     // --------------------------------------------------------- private methods

@@ -23,7 +23,8 @@
 var __XTEST__ = {
     matchMediaStub: null,
     lastResult: null,
-    log: ""
+    log: "",
+    ready: false
 };
 
 window.matchMedia = (query) => {
@@ -63,3 +64,4 @@ const consoleLogging = (function(srdConsole){
 
 window.console = consoleLogging;
 Date = DateStub;
+
