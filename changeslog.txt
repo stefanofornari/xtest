@@ -1,5 +1,5 @@
 20250522
-- released 3.11.3
+- released 3.11.2
 
 20250521
 - improved page loading to wait until the page is fully loaded and ready
