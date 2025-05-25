@@ -65,16 +65,16 @@ public class BugFreeXTestFileHandler {
         XTestFileHandler fh = new XTestFileHandler("src/test/resources");
 
         fh.handle(
-            new HttpExchangeStub("http://somewhere.com/logging.properties").withOutputStream(OUT)
+            new HttpExchangeStub("http://somewhere.com/bsh/test1.bsh").withOutputStream(OUT)
         );
 
         then(OUT.toString()).isEqualTo(
                 "HTTP/1.1 200 OK\r\n"
                 + "content-type: application/octet-stream\r\n"
-                + "content-length: 235\r\n"
+                + "content-length: 107\r\n"
                 + "cache-control: no-store,max-age=0\r\n"
                 + "\r\n"
-                + IOUtils.toString(new FileReader("src/test/resources/logging.properties"))
+                + IOUtils.toString(new FileReader("src/test/resources/bsh/test1.bsh"))
         );
 
         OUT.reset();

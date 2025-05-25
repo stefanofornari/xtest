@@ -1,3 +1,7 @@
+20250523
+- improved page load detection taking into account OpenJDK and OpenJFX 24
+- released 3.11.4
+
 20250522
 - released 3.11.3
 
