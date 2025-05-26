@@ -131,6 +131,14 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
     }
 
     @Test
+    public void exec_throws_exception_on_error() {
+        exec("this should throw an error");
+        then(errors).hasSize(1);
+        then(errors.get(0)).isInstanceOf(netscape.javascript.JSException.class)
+            .hasMessage("SyntaxError: Unexpected identifier 'should'");
+    }
+
+    @Test
     public void match_media_stub_is_installed() throws Exception {
         loadPage("hello.html");
 

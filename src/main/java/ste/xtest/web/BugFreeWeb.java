@@ -175,17 +175,24 @@ public class BugFreeWeb extends ApplicationTest {
         WebView web = new WebView();
         engine = web.getEngine();
         engine.setOnError((error) -> {
+            LOG.severe(
+                () -> error.getMessage()
+                    + " in "
+                    + error.getSource()
+                    + " with target "
+                    + error.getTarget()
+            );
+
             errors.add(error.getException());
         });
 
         final Worker w = (Worker) engine.getLoadWorker();
         w.exceptionProperty().addListener((observable, oldValue, newValue) -> {
-            if (LOG.isLoggable(Level.INFO)) {
-                LOG.info("Exception in WebWorker");
-                LOG.info("----------------------");
-                LOG.info("new: " + newValue);
-                LOG.info("======================");
-            }
+            LOG.info(() -> "Exception in WebWorker\n"
+                         + "----------------------\n"
+                         + newValue + "\n"
+                         + "======================"
+            );
         });
 
         w.stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -399,7 +406,7 @@ public class BugFreeWeb extends ApplicationTest {
                 r.run();
             } catch (Throwable t) {
                 engine.getOnError().handle(
-                        new WebErrorEvent(engine, WebErrorEvent.ANY, "error in FX thread", t)
+                    new WebErrorEvent(engine, WebErrorEvent.ANY, "error in FX thread", t)
                 );
             }
         });
