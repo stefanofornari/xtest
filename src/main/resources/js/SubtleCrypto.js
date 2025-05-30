@@ -100,7 +100,7 @@ class FakeSubtleCrypto {
     }
 
     //
-    // prepend separator and key and iv data
+    // prepend key data and algorithm (note that key.data is alread "hexed"
     //
     return this.unhex(
         key.data + this.hex(algorithm.iv) + this.SEPARATOR + this.hex(data)
