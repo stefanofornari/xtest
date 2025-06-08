@@ -1,3 +1,7 @@
+20250608
+- fixed a bug in SubtleCrypto fake
+- improved SubtleCrypto fake to be closer to browser implementation
+
 20250523
 - improved page load detection taking into account OpenJDK and OpenJFX 24
 - released 3.11.4

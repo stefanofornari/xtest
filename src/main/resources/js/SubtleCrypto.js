@@ -50,7 +50,7 @@ class FakeSubtleCrypto {
   SEPARATOR = "3a";
 
   decrypt(algorithm, key, data) {
-    const ALLOWED_ALGORITHMS = " AES-CBC AES-GCM RSA-OAEP ";
+    const ALLOWED_ALGORITHMS = " AES-CBC AES-CTR AES-CTR AES-GCM ";
 
     //
     // Argument validation
@@ -60,7 +60,7 @@ class FakeSubtleCrypto {
     const alg = algorithm.name.toUpperCase();
 
     if (ALLOWED_ALGORITHMS.indexOf(alg) < 0) {
-        throw new Error(`algorithm ${algorithm.name} not supported`);
+        throw new Error(`Operation is not supported (algorithm ${algorithm.name} not supported)`);
     }
 
     //
@@ -69,7 +69,7 @@ class FakeSubtleCrypto {
     //
     const prefix = key.data + this.hex(algorithm.iv) + this.SEPARATOR;
     if (data.length <= (prefix/2)) {
-        return data;
+        throw Error("The operation failed for an operation-specific reason (decryption error)");
     }
 
     const encrypted = this.hex(data);
@@ -78,15 +78,17 @@ class FakeSubtleCrypto {
     // if provided data does not start with key+iv+SEPARATOR, something is
     // wrong and no decryption is performed
     //
+    console.debug("encrypted", encrypted);
+    console.debug("prefix", prefix);
     if (encrypted.indexOf(prefix) !== 0) {
-        return data;
+        throw Error("The operation failed for an operation-specific reason (decryption error)");
     }
 
     return this.unhex(encrypted.substring(prefix.length));
   }
 
   encrypt(algorithm, key, data) {
-    const ALLOWED_ALGORITHMS = " AES-CBC AES-GCM RSA-OAEP ";
+    const ALLOWED_ALGORITHMS = " AES-CBC AES-CTR AES-CTR AES-GCM ";
 
     //
     // Argument validation
@@ -96,7 +98,7 @@ class FakeSubtleCrypto {
     const alg = algorithm.name.toUpperCase();
 
     if (ALLOWED_ALGORITHMS.indexOf(alg) < 0) {
-        throw new Error(`algorithm ${algorithm.name} not supported`);
+        throw new Error(`Operation is not supported (algorithm ${algorithm.name} not supported)`);
     }
 
     //
@@ -213,15 +215,18 @@ class FakeSubtleCrypto {
 
   checkCryptoArguments(algorithm, key) {
     if (!key || !key.data || !key.data.length) {
-      throw new Error("key can not be null or empty");
+      throw new Error("The operation failed for an operation-specific reason (key can not be null or empty)");
     }
 
     if (!algorithm || !algorithm.name || !algorithm.name.length) {
-      throw new Error("algorithm null, empty or invalid");
+      throw new Error("The operation failed for an operation-specific reason (algorithm null, empty or invalid)");
     }
 
-    if (!algorithm.iv || !algorithm.iv.length) {
-      throw new Error("algorithm does not contain a valid iv");
+    //
+    // iv is a ArrayBuffer...
+    //
+    if (!algorithm.iv || !algorithm.iv.byteLength) {
+      throw new Error("The operation failed for an operation-specific reason (algorithm does not contain a valid iv)");
     }
   }
 

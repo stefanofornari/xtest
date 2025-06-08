@@ -42,7 +42,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
     @Override
     public void before() throws Exception {
         super.before();
-        
+
         FileUtils.copyDirectory(new File("src/main/resources/js/"), new File(localFileServer.root.toFile(), "js"));
         FileUtils.copyDirectory(new File("src/test/resources/html"), localFileServer.root.toFile());
 
@@ -63,7 +63,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         checkDigest("SHA-1", "something", "5348412d312d3136353239343538370000000000");
         checkDigest("SHA-384", "something", "5348412d3338342d31363532393435383700000000000000000000000000000000000000000000000000000000000000");
         checkDigest("SHA-512", "something", "5348412d3531322d3136353239343538370000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-        checkDigest("SHA-520", "something", "Error: algorithm SHA-520 not supported for digest");
+        checkDigest("SHA-520", "something", "algorithm SHA-520 not supported for digest");
     }
 
     @Test
@@ -154,10 +154,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                     try {
                         crypto.subtle.importKey('raw', %s, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
                     } catch (error) {
-                        ret = error.toString();
+                        ret = error.message;
                     }
                 """, VALUE))
-            ).isEqualTo("Error: key data can not be null or empty");
+            ).isEqualTo("key data can not be null or empty");
         }
     }
 
@@ -180,7 +180,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             );
         """);
 
-        for (final String A : new String[]{"AES-GCM", "AES-GCM", "RSA-OAEP"}) {
+        for (final String A : new String[]{"AES-CBC", "AES-CTR", "AES-CTR", "AES-GCM"}) {
             then(exec(String.format("""
                 crypto.subtle.hex(crypto.subtle.encrypt(
                     { name: '%s', iv: iv },
@@ -193,19 +193,16 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         //
         // Invalid algorithm
         //
-        then(
-            exec("""
-            try {
-                ret = crypto.subtle.encrypt(
-                    { name: 'invalid', iv: iv },
-                    key,
-                    encoder.encode('hello world')
-                );
-            } catch (error) {
-                ret = error.toString();
-            }
-        """)
-        ).isEqualTo("Error: algorithm invalid not supported");
+        errors.clear();
+        exec("""
+            ret = crypto.subtle.encrypt(
+                { name: 'INVALID', iv: iv },
+                key,
+                encoder.encode('hello world')
+            );
+        """);
+        then(errors).hasSize(1);
+        then(errors.get(0).getMessage()).isEqualTo("Error: Operation is not supported (algorithm INVALID not supported)");
 
         //
         // Corner cases
@@ -225,10 +222,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         encoder.encode('hello world')
                     );
                 } catch (error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, VALUE))
-            ).isEqualTo("Error: key can not be null or empty");
+            ).isEqualTo("The operation failed for an operation-specific reason (key can not be null or empty)");
         }
 
         // algorithm null or empty or invalid
@@ -245,10 +242,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         encoder.encode('hello world')
                     );
                 } catch (error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, VALUE))
-            ).isEqualTo("Error: algorithm null, empty or invalid");
+            ).isEqualTo("The operation failed for an operation-specific reason (algorithm null, empty or invalid)");
         }
 
         // iv null or empty
@@ -265,10 +262,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         encoder.encode('hello world')
                     );
                 } catch (error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, VALUE))
-            ).isEqualTo("Error: algorithm does not contain a valid iv");
+            ).isEqualTo("The operation failed for an operation-specific reason (algorithm does not contain a valid iv)");
         }
     }
 
@@ -291,7 +288,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
             );
         """);
 
-        for (final String A : new String[]{"AES-GCM", "AES-GCM", "RSA-OAEP"}) {
+        for (final String A : new String[]{"AES-CBC", "AES-CTR", "AES-CTR", "AES-GCM"}) {
             then(exec(String.format("""
                 new TextDecoder().decode(crypto.subtle.decrypt(
                     { name: '%s', iv: iv },
@@ -302,48 +299,43 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
         }
 
         //
-        // Negative cases: return same as input
+        // Negative cases: throw appropriate error
         //
-        then(exec(String.format("""
+        exec("""
             new TextDecoder().decode(crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv: iv },
+                { name: 'INVALID', iv: iv },
                 key,
                 new Uint8Array([32, 33, 34, 35, 36])
             ));
-        """))).isEqualTo(" !\"#$");
+        """);
+        then(errors.get(0)).hasMessage("Error: Operation is not supported (algorithm INVALID not supported)");
 
-        then(exec(String.format("""
-            new TextDecoder().decode(crypto.subtle.decrypt(
+        //
+        // Different key
+        //
+        errors.clear();
+        exec("""
+            crypto.subtle.decrypt(
                 { name: 'AES-GCM', iv: iv },
                 { "type":"secret","algorithm":{ "name":"AES-GCM" },"data":"34333231" },
                 encrypted
-            ));
-        """))).isNotEqualTo("1234:hello world");
-
-        then(exec(String.format("""
-            new TextDecoder().decode(crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv: new Uint8Array([65, 90]) },
-                { "type":"secret","algorithm":{ "name":"AES-GCM" },"data":"34333231" },
-                encrypted
-            ));
-        """))).isNotEqualTo("1234:hello world:AZ");
+            );
+        """);
+        then(errors).hasSize(1);
+        then(errors.get(0).getMessage()).isEqualTo("Error: The operation failed for an operation-specific reason (decryption error)");
 
         //
         // Invalid algorithm
         //
-        then(
-            exec("""
-            try {
-                ret = crypto.subtle.decrypt(
-                    { name: 'invalid', iv: iv },
-                    key,
-                    encrypted
-                );
-            } catch (error) {
-                ret = error.toString();
-            }
-        """)
-        ).isEqualTo("Error: algorithm invalid not supported");
+        errors.clear();
+        exec("""
+            ret = crypto.subtle.decrypt(
+                { name: 'INVALID', iv: iv },
+                key,
+                encrypted
+            );
+        """);
+        then(errors.get(0)).hasMessage("Error: Operation is not supported (algorithm INVALID not supported)");
 
         //
         // Corner cases
@@ -363,10 +355,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         encrypted
                     );
                 } catch (error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, VALUE))
-            ).isEqualTo("Error: key can not be null or empty");
+            ).isEqualTo("The operation failed for an operation-specific reason (key can not be null or empty)");
         }
 
         // algorithm null or empty or invalid
@@ -383,10 +375,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         encrypted
                     );
                 } catch (error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, VALUE))
-            ).isEqualTo("Error: algorithm null, empty or invalid");
+            ).isEqualTo("The operation failed for an operation-specific reason (algorithm null, empty or invalid)");
         }
 
         // iv null or empty
@@ -403,10 +395,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         encrypted
                     );
                 } catch (error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, VALUE))
-            ).isEqualTo("Error: algorithm does not contain a valid iv");
+            ).isEqualTo("The operation failed for an operation-specific reason (algorithm does not contain a valid iv)");
         }
     }
 
@@ -428,10 +420,10 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                 try {
                     crypto.subtle.%s(%s);
                 } catch(error) {
-                    ret = error.toString();
+                    ret = error.message;
                 }
             """, METHOD[0], METHOD[1])))
-                    .isEqualTo(String.format("Error: %s() not yet implemented", METHOD[0]));
+                    .isEqualTo(String.format("%s() not yet implemented", METHOD[0]));
         }
     }
 
@@ -444,7 +436,7 @@ public class BugFreSubtleCrypto extends BugFreeWeb {
                         crypto.subtle.digest('%s', new TextEncoder().encode('%s'))
                     );
                 } catch(error) {
-                    ret = error.toString();
+                    ret = error.message;
                 };
             """, algorithm, text))
         ).isEqualTo(expected);
