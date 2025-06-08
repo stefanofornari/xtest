@@ -78,8 +78,6 @@ class FakeSubtleCrypto {
     // if provided data does not start with key+iv+SEPARATOR, something is
     // wrong and no decryption is performed
     //
-    console.debug("encrypted", encrypted);
-    console.debug("prefix", prefix);
     if (encrypted.indexOf(prefix) !== 0) {
         throw Error("The operation failed for an operation-specific reason (decryption error)");
     }
