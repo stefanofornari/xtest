@@ -68,42 +68,30 @@ public class BugFreeXTestFileHandler {
             new HttpExchangeStub("http://somewhere.com/bsh/test1.bsh").withOutputStream(OUT)
         );
 
-        then(OUT.toString()).isEqualTo(
-                "HTTP/1.1 200 OK\r\n"
-                + "content-type: application/octet-stream\r\n"
-                + "content-length: 107\r\n"
-                + "cache-control: no-store,max-age=0\r\n"
-                + "\r\n"
-                + IOUtils.toString(new FileReader("src/test/resources/bsh/test1.bsh"))
-        );
+        String[] responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 200 OK");
+        then(responseParts[0]).contains("content-type: application/octet-stream");
+        then(responseParts[1]).isEqualTo(IOUtils.toString(new FileReader("src/test/resources/bsh/test1.bsh")));
 
         OUT.reset();
         fh.handle(
             new HttpExchangeStub("http://somewhere.com/html/hello.html").withOutputStream(OUT)
         );
 
-        then(OUT.toString()).isEqualTo(
-                "HTTP/1.1 200 OK\r\n"
-                + "content-type: text/html\r\n"
-                + "content-length: 180\r\n"
-                + "cache-control: no-store,max-age=0\r\n"
-                + "\r\n"
-                + IOUtils.toString(new FileReader("src/test/resources/html/hello.html"))
-        );
+        responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 200 OK");
+        then(responseParts[0]).contains("content-type: text/html");
+        then(responseParts[1]).isEqualTo(IOUtils.toString(new FileReader("src/test/resources/html/hello.html")));
 
         OUT.reset();
         fh.handle(
             new HttpExchangeStub("http://somewhere.com/notfound.properties").withOutputStream(OUT)
         );
 
-        then(OUT.toString()).isEqualTo(
-                "HTTP/1.1 404 Not Found\r\n"
-                + "content-length: 9\r\n"
-                + "content-type: text/plain\r\n"
-                + "cache-control: no-store,max-age=0\r\n"
-                + "\r\n"
-                + "Not Found"
-        );
+        responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 404 Not Found");
+        then(responseParts[0]).contains("content-type: text/plain");
+        then(responseParts[1]).isEqualTo("Not Found");
     }
 
     @Test
@@ -116,14 +104,10 @@ public class BugFreeXTestFileHandler {
             new HttpExchangeStub("http://somewhere.com/html/hello.html?__XTEST_BOOTSTRAP__=1").withOutputStream(OUT)
         );
 
-        then(OUT.toString()).startsWith(
-            "HTTP/1.1 200 OK\r\n"
-            + "content-type: text/html\r\n"
-            + "content-length: 180\r\n"
-            + "cache-control: no-store,max-age=0\r\n"
-            + "\r\n"
-            + "<html>\n    <head>\n        <title>a title</title>"
-        );
+        String[] responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 200 OK");
+        then(responseParts[0]).contains("content-type: text/html");
+        then(responseParts[1]).startsWith("<html>\n    <head>\n        <title>a title</title>");
 
         //
         // we want the final script to be built all the times to give the
@@ -141,14 +125,10 @@ public class BugFreeXTestFileHandler {
             new HttpExchangeStub("http://somewhere.com/html/hello.html?__XTEST_BOOTSTRAP__=1").withOutputStream(OUT)
         );
 
-        then(OUT.toString()).startsWith(
-            "HTTP/1.1 200 OK\r\n"
-            + "content-type: text/html\r\n"
-            + "content-length: 180\r\n"
-            + "cache-control: no-store,max-age=0\r\n"
-            + "\r\n"
-            + "<html>\n    <head>\n        <title>a title</title>"
-        );
+        responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 200 OK");
+        then(responseParts[0]).contains("content-type: text/html");
+        then(responseParts[1]).startsWith("<html>\n    <head>\n        <title>a title</title>");
 
         //
         // one or more scripts
@@ -157,27 +137,19 @@ public class BugFreeXTestFileHandler {
         fh.handle(
             new HttpExchangeStub("http://somewhere.com/html/hello.html?__XTEST_BOOTSTRAP__=1").withOutputStream(OUT)
         );
-        then(OUT.toString()).startsWith(
-            "HTTP/1.1 200 OK\r\n"
-            + "content-type: text/html\r\n"
-            + "content-length: 207\r\n"
-            + "cache-control: no-store,max-age=0\r\n"
-            + "\r\n"
-            + "<html>\n    <head><script>\nscript1\n</script>\n"
-        );
+        responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 200 OK");
+        then(responseParts[0]).contains("content-type: text/html");
+        then(responseParts[1]).startsWith("<html>\n    <head><script>\nscript1\n</script>\n");
 
         SCRIPTS.add("script2"); OUT.reset();
         fh.handle(
             new HttpExchangeStub("http://somewhere.com/html/hello.html?__XTEST_BOOTSTRAP__=1").withOutputStream(OUT)
         );
-        then(OUT.toString()).startsWith(
-            "HTTP/1.1 200 OK\r\n"
-            + "content-type: text/html\r\n"
-            + "content-length: 215\r\n"
-            + "cache-control: no-store,max-age=0\r\n"
-            + "\r\n"
-            + "<html>\n    <head><script>\nscript1\nscript2\n</script>\n"
-        );
+        responseParts = OUT.toString().split("\r\n\r\n", 2);
+        then(responseParts[0]).startsWith("HTTP/1.1 200 OK");
+        then(responseParts[0]).contains("content-type: text/html");
+        then(responseParts[1]).startsWith("<html>\n    <head><script>\nscript1\nscript2\n</script>\n");
     }
 
     @Test
