@@ -179,4 +179,20 @@ public class BugFreeXTestFileHandler {
             + "<html>\n    <head><script>\nscript1\nscript2\n</script>\n"
         );
     }
+
+    @Test
+    public void handle_sets_headers() throws Exception {
+        final ByteArrayOutputStream OUT = new ByteArrayOutputStream();
+        XTestFileHandler fh = new XTestFileHandler("src/test/resources");
+
+        final HttpExchangeStub exchange =
+            new HttpExchangeStub("http://somewhere.com/bsh/test1.bsh").withOutputStream(OUT);
+        fh.handle(exchange);
+
+        then(exchange.responseHeaders.getFirst("Cache-Control")).isEqualTo("no-store,max-age=0");
+        then(exchange.responseHeaders.getFirst("Access-Control-Allow-Origin")).isEqualTo("*");
+        then(exchange.responseHeaders.getFirst("Access-Control-Allow-Headers")).isEqualTo("Content-Type, Origin");
+        then(exchange.responseHeaders.getFirst("Access-Control-Allow-Methods")).isEqualTo("POST, GET, OPTIONS");
+        then(exchange.responseHeaders.getFirst("Access-Control-Allow-Credentials")).isEqualTo("true");
+    }
 }

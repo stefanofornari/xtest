@@ -61,6 +61,13 @@ public class XTestFileHandler implements HttpHandler {
         // never cache
         //
         exchange.getResponseHeaders().set("Cache-Control", "no-store,max-age=0");
+        //
+        // CORS
+        //
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Origin");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Credentials", "true");
 
         if (!requestMethod.equals("GET") && !requestMethod.equals("HEAD")) {
             sendError(exchange, 405, "Method Not Allowed");
