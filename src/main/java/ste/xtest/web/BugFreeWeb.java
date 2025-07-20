@@ -137,15 +137,6 @@ public class BugFreeWeb extends ApplicationTest {
                     x.printStackTrace();
                 }
             }));
-
-            //
-            // Start listening
-            //
-            System.out.println(
-                "Starting local server on port " + localFileServer.server.getAddress().getPort() +
-                " serving from " + localFileServerRoot
-            );
-            localFileServer.start();
         } catch (IOException x) {
             x.printStackTrace();
         }
@@ -172,6 +163,18 @@ public class BugFreeWeb extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
+        //
+        // Start listening
+        //
+        LOG.info(
+            "Starting local server on port " + localFileServer.server.getAddress().getPort() +
+            " serving from " + localFileServerRoot
+        );
+        localFileServer.start();
+
+        //
+        // Start the web container app
+        //
         WebView web = new WebView();
         engine = web.getEngine();
         engine.setOnError((error) -> {
@@ -223,7 +226,7 @@ public class BugFreeWeb extends ApplicationTest {
         //
         // Stop listening
         //
-        System.out.println(
+        LOG.info(
             "Stopping local server on port " + localFileServer.server.getAddress().getPort() +
             " serving from " + localFileServerRoot
         );
