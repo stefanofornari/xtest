@@ -1,3 +1,8 @@
+20250720
+- Added permissive CORS headers to the response
+- Starting/stopping the HTTPServer at before/after each test in BugFreeWeb
+- released 3.11.5
+
 20250608
 - fixed a bug in SubtleCrypto fake
 - improved SubtleCrypto fake to be closer to browser implementation
