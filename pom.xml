@@ -19,7 +19,7 @@
 
     <groupId>com.github.stefanofornari</groupId>
     <artifactId>xtest</artifactId>
-    <version>3.11.6-SNAPSHOT</version>
+    <version>3.11.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xTest</name>
@@ -240,15 +240,13 @@
             </plugin>
 
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.13</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>oss.sonatype.org</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
+              <groupId>org.sonatype.central</groupId>
+              <artifactId>central-publishing-maven-plugin</artifactId>
+              <version>0.8.0</version>
+              <extensions>true</extensions>
+              <configuration>
+                <publishingServerId>central.sonatype.com</publishingServerId>
+              </configuration>
             </plugin>
 
             <plugin>
