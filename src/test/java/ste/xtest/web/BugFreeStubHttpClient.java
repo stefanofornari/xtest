@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.net;
+package ste.xtest.web;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,7 +31,8 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.xtest.net.StubHttpClient.StubHttpResponse;
+import ste.xtest.web.StubHttpClient.StubHttpResponse;
+
 
 /**
  *
@@ -161,8 +162,30 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
         } catch (IOException x) {
             then(x).hasMessage("no stub found for https://onestub.io/resource/error");
         }
-
     }
 
+    @Test
+    public void send_matches_with_and_matcher() throws Exception {
+        final String URL = "http://example.com/api/data";
+        final String HEADER_NAME = "X-Custom-Header";
+        final String HEADER_VALUE = "my-value";
+        final String RESPONSE_BODY = "Matched by ANDMatcher!";
 
+        final HttpClient HTTP = new HttpClientStubber()
+            .withStub(
+                new ANDMatcher(new RequestMatcher[] {
+                    new URIMatcher(URL),
+                    new HeaderMatcher(HEADER_NAME, HEADER_VALUE)
+                }),
+                new StubHttpResponse().text(RESPONSE_BODY)
+            )
+            .build();
+
+        HttpRequest request = HttpRequest.newBuilder(URI.create(URL))
+                                .header(HEADER_NAME, HEADER_VALUE)
+                                .GET()
+                                .build();
+
+        then(HTTP.send(request, BodyHandlers.ofString()).body()).isEqualTo(RESPONSE_BODY);
+    }
 }
