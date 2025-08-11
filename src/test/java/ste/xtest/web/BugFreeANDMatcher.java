@@ -1,0 +1,88 @@
+package ste.xtest.web;
+
+import java.net.URI;
+import org.junit.Test;
+import java.net.http.HttpRequest;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenThrownBy;
+
+public class BugFreeANDMatcher {
+
+    @Test
+    public void matches_when_all_matchers_match() {
+        // Given
+        final HttpRequest R = HttpRequest.newBuilder()
+                                .uri(URI.create("http://example.com"))
+                                .build();
+
+        final RequestMatcher M1 = new DummyMatcher(true);
+        final RequestMatcher M2 = new DummyMatcher(true);
+
+        final ANDMatcher AND = new ANDMatcher(new RequestMatcher[] {M1, M2});
+
+        // Then
+        then(AND.match(R)).isTrue();
+    }
+
+    @Test
+    public void does_not_match_when_any_matcher_does_not_match() {
+        // Given
+        final HttpRequest R = HttpRequest.newBuilder()
+                                .uri(URI.create("http://example.com"))
+                                .build();
+
+        final RequestMatcher M1 = new DummyMatcher(true);
+        final RequestMatcher M2 = new DummyMatcher(false);
+
+        final ANDMatcher AND = new ANDMatcher(new RequestMatcher[] {M1, M2});
+
+        // Then
+        then(AND.match(R)).isFalse();
+    }
+
+    @Test
+    public void constructor_throws_illegal_argument_exception_for_invalid_number_of_matchers() {
+        // Test with null matchers array
+        thenThrownBy(() -> new ANDMatcher(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("ANDMatcher must have at least two matchers");
+
+        // Test with empty matchers array
+        thenThrownBy(() -> new ANDMatcher(new RequestMatcher[] {}))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("ANDMatcher must have at least two matchers");
+
+        // Test with single matcher array
+        thenThrownBy(() -> new ANDMatcher(new RequestMatcher[] {new DummyMatcher(true)}))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("ANDMatcher must have at least two matchers");
+    }
+
+    @Test
+    public void match_throws_illegal_argument_exception_for_null_request() {
+        // Given
+        final ANDMatcher AND = new ANDMatcher(
+            new RequestMatcher[] {new DummyMatcher(true), new DummyMatcher(true)}
+        );
+
+        // When & Then
+        thenThrownBy(() -> AND.match(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("request can not be null");
+    }
+
+    // ------------------------------------------------------------ DummyMatcher
+
+    private static class DummyMatcher implements RequestMatcher {
+        private final boolean result;
+
+        public DummyMatcher(boolean result) {
+            this.result = result;
+        }
+
+        @Override
+        public boolean match(HttpRequest request) {
+            return result;
+        }
+    }
+}
