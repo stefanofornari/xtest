@@ -19,15 +19,15 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.net;
+package ste.xtest.web;
 
 import java.net.http.HttpClient;
-import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.xtest.net.StubHttpClient.StubHttpResponse;
+import ste.xtest.web.StubHttpClient.StubHttpResponse;
 
 /**
  *
@@ -107,20 +107,18 @@ public class BugFreeHttpClientStubber extends BugFreeHttpClientBase {
 
         then(S.withStub(URL1)).isSameAs(S);
         then(S.stubs()).hasSize(1);
-        ImmutablePair<String, StubHttpResponse> pair = S.stub(URL1);
+        ImmutablePair<RequestMatcher, StubHttpResponse> pair = S.stubs().get(0);
         then(pair).isNotNull();
-        then(pair.getKey()).isEqualTo(URL1);
-        then(pair.getValue()).isNotNull();
+        then(((URIMatcher)pair.left).uri.toString()).isEqualTo(URL1);
+        then(pair.right).isNotNull();
 
         then(S.withStub(URL2)).isSameAs(S);
-        then(S.stubs()).hasSize(2);
-        pair = S.stub(URL2);
+        then(S.stubs()).hasSize(2); pair = S.stubs().get(1);
         then(pair).isNotNull();
-        then(pair.getKey()).isEqualTo(URL2);
-        then(pair.getValue()).isNotNull();
-        HttpResponse response = pair.getValue();
-        then(response.statusCode()).isEqualTo(200);
-        then(response.body()).isNull();
+        then(((URIMatcher)pair.left).uri.toString()).isEqualTo(URL2);
+        then(pair.right).isNotNull();
+        then(pair.right.statusCode()).isEqualTo(200);
+        then(pair.right.body()).isNull();
     }
 
     @Test
@@ -134,20 +132,39 @@ public class BugFreeHttpClientStubber extends BugFreeHttpClientBase {
 
         then(S.withStub(URL1, R)).isSameAs(S);
         then(S.stubs()).hasSize(1);
-        ImmutablePair<String, StubHttpResponse> pair = S.stub(URL1);
+        ImmutablePair<RequestMatcher, StubHttpResponse> pair = S.stubs().get(0);
         then(pair).isNotNull();
-        then(pair.getKey()).isEqualTo(URL1);
-        then(pair.getValue()).isSameAs(R);
+        then(((URIMatcher)pair.left).uri.toString()).isEqualTo(URL1);
+        then(pair.right).isSameAs(R);
         then(R.contentType()).isEqualTo("application/json");
         then(R.content()).isEqualTo(JSON.getBytes());
 
         R = new StubHttpResponse<String>().content(new byte[0]);
 
         then(S.withStub(URL2, R)).isSameAs(S);
-        then(S.stubs()).hasSize(2);
-        pair = S.stub(URL2);
+        then(S.stubs()).hasSize(2); pair = S.stubs().get(1);
         then(pair).isNotNull();
-        then(pair.getKey()).isEqualTo(URL2);
-        then(pair.getValue()).isSameAs(R);
+        then(((URIMatcher)pair.left).uri.toString()).isEqualTo(URL2);
+        then(pair.right).isSameAs(R);
+    }
+
+    @Test
+    public void with_request_matcher() {
+        final String URL1 = "https://somewhere.com/resource/1";
+        //final String URL2 = "https://somewhere.com/resource/2";
+        final String JSON = "{\"key\":\"value\"}";
+
+        final HttpClientStubber S = new HttpClientStubber();
+        final StubHttpResponse R = new StubHttpResponse<String>().json(JSON);
+
+        //
+        // simple URI
+        //
+        RequestMatcher matcher = new URIMatcher(URL1);
+        then(S.withStub(matcher, R)).isSameAs(S);
+        final List<ImmutablePair<RequestMatcher, StubHttpResponse>> stubs = S.stubs();
+        then(stubs).hasSize(1);
+        then(stubs.get(0).left).isSameAs(matcher);
+        then(stubs.get(0).right).isSameAs(R);
     }
 }

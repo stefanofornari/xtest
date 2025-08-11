@@ -25,8 +25,8 @@ import java.net.MalformedURLException;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.net.HttpClientStubber;
-import ste.xtest.net.StubHttpClient;
+import ste.xtest.web.HttpClientStubber;
+import ste.xtest.web.StubHttpClient;
 
 /**
  *

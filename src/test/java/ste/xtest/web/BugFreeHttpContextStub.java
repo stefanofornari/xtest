@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.net;
+package ste.xtest.web;
 
 import ste.xtest.web.HttpContextStub;
 import com.sun.net.httpserver.Authenticator;

@@ -27,8 +27,8 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.net.HttpClientStubber;
-import ste.xtest.net.StubHttpClient.StubHttpResponse;
+import ste.xtest.web.HttpClientStubber;
+import ste.xtest.web.StubHttpClient.StubHttpResponse;
 
 /**
  *
@@ -44,7 +44,7 @@ public class BugFreeHttpClient extends BugFreeEnvjs {
     public void default_implementation_returns_java_net_http() throws Exception {
         NativeJavaObject o = (NativeJavaObject)exec("Envjs.http()");
 
-        then(o.unwrap()).isInstanceOf(ste.xtest.net.StubHttpClient.class);
+        then(o.unwrap()).isInstanceOf(ste.xtest.web.StubHttpClient.class);
     }
 
     @Test

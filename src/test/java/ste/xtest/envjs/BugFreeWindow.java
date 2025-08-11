@@ -27,8 +27,8 @@ import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
 import ste.xtest.js.BugFreeEnvjs;
 import ste.xtest.js.JSAssertions;
-import ste.xtest.net.HttpClientStubber;
-import ste.xtest.net.StubHttpClient;
+import ste.xtest.web.HttpClientStubber;
+import ste.xtest.web.StubHttpClient;
 
 /**
  *
