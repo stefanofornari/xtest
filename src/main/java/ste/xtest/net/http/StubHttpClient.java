@@ -92,11 +92,31 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
  *       MyRealClass myClass = new MyRealClass();
  *       myClass.builder = builder;
  *
- *       myClass,doSomething(); // -> prints "hello world"
+ *       myClass.doSomething(); // -> prints "hello world"
  *     }
  *
  * </pre>
  *
+ * To simulate a network error:
+ *
+ * <pre>
+ *
+ *     @Test
+ *     public void network_error() {
+ *       HttpClientStubber builder = HttpClientStubber()
+ *         .withStub(
+ *           "http://somehwere.com/resource", new NetworkError()
+ *         );
+ *
+ *       MyRealClass myClass = new MyRealClass();
+ *       myClass.builder = builder;
+ *
+ *       thenThrownBy(() -> myClass.doSomething())
+ *       .isInstanceOf(IOException.class)
+ *       .hasMessage("network error for http://somehwere.com/resource");
+ *     }
+ *
+ * </pre>
  *
  */
 public class StubHttpClient extends HttpClient {
