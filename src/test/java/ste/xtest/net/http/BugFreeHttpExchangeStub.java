@@ -20,9 +20,8 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.web;
+package ste.xtest.net.http;
 
-import ste.xtest.web.HttpExchangeStub;
 import com.sun.net.httpserver.HttpPrincipal;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

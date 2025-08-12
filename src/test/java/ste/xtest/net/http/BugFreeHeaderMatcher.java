@@ -1,4 +1,4 @@
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import org.junit.Test;
 import java.net.http.HttpRequest;

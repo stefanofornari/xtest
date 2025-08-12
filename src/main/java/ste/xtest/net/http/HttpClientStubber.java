@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import java.net.Authenticator;
 import java.net.CookieHandler;
@@ -32,7 +32,7 @@ import java.util.concurrent.Executor;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import ste.xtest.web.StubHttpClient.StubHttpResponse;
+import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
 
 /**
  *

@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.net;
+package ste.xtest.net.http;
 
 public enum HttpStatus {
     CONTINUE(100, "Continue"),

@@ -26,8 +26,8 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
 import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.web.HttpClientStubber;
-import ste.xtest.web.StubHttpClient;
+import ste.xtest.net.http.HttpClientStubber;
+import ste.xtest.net.http.StubHttpClient;
 
 /**
  *

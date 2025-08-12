@@ -21,6 +21,7 @@
  */
 package ste.xtest.web;
 
+import ste.xtest.net.http.LocalFileServer;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;

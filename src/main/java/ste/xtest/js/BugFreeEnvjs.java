@@ -28,7 +28,7 @@ import javax.script.ScriptException;
 import org.mozilla.javascript.NativeJavaObject;
 import ste.xtest.net.StubStreamHandler.URLMap;
 import ste.xtest.net.StubURLConnection;
-import ste.xtest.web.HttpClientStubber;
+import ste.xtest.net.http.HttpClientStubber;
 
 
 /**

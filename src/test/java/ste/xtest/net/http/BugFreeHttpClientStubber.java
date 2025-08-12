@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -27,7 +27,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.xtest.web.StubHttpClient.StubHttpResponse;
+import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
 
 /**
  *

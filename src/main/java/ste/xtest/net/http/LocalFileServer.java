@@ -19,7 +19,7 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import com.sun.net.httpserver.*;
 import com.sun.net.httpserver.SimpleFileServer.OutputLevel;

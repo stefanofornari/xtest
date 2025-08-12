@@ -21,7 +21,7 @@
  */
 
 
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,7 +36,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.Fail.fail;
 import static org.assertj.core.util.Lists.newArrayList;
 import org.junit.Test;
-import ste.xtest.web.StubHttpClient.StubHttpResponse;
+import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
 
 
 /**

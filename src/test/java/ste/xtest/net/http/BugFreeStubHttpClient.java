@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,9 +29,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import static org.assertj.core.api.Assertions.fail;
+import org.assertj.core.api.BDDAssertions;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.xtest.web.StubHttpClient.StubHttpResponse;
+import ste.xtest.net.http.StubHttpClient.NetworkError;
+import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
 
 
 /**
@@ -187,5 +189,19 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
                                 .build();
 
         then(HTTP.send(request, BodyHandlers.ofString()).body()).isEqualTo(RESPONSE_BODY);
+    }
+
+    @Test
+    public void simulate_a_network_error() throws Exception {
+        final String URL = "http://somewere.com";
+        final HttpClient HTTP = new HttpClientStubber()
+            .withStub(URL, new NetworkError()
+        ).build();
+
+        BDDAssertions.thenThrownBy(() -> HTTP.send(
+            HttpRequest.newBuilder(URI.create(URL)).GET().build(),
+            BodyHandlers.ofString()).body()
+        ).isInstanceOf(IOException.class)
+        .hasMessage("network error for " + URL);
     }
 }

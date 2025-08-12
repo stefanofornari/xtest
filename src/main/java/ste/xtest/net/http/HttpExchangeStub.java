@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;
@@ -35,7 +35,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import ste.xtest.net.HttpStatus;
+import ste.xtest.net.http.HttpStatus;
 
 public class HttpExchangeStub extends HttpExchange {
 

@@ -1216,7 +1216,7 @@ Envjs.deleteFile = function(url){
     file["delete"]();
 };
 
-Envjs.httpClientBuilder = new Packages.ste.xtest.net.HttpClientStubber();
+Envjs.httpClientBuilder = new Packages.ste.xtest.net.http.HttpClientStubber();
 Envjs.http = function() {
     Envjs.httpClientBuilder.cookieHandler(new Packages.ste.xtest.net.FileCookieHandler());
     return Envjs.httpClientBuilder.build();

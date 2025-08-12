@@ -20,7 +20,7 @@
  * MA 02110-1301 USA.
  */
 
-package ste.xtest.web;
+package ste.xtest.net.http;
 
 import java.io.File;
 import java.io.IOException;
@@ -154,12 +154,26 @@ public class StubHttpClient extends HttpClient {
 
     @Override
     public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
+        String errorMessage = "no stub found";
+
         for (ImmutablePair<RequestMatcher, StubHttpResponse> stub: builder.stubs()) {
             if (!stub.left.match(request)) {
                 continue;
             }
+
             //
             // Here we have a match!
+            //
+
+            //
+            // Do we need to simulate a network error?
+            //
+            if (stub.right instanceof NetworkError) {
+                errorMessage = "network error"; break;
+            }
+
+            //
+            // If we are here we can process the content
             //
             StubHttpResponse<T> response = stub.right;
             BodySubscriber<T> bodySubscriber = responseBodyHandler.apply(response);
@@ -178,11 +192,11 @@ public class StubHttpClient extends HttpClient {
 
             return response;
         }
-        
+
         //
         // No stub found for the given request, let's tell it with an IOException
         //
-        throw new IOException("no stub found for " + request.uri());
+        throw new IOException(errorMessage + " for " + request.uri());
     }
 
     /**
@@ -392,6 +406,16 @@ public class StubHttpClient extends HttpClient {
             headers.put("Content-type", headerValue(type));
             headers.put("Content-length", headerValue(this.content.length));
         }
+    }
+
+    // ---------------------------------------------------- NetworkException
+
+    /**
+     * Commodity class to indicate to simulate a network error.
+     *
+     */
+    static public class NetworkError extends StubHttpResponse {
+
     }
 
 }
