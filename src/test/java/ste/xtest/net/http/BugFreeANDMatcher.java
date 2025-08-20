@@ -18,10 +18,11 @@ public class BugFreeANDMatcher {
         final RequestMatcher M1 = new DummyMatcher(true);
         final RequestMatcher M2 = new DummyMatcher(true);
 
-        final ANDMatcher AND = new ANDMatcher(new RequestMatcher[] {M1, M2});
+        ANDMatcher and = new ANDMatcher(new RequestMatcher[] {M1, M2});
+        then(and.match(R)).isTrue();
 
-        // Then
-        then(AND.match(R)).isTrue();
+        and = new ANDMatcher(M1, M2);
+        then(and.match(R)).isTrue();
     }
 
     @Test

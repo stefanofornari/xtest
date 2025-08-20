@@ -23,6 +23,7 @@ package ste.xtest.net.http;
 
 import org.junit.Test;
 import java.net.http.HttpRequest;
+import java.util.regex.Pattern;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 
@@ -60,12 +61,73 @@ public class BugFreeBodyMatcher {
     }
 
     @Test
-    public void constructor_throws_illegal_argument_exception_for_null_expected_body() {
-        // Given
-        String expectedBody = null;
+    public void matches_a_regexp() {
+        final BodyMatcher matcher = new BodyMatcher(
+            Pattern.compile("Hello, [a-zA-Z]+!")
+        );
 
-        // When & Then
-        thenThrownBy(() -> new BodyMatcher(expectedBody))
+        then(matcher.match(
+            HttpRequest.newBuilder()
+                .uri(java.net.URI.create("http://example.com"))
+                .POST(HttpRequest.BodyPublishers.ofString("Hello, World!"))
+                .build()
+        )).isTrue();
+
+       then(matcher.match(
+            HttpRequest.newBuilder()
+                .uri(java.net.URI.create("http://example.com"))
+                .POST(HttpRequest.BodyPublishers.ofString("Hello"))
+                .build()
+       )).isFalse();
+    }
+
+    @Test
+    public void match_escaped_complex_regxep() {
+        final String dataJsonContent = "{\"data\":{\"name\":\"toosla.json\",\"size\":23,\"modificationdate\":1755671155724,\"contenttype\":\"application/json\",\"folderid\":12345}}";
+        final String fileJsonContent = "{\"key\":\"updated_value\"}";
+
+        final String text = "------WebKitFormBoundary1755671153866\r\n" +
+            "Content-Disposition: form-data; name=\"data\"\r\n" +
+            "Content-Type: application/json\r\n" +
+            "\r\n" +
+            dataJsonContent + "\r\n" +
+            "------WebKitFormBoundary1755671153866\r\n" +
+            "Content-Disposition: form-data; name=\"file\"; filename=\"toosla.json\"\r\n" +
+            "Content-Type: application/json\r\n" +
+            "\r\n" +
+            fileJsonContent + "\r\n" +
+            "------WebKitFormBoundary1755671153866--\r\n"
+        ;
+
+
+        String regex =
+            "\\A(------WebKitFormBoundary\\d+)\\r\\n" +
+            "Content-Disposition: form-data; name=\"data\"\\r\\n" +
+            "Content-Type: application/json\\r\\n" +
+            "\\r\\n" +
+            Pattern.quote(dataJsonContent) + "\\r\\n" +
+            "\\1\\r\\n" +
+            "Content-Disposition: form-data; name=\"file\"; filename=\"toosla\\.json\"\\r\\n" +
+            "Content-Type: application/json\\r\\n" +
+            "\\r\\n" +
+            Pattern.quote(fileJsonContent) + "\\r\\n" +
+            "\\1--\\r\\n\\z";
+
+        BodyMatcher matcher = new BodyMatcher(Pattern.compile(regex));
+        then(matcher.match(
+            HttpRequest.newBuilder()
+                .uri(java.net.URI.create("http://example.com"))
+                .POST(HttpRequest.BodyPublishers.ofString(text))
+                .build()
+        )).isTrue();
+    }
+
+    @Test
+    public void constructor_throws_illegal_argument_exception_for_null_expected_body() {
+        thenThrownBy(() -> new BodyMatcher((String)null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("body can not be null");
+        thenThrownBy(() -> new BodyMatcher((Pattern)null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("body can not be null");
     }

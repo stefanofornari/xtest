@@ -16,7 +16,7 @@ public class ANDMatcher implements RequestMatcher {
      * @param matchers An array of {@code RequestMatcher}s. Must not be null and must contain at least two matchers.
      * @throws IllegalArgumentException if the {@code matchers} array is null or contains fewer than two matchers.
      */
-    public ANDMatcher(RequestMatcher[] matchers) {
+    public ANDMatcher(RequestMatcher... matchers) {
         if (matchers == null || matchers.length < 2) {
             throw new IllegalArgumentException("ANDMatcher must have at least two matchers");
         }

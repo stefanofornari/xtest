@@ -28,6 +28,21 @@ MA 02110-1301 USA.
 RELEASE NOTES
 =============
 
+1. v3.12.0 - 20250820
+This new version drastically improves HTTP request stubbing introducing a more
+flexible matching functionality. With this refactory stubbing classes in
+ste.xtest.web have been moved to ste.xtest.net.http for consistency with java.net.HttpClient.
+This is indeed a breaking changes. Upgrading to xtest v3.12.0 will require to
+refactor those packages in your code.
+
+Main changes
+  - Added a RequestMatcher base class to support more generic (or specific matching)
+  - Added ANDMatcher to match if and only if all provided RequestMachers match
+  - Added BodyMatcher to match a request based on the body (by equality with a string or regexp)
+  - Added HeaderMatcher to match a request if a given header is present or not
+  - Added URIMatcher to match a given request
+  - Moved HTTP stubbing to ste.xtest.net.http from ste.xtest.web -> THIS IS A BREAKING CHANGE
+
 1. v3.x breaks backward compatibility to address the new mechanisms of
    preventing the use of internal APIs introduced with JDK9.
    This involved the following xtest packages
@@ -41,12 +56,12 @@ RELEASE NOTES
 
    - ste.xtest.reflect.CodeInjector
 
-2. To be able to easily using URL stubbing in other projects all relevan
+1. To be able to easily using URL stubbing in other projects all relevan
    classes have been taken from JDK's source code and relocated under
    the package ste.xtest.net. In this way the stubs will not use any more
    internal classes but normal packages.
 
-3. Note that Java 17 deprecated SecurityManager and setting a SM into a JVM.
+1. Note that Java 17 deprecated SecurityManager and setting a SM into a JVM.
    Trying to replace the SM throws the exception
 
    java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release
@@ -79,7 +94,7 @@ RELEASE NOTES
       [...]
     </project>
 
-4. ste.xtest v3.8.0 introduced a new working stub for JDBC based on the open
+1. ste.xtest v3.8.0 introduced a new working stub for JDBC based on the open
    source project Acolyte (see CREDITS).
 
 CREDITS

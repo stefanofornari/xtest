@@ -1,3 +1,13 @@
+20250820
+- Improved HTTP Request stabbing
+  - Added a RequestMatcher base class to support more generic (or specific matching)
+  - Added ANDMatcher to match if and only if all provided RequestMachers match
+  - Added BodyMatcher to match a request based on the body (by equality with a string or regexp)
+  - Added HeaderMatcher to match a request if a given header is present or not
+  - Added URIMatcher to match a given request
+  - Moved HTTP stubbing to ste.xtest.net.http from ste.xtest.web -> THIS IS A BREAKING CHANGE
+- release 3.12.0
+
 20250720
 - Added permissive CORS headers to the response
 - Starting/stopping the HTTPServer at before/after each test in BugFreeWeb

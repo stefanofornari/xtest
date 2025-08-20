@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * A {@code RequestMatcher} that matches an {@link HttpRequest} based on its body content.
@@ -39,7 +40,19 @@ import java.util.concurrent.TimeUnit;
  */
 public class BodyMatcher implements RequestMatcher {
 
-    private final String body;
+    private final Pattern body;
+
+    /**
+     * Constructs a {@code BodyMatcher} with the specified expected body content.
+     * @param body The expected body content. Can not be null.
+     * @throws IllegalArgumentException if the provided body is null.
+     */
+    public BodyMatcher(Pattern body) {
+        if (body == null) {
+            throw new IllegalArgumentException("body can not be null");
+        }
+        this.body = body;
+    }
 
     /**
      * Constructs a {@code BodyMatcher} with the specified expected body content.
@@ -50,7 +63,7 @@ public class BodyMatcher implements RequestMatcher {
         if (body == null) {
             throw new IllegalArgumentException("body can not be null");
         }
-        this.body = body;
+        this.body = Pattern.compile(Pattern.quote(body));
     }
 
     /**
@@ -114,7 +127,7 @@ public class BodyMatcher implements RequestMatcher {
         final Optional<BodyPublisher> ifBody = request.bodyPublisher();
         if (ifBody.isPresent()) {
             try {
-                return body.equals(readBody(ifBody.get()));
+                return body.matcher(readBody(ifBody.get())).matches();
             } catch (Exception x) {
                 x.printStackTrace();
             }
