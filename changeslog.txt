@@ -1,3 +1,6 @@
+20250916
+- Improved matching report and providing human readable toString() of stubs and matchers
+
 20250820
 - Improved HTTP Request stabbing
   - Added a RequestMatcher base class to support more generic (or specific matching)
