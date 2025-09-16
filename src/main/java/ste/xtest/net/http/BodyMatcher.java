@@ -134,4 +134,9 @@ public class BodyMatcher implements RequestMatcher {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return String.format("with body matching '%s'", body.toString());
+    }
 }

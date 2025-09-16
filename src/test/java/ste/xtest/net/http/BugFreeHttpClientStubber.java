@@ -21,11 +21,15 @@
  */
 package ste.xtest.net.http;
 
+import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import org.junit.Test;
 import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
 
@@ -166,5 +170,41 @@ public class BugFreeHttpClientStubber extends BugFreeHttpClientBase {
         then(stubs).hasSize(1);
         then(stubs.get(0).left).isSameAs(matcher);
         then(stubs.get(0).right).isSameAs(R);
+    }
+
+    @Test
+    public void pretty_print_of_stubs_in_case_no_match_is_found() {
+        final HttpClientStubber S = new HttpClientStubber();
+        final StubHttpResponse<String> R = new StubHttpResponse().text("");
+
+        S.withStub(
+            "https://somewhere1.com/level0", R
+        ).withStub(
+            new ANDMatcher(
+                new URIMatcher("http://somewhere.com/level1"),
+                new HeaderMatcher("header1", "header value"),
+                new HeaderMatcher("header2", "another header value"),
+                new BodyMatcher("some body")
+            ), R
+        );
+
+        final HttpClient HTTP = S.build();
+
+        thenThrownBy(() -> {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://nowhere.com"))
+                .GET()
+                .build();
+            HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+        }).hasMessage(
+            "no stub found for request\n" +
+            "\n" +
+            "GET https://nowhere.com\n" +
+            "--- Headers ---\n" +
+            "--- Body ---\n" +
+            "\n" +
+            "\n" +
+            "in " + HTTP
+        );
     }
 }

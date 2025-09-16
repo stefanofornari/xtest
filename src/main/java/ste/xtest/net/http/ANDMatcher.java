@@ -41,4 +41,21 @@ public class ANDMatcher implements RequestMatcher {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("matching all of\n");
+        for (RequestMatcher matcher : matchers) {
+            //
+            // Indent the text by replacing all but last \n with \nbb
+            //
+            sb.append("  ").append(matcher.toString().replaceAll("\\n(?=.)", "\n  ")).append("\n");
+        }
+
+        //
+        // we end up with one additional \n that shall be removed
+        //
+        return sb.deleteCharAt(sb.length()-1).toString();
+    }
 }

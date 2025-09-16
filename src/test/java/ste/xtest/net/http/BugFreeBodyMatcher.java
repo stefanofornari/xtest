@@ -173,4 +173,13 @@ public class BugFreeBodyMatcher {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("request can not be null");
     }
+
+    @Test
+    public void toString_returns_uri_and_the_uri() {
+        final String BODY1 = "some body";
+        then(new BodyMatcher(BODY1).toString()).isEqualTo("with body matching '\\Q" + BODY1 + "\\E'");
+
+        final String BODY2 = "some body else";
+        then(new BodyMatcher(BODY2).toString()).isEqualTo("with body matching '\\Q" + BODY2 + "\\E'");
+    }
 }

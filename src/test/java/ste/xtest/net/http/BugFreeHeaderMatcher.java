@@ -146,4 +146,13 @@ public class BugFreeHeaderMatcher {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("request can not be null");
     }
+
+    @Test
+    public void toString_prints_matcher_content() {
+        then(new HeaderMatcher("Content-Type", "text/plain").toString())
+            .isEqualTo("with header 'Content-Type' having value 'text/plain'");
+
+        then(new HeaderMatcher("Authorization", null).toString())
+             .isEqualTo("without header 'Authorization'");
+    }
 }

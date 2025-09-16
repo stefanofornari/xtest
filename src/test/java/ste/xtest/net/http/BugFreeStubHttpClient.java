@@ -26,12 +26,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
-import static org.assertj.core.api.Assertions.fail;
-import org.assertj.core.api.BDDAssertions;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import static org.assertj.core.api.BDDAssertions.then;
+import static org.assertj.core.api.BDDAssertions.thenThrownBy;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import ste.xtest.logging.ListLogHandler;
 import ste.xtest.net.http.StubHttpClient.NetworkError;
 import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
 
@@ -41,8 +48,24 @@ import ste.xtest.net.http.StubHttpClient.StubHttpResponse;
  */
 public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
 
+    private ListLogHandler logHandler;
+
     public BugFreeStubHttpClient() throws Exception {
         super();
+    }
+
+    @Before
+    public void before() throws Exception {
+        Logger logger = Logger.getLogger(StubHttpClient.class.getName());
+        logger.setLevel(Level.ALL);
+        logHandler = new ListLogHandler();
+        logger.addHandler(logHandler);
+        logHandler.getRecords().clear(); // Clear any logs from previous tests or setup
+    }
+
+    @After
+    public void after() {
+        Logger.getLogger(StubHttpClient.class.getName()).removeHandler(logHandler);
     }
 
     @Test
@@ -138,32 +161,26 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
 
     @Test
     public void send_throws_exception_if_no_stub_found() throws Exception {
-        HttpClient http = new HttpClientStubber().build();
-
-        try {
-            http.send(
+        final HttpClientStubber stubber = new HttpClientStubber();
+        thenThrownBy(() -> {
+            stubber.build().send(
                 HttpRequest.newBuilder(URI.create("https://nostub.io")).GET().build(),
                 BodyHandlers.ofString()
             ).body();
-            fail("missing error");
-        } catch (IOException x) {
-            then(x).hasMessage("no stub found for https://nostub.io");
-        }
+        }).isInstanceOf(IOException.class)
+        .hasMessageStartingWith("no stub found for")
+        .hasMessageContaining("https://nostub.io");
 
-        http = new HttpClientStubber()
-            .withStub(
+        thenThrownBy(() -> {
+            stubber.withStub(
                 "https://onestub.io/resource", new StubHttpResponse().text("hello world")
-            ).build();
-
-        try {
-            http.send(
+            ).build().send(
                 HttpRequest.newBuilder(URI.create("https://onestub.io/resource/error")).GET().build(),
                 BodyHandlers.ofString()
             ).body();
-            fail("missing error");
-        } catch (IOException x) {
-            then(x).hasMessage("no stub found for https://onestub.io/resource/error");
-        }
+        }).isInstanceOf(IOException.class)
+        .hasMessageStartingWith("no stub found for")
+        .hasMessageContaining("https://onestub.io/resource/error");
     }
 
     @Test
@@ -198,10 +215,214 @@ public class BugFreeStubHttpClient extends BugFreeHttpClientBase {
             .withStub(URL, new NetworkError()
         ).build();
 
-        BDDAssertions.thenThrownBy(() -> HTTP.send(
+        thenThrownBy(() -> HTTP.send(
             HttpRequest.newBuilder(URI.create(URL)).GET().build(),
             BodyHandlers.ofString()).body()
         ).isInstanceOf(IOException.class)
         .hasMessage("network error for " + URL);
+    }
+
+    @Test
+    public void pretty_print_request_with_body() {
+        final HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/test"))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{\"name\":\"John Doe\"}"))
+                .build();
+
+        final String actual =
+            ((StubHttpClient)new HttpClientStubber().build()).toString(request);
+
+        final String expected = "POST http://localhost:8080/test\n" +
+                "--- Headers ---\n" +
+                "  Content-Type: application/json\n" +
+                "  Accept: application/json\n" +
+                "--- Body ---\n" +
+                "{\"name\":\"John Doe\"}";
+
+        then(actual.split("\n")).containsExactlyInAnyOrder(expected.split("\n"));
+    }
+
+    @Test
+    public void pretty_print_request_without_body() {
+        final HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/test"))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        final String actual =
+            ((StubHttpClient)new HttpClientStubber().build()).toString(request);
+
+        final String expected = "GET http://localhost:8080/test\n" +
+                "--- Headers ---\n" +
+                "  Accept: application/json\n" +
+                "--- Body ---\n";
+
+        then(actual).isEqualTo(expected);
+    }
+
+    @Test
+    public void pretty_print_stub_not_found() {
+        final HttpClientStubber stubber = new HttpClientStubber();
+        final StubHttpResponse response = new StubHttpResponse();
+        final BodyHandler bodyHandler = BodyHandlers.ofString();
+        final HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/test"))
+                .GET()
+                .build();
+
+        //
+        // No stubs
+        //
+        final HttpClient[] httpClient = new HttpClient[1];
+        thenThrownBy(() -> {
+            (httpClient[0] = stubber.build()).send(request, bodyHandler);
+        }).isInstanceOf(IOException.class)
+        .hasMessage(
+            "no stub found for request\n\n" +
+            "GET http://localhost:8080/test\n" +
+            "--- Headers ---\n" +
+            "--- Body ---\n\n\n" +
+            "in " + ((HttpClient)httpClient[0]).toString()
+        );
+
+        //
+        // One stub, one matcher
+        //
+        stubber.withStub(new URIMatcher("http://localhost/not_matching"), response);
+        thenThrownBy(() -> {
+            (httpClient[0] = stubber.build()).send(request, bodyHandler);
+        }).isInstanceOf(IOException.class)
+        .hasMessage(
+            "no stub found for request\n\n" +
+            "GET http://localhost:8080/test\n" +
+            "--- Headers ---\n" +
+            "--- Body ---\n\n\n" +
+            "in " + ((HttpClient)httpClient[0]).toString()
+        );
+
+        //
+        // Many stubs, single matcher each
+        //
+        stubber.withStub(new HeaderMatcher("header", "value"), response);
+        stubber.withStub(new BodyMatcher("some body"), response);
+
+        thenThrownBy(() -> {
+            (httpClient[0] = stubber.build()).send(request, bodyHandler);
+        }).isInstanceOf(IOException.class)
+        .hasMessage(
+            "no stub found for request\n\n" +
+            "GET http://localhost:8080/test\n" +
+            "--- Headers ---\n" +
+            "--- Body ---\n\n\n" +
+            "in " + ((HttpClient)httpClient[0]).toString()
+        );
+
+        //
+        // Many stubs, many matchers
+        //
+        stubber.stubs().clear();
+        stubber.withStub(new URIMatcher("http://localhost/not_matching/1"), response)
+        .withStub(new ANDMatcher(
+            new URIMatcher("http://localhost/not_matching/2"),
+            new HeaderMatcher("Content-Type", "text/html"),
+            new ANDMatcher(
+                new HeaderMatcher("Origin", null),
+                new BodyMatcher(Pattern.compile("<html><body>.*</body></html>"))
+            )
+        ), response)
+        .withStub(new BodyMatcher("some body"), response);
+
+        thenThrownBy(() -> {
+            (httpClient[0] = stubber.build()).send(request, bodyHandler);
+        }).isInstanceOf(IOException.class)
+        .hasMessage(
+            "no stub found for request\n\n" +
+            "GET http://localhost:8080/test\n" +
+            "--- Headers ---\n" +
+            "--- Body ---\n\n\n" +
+            "in " + ((HttpClient)httpClient[0]).toString()
+        );
+    }
+
+     @Test
+     public void log_successful_matching() throws Exception {
+        final StubHttpResponse response = new StubHttpResponse();
+        final BodyHandler bodyHandler = BodyHandlers.ofString();
+
+        final StubHttpClient HTTP = (StubHttpClient)new HttpClientStubber()
+            .withStub(new URIMatcher("http://localhost/match/1"), response)
+            .withStub(new ANDMatcher(
+                new URIMatcher("http://localhost/match/2"),
+                new HeaderMatcher("Content-Type", "text/html"),
+                new ANDMatcher(
+                    new HeaderMatcher("Origin", null),
+                    new BodyMatcher(Pattern.compile("<html><body>.*</body></html>"))
+                )
+            ), response)
+            .withStub("http://localhost/match/3")
+            .build();
+
+        final HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost/match/3"))
+            .GET()
+            .build();
+
+        HTTP.send(request, bodyHandler);
+
+        List<String> messages = logHandler.getMessages(Level.INFO);
+        then(messages).containsExactly(
+            "Given " + HTTP,
+            "Given " + HTTP.toString(request),
+            "Trying to match stub #0",
+            "This is NOT a match",
+            "Trying to match stub #1",
+            "This is NOT a match",
+            "Trying to match stub #2",
+            "This is a match"
+        );
+    }
+
+    @Test
+    public void not_successful_mathing() throws Exception {
+        final StubHttpResponse response = new StubHttpResponse();
+        final BodyHandler bodyHandler = BodyHandlers.ofString();
+
+        final StubHttpClient HTTP = (StubHttpClient)new HttpClientStubber()
+            .withStub(new URIMatcher("http://localhost/match/1"), response)
+            .withStub(new ANDMatcher(
+                new URIMatcher("http://localhost/match/2"),
+                new HeaderMatcher("Content-Type", "text/html"),
+                new ANDMatcher(
+                    new HeaderMatcher("Origin", null),
+                    new BodyMatcher(Pattern.compile("<html><body>.*</body></html>"))
+                )
+            ), response)
+            .withStub("http://localhost/match/3")
+            .build();
+
+        final HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost/match/4"))
+            .GET()
+            .build();
+
+        try {
+            HTTP.send(request, bodyHandler);
+        } catch (IOException x) {
+            // expected
+        }
+
+        List<String> messages = logHandler.getMessages(Level.INFO);
+        then(messages).containsExactly(
+            "Given " + HTTP,
+            "Given " + HTTP.toString(request),
+            "Trying to match stub #0",
+            "This is NOT a match",
+            "Trying to match stub #1",
+            "This is NOT a match",
+            "Trying to match stub #2",
+            "This is NOT a match",
+            "No match found"
+        );
     }
 }

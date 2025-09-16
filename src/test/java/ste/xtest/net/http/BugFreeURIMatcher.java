@@ -91,4 +91,13 @@ public class BugFreeURIMatcher {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("request can not be null");
     }
+
+    @Test
+    public void toString_returns_uri_and_the_uri() {
+        final String URL1 = "http://example.com/path?query=value#fragment";
+        then(new URIMatcher(URL1).toString()).isEqualTo("with uri '" + URL1 + "'");
+
+        final String URL2 = "https://another.org/another/path";
+        then(new URIMatcher(URL2).toString()).isEqualTo("with uri '" + URL2 + "'");
+    }
 }

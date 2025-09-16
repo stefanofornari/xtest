@@ -72,6 +72,31 @@ public class BugFreeANDMatcher {
             .hasMessage("request can not be null");
     }
 
+    @Test
+    public void toString_prints_matcher_content() {
+        final ANDMatcher AND = new ANDMatcher(
+            new DummyMatcher(true), new DummyMatcher(false)
+        );
+
+        then(AND.toString()).isEqualTo(
+            "matching all of\n" +
+            "  with dummy result true\n" +
+            "  with dummy result false"
+        );
+
+        final ANDMatcher AND2 = new ANDMatcher(
+            new DummyMatcher(true), AND
+        );
+
+        then(AND2.toString()).isEqualTo(
+            "matching all of\n" +
+            "  with dummy result true\n" +
+            "  matching all of\n" +
+            "    with dummy result true\n" +
+            "    with dummy result false"
+        );
+    }
+
     // ------------------------------------------------------------ DummyMatcher
 
     private static class DummyMatcher implements RequestMatcher {
@@ -84,6 +109,11 @@ public class BugFreeANDMatcher {
         @Override
         public boolean match(HttpRequest request) {
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "with dummy result " + result;
         }
     }
 }

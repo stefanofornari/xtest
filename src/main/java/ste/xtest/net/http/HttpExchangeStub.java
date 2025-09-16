@@ -35,7 +35,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import ste.xtest.net.http.HttpStatus;
 
 public class HttpExchangeStub extends HttpExchange {
 

@@ -61,4 +61,9 @@ public class URIMatcher implements RequestMatcher {
         return request.uri().equals(uri);
     }
 
+    @Override
+    public String toString() {
+        return String.format("with uri '%s'", uri.toString());
+    }
+
 }

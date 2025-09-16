@@ -24,6 +24,7 @@ package ste.xtest.net.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.ProxySelector;
@@ -46,6 +47,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow.Subscription;
+import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import org.apache.commons.io.FileUtils;
@@ -121,6 +123,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
  */
 public class StubHttpClient extends HttpClient {
 
+    public final Logger LOG = Logger.getLogger(StubHttpClient.class.getCanonicalName());
+
     private final HttpClientStubber builder;
 
     protected StubHttpClient(final HttpClientStubber builder) {
@@ -174,12 +178,23 @@ public class StubHttpClient extends HttpClient {
 
     @Override
     public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler) throws IOException, InterruptedException {
-        String errorMessage = "no stub found";
+        final String prettyStubs = toString();
+        final String prettyRequest = toString(request);
 
+        LOG.info(() -> "Given " + prettyStubs);
+        LOG.info(() -> "Given " + prettyRequest);
+
+        int i = 0;
         for (ImmutablePair<RequestMatcher, StubHttpResponse> stub: builder.stubs()) {
+            final int ii = i++;
+            LOG.info(() -> "Trying to match stub #" + ii);
+
             if (!stub.left.match(request)) {
+                LOG.info(() -> "This is NOT a match");
                 continue;
             }
+
+            LOG.info(() -> "This is a match");
 
             //
             // Here we have a match!
@@ -189,7 +204,7 @@ public class StubHttpClient extends HttpClient {
             // Do we need to simulate a network error?
             //
             if (stub.right instanceof NetworkError) {
-                errorMessage = "network error"; break;
+                throw new IOException("network error for " + request.uri());
             }
 
             //
@@ -214,9 +229,17 @@ public class StubHttpClient extends HttpClient {
         }
 
         //
-        // No stub found for the given request, let's tell it with an IOException
+        // No stub found for the given request, let's log it and tell it with
+        // an IOException
         //
-        throw new IOException(errorMessage + " for " + request.uri());
+        LOG.info(() -> "No match found");
+
+        final StringWriter w = new StringWriter();
+        w.append("no stub found for request\n\n");
+        w.append(prettyRequest).append("\n\n");
+        w.append("in ").append(prettyStubs);
+
+        throw new IOException(w.toString());
     }
 
     /**
@@ -244,6 +267,67 @@ public class StubHttpClient extends HttpClient {
     @Override
     public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler, HttpResponse.PushPromiseHandler<T> pushPromiseHandler) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public String toString(HttpRequest request) {
+        final StringWriter writer = new StringWriter();
+
+        writer.append(String.format("%s %s\n", request.method(), request.uri()));
+        writer.append("--- Headers ---\n");
+        request.headers().map().forEach((key, values) -> {
+            writer.write(String.format("  %s: %s\n", key, String.join(", ", values)));
+        });
+        writer.append("--- Body ---\n");
+
+        java.util.Optional<HttpRequest.BodyPublisher> bodyPublisher = request.bodyPublisher();
+        if (bodyPublisher.isPresent()) {
+            java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+            bodyPublisher.get().subscribe(new java.util.concurrent.Flow.Subscriber<java.nio.ByteBuffer>() {
+                private java.util.concurrent.Flow.Subscription subscription;
+
+                @Override
+                public void onSubscribe(java.util.concurrent.Flow.Subscription subscription) {
+                    this.subscription = subscription;
+                    subscription.request(Long.MAX_VALUE);
+                }
+
+                @Override
+                public void onNext(java.nio.ByteBuffer item) {
+                    byte[] bytes = new byte[item.remaining()];
+                    item.get(bytes);
+                    writer.write(new String(bytes));
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    writer.write("Error reading body: " + throwable.getMessage());
+                    latch.countDown();
+                }
+
+                @Override
+                public void onComplete() {
+                    latch.countDown();
+                }
+            });
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        return writer.toString();
+    }
+
+    @Override
+    public String toString() {
+        final StringWriter w = new StringWriter();
+        w.append(super.toString()).append(" with stubs:\n");
+        for (ImmutablePair<RequestMatcher, StubHttpResponse> stub: builder.stubs()) {
+            w.append("  ").append(stub.left.toString().replaceAll("\\n(?=.)", "\n  ")).append("\n");
+        }
+
+        return w.toString();
     }
 
     // ------------------------------------------------------------ HttpResponse
@@ -274,7 +358,7 @@ public class StubHttpClient extends HttpClient {
             text("");
         }
 
-        // --------------------------------------------- HttèpResponse, HttpInfo
+        // ---------------------------------------------- HttpResponse, HttpInfo
 
         @Override
         public int statusCode() {

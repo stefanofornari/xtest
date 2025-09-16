@@ -45,4 +45,11 @@ public class HeaderMatcher implements RequestMatcher {
             request.headers().allValues(this.name).isEmpty() :
             request.headers().allValues(this.name).contains(this.value);
     }
+
+    @Override
+    public String toString() {
+        return (value == null) ?
+            String.format("without header '%s'", name) :
+            String.format("with header '%s' having value '%s'", name, value);
+    }
 }
