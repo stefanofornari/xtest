@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2014 Stefano Fornari
+ * Copyright (C) 2025 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -24,21 +24,16 @@ package ste.xtest.envjs;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
 import org.junit.Test;
-import ste.xtest.js.BugFreeEnvjs;
+import ste.xtest.js.BugFreeJavaScript;
 
-
-/**
- *
- * @author ste
- */
-public class BugFreeDocumentQuerySelector extends BugFreeEnvjs {
+public class BugFreeDocumentQuerySelector extends BugFreeJavaScript {
 
     public BugFreeDocumentQuerySelector() throws Exception {
     }
 
     @Before
-    public void setUp() throws Throwable {
-        exec("window.location='src/test/resources/html/queryselector.html';");
+    public void setUp() throws Exception {
+        loadPage("queryselector.html");
     }
 
     @Test

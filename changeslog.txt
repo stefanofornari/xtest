@@ -1,3 +1,8 @@
+20250906
+- Removed Rhino/Envjs in favour of JavaFX WebView
+- Introduced SingleTaskExecutorService and NoOpExecutorService in ste.xtest.concurrent
+- released 3.13.0
+
 20250820
 - Improved HTTP Request stabbing
   - Added a RequestMatcher base class to support more generic (or specific matching)
@@ -6,7 +11,7 @@
   - Added HeaderMatcher to match a request if a given header is present or not
   - Added URIMatcher to match a given request
   - Moved HTTP stubbing to ste.xtest.net.http from ste.xtest.web -> THIS IS A BREAKING CHANGE
-- release 3.12.0
+- released 3.12.0
 
 20250720
 - Added permissive CORS headers to the response

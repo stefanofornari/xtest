@@ -25,25 +25,15 @@ package ste.xtest.js;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
-/**
- *
- * @author ste
- */
-public class BugFreeSprintf {
+public class BugFreeSprintf extends BugFreeJavaScript {
 
-    //
-    // We do not test all cases becase we added sprintf.js. We just make sure it
-    // is loaded and it is available
-    //
     @Test
     public void simplePrintfs() throws Exception {
-        BugFreeJavaScript test = new BugFreeJavaScript(){};
-        
         final String TESTF1 = "Hello %s!";
         final String TESTF2 = "%d %d %d";
 
-        assertThat(test.exec("sprintf('" + TESTF1 + "', 'world');")).isEqualTo("Hello world!");
-        assertThat(test.exec("sprintf('" + TESTF1 + "', 'john');")).isEqualTo("Hello john!");
-        assertThat(test.exec("sprintf('" + TESTF2 + "', 1, 2, 3);")).isEqualTo("1 2 3");
+        assertThat(exec("sprintf('" + TESTF1 + "', 'world');")).isEqualTo("Hello world!");
+        assertThat(exec("sprintf('" + TESTF1 + "', 'john');")).isEqualTo("Hello john!");
+        assertThat(exec("sprintf('" + TESTF2 + "', 1, 2, 3);")).isEqualTo("1 2 3");
     }
 }

@@ -22,23 +22,17 @@
 package ste.xtest.envjs;
 
 import java.io.FileNotFoundException;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Ignore;
 import org.junit.Test;
 import ste.xtest.js.BugFreeJavaScript;
-import static org.junit.Assert.*;
 
-
-/**
- *
- * @author ste
- */
 public class BugFreeFixture extends BugFreeJavaScript {
 
     public BugFreeFixture() throws Exception {
     }
 
-    /**
-     * Simple fixtures
-     */
     static final String TEST_FIXTURE_1 = "src/test/resources/js/fixtures/fixture1.html";
     static final String TEST_FIXTURE_2 = "src/test/resources/js/fixtures/fixture2.html";
 
@@ -48,19 +42,18 @@ public class BugFreeFixture extends BugFreeJavaScript {
             loadFixture(null);
             fail("missing check for nulls");
         } catch (IllegalArgumentException x) {
-            assertTrue(x.getMessage().contains("fixture"));
+            then(x.getMessage()).contains("fixture");
         }
 
         try {
             loadFixture("notexisting.fixture");
             fail("missing check for file not found");
         } catch (FileNotFoundException x) {
-            assertTrue(x.getMessage().contains("notexisting.fixture"));
+            then(x.getMessage()).contains("notexisting.fixture");
         }
 
         loadFixture(TEST_FIXTURE_1);
-        assertEquals(1, exec("$('#f1').length;")); // I do not know why a double
-        assertEquals(0, exec("$('#f2').length;")); // just to make sure
+        then((Number) exec("$('#f1').length;")).isEqualTo(1);
+        then((Number) exec("$('#f2').length;")).isEqualTo(0);
     }
-
 }

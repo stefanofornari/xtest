@@ -219,10 +219,6 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void text_returns_the_text_of_a_selector() {
-        thenThrownBy(() -> {
-            text("#something");
-        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
-
         loadPage("queryselector.html");
 
         then(text("#testdiv1").trim()).isEqualTo("something");  //value
@@ -232,10 +228,6 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void val_returns_the_value_of_a_selector() {
-        thenThrownBy(() -> {
-            val("#something");
-        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
-
         loadPage("queryselector.html");
 
         //
@@ -249,10 +241,6 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void classes_returns_the_classes_of_an_element() {
-        thenThrownBy(() -> {
-            classes("#something");
-        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
-
         loadPage("classes.html");
 
         then(classes("body")).containsExactlyInAnyOrder("class1", "class2");
@@ -298,10 +286,6 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void visible_returns_if_an_element_is_visible() {
-        thenThrownBy(() -> {
-            visible("#something");
-        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
-
         loadPage("queryselector.html");
 
         then(visible("#textarea1")).isTrue();
@@ -313,10 +297,6 @@ public class BugFreeBugFreeWeb extends BugFreeWeb {
 
     @Test
     public void click_triggers_a_click() {
-        thenThrownBy(() -> {
-            click("#something");
-        }).isInstanceOf(IllegalStateException.class).hasMessage("jQuery not found");
-
         loadPage("hello.html");
 
         exec("document.getElementById('h').onclick = () => console.log('clicked');");

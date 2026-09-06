@@ -20,48 +20,51 @@
  * MA 02110-1301 USA.
  */
 
-var __XTEST__ = {
-    matchMediaStub: null,
-    lastResult: null,
-    log: "",
-    ready: false
-};
-
-window.matchMedia = (query) => {
-    return __XTEST__.matchMediaStub.matchMedia(query);
-};
-
-//
-// capturing console messages
-//
-const consoleLogging = (function(srdConsole){
-    return {
-        out: function(severity, arguments) {
-            __XTEST__.log += `${severity} ${Array.from(arguments).join(" ")}\n`
-        },
-        log: function(...text){
-            srdConsole.log(...text);
-            this.out("L", text)
-        },
-        info: function (...text) {
-            srdConsole.info(...text);
-            this.out("I", text)
-        },
-        warn: function (...text) {
-            srdConsole.warn(...text);
-            this.out("W", text)
-        },
-        error: function (...text) {
-            srdConsole.error(...text);
-            this.out("E", text)
-        },
-        debug: function (...text) {
-            srdConsole.debug(...text);
-            this.out("D", text)
-        }
+if (!window.__XTEST_INITIALIZED__) {
+    window.__XTEST_INITIALIZED__ = true;
+    var __XTEST__ = {
+        matchMediaStub: null,
+        lastResult: null,
+        log: "",
+        ready: false
     };
-}(window.console));
 
-window.console = consoleLogging;
-Date = DateStub;
+    window.matchMedia = (query) => {
+        return __XTEST__.matchMediaStub.matchMedia(query);
+    };
+
+    //
+    // capturing console messages
+    //
+    const consoleLogging = (function(srdConsole){
+        return {
+            out: function(severity, arguments) {
+                __XTEST__.log += `${severity} ${Array.from(arguments).join(" ")}\n`
+            },
+            log: function(...text){
+                srdConsole.log(...text);
+                this.out("L", text)
+            },
+            info: function (...text) {
+                srdConsole.info(...text);
+                this.out("I", text)
+            },
+            warn: function (...text) {
+                srdConsole.warn(...text);
+                this.out("W", text)
+            },
+            error: function (...text) {
+                srdConsole.error(...text);
+                this.out("E", text)
+            },
+            debug: function (...text) {
+                srdConsole.debug(...text);
+                this.out("D", text)
+            }
+        };
+    }(window.console));
+
+    window.console = consoleLogging;
+    Date = DateStub;
+}
 

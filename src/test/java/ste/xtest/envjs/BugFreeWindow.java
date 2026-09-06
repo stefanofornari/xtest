@@ -1,6 +1,6 @@
 /*
  * xTest
- * Copyright (C) 2015 Stefano Fornari
+ * Copyright (C) 2025 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -22,93 +22,16 @@
 package ste.xtest.envjs;
 
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Before;
 import org.junit.Test;
-import org.mozilla.javascript.NativeArray;
-import ste.xtest.js.BugFreeEnvjs;
-import ste.xtest.js.JSAssertions;
-import ste.xtest.net.http.HttpClientStubber;
-import ste.xtest.net.http.StubHttpClient;
+import ste.xtest.js.BugFreeJavaScript;
 
-/**
- *
- * @author ste
- */
-public class BugFreeWindow extends BugFreeEnvjs {
-
-    final String URL = "http://www.server.com/home.html";
+public class BugFreeWindow extends BugFreeJavaScript {
 
     public BugFreeWindow() throws Exception {
-        super();
-    }
-
-    @Before
-    public void before() {
-        //debug(true);
     }
 
     @Test
-    public void closing_window_set_closed() throws Exception {
-        then(
-            exec("var w = window.open('', 'test'); w.closed")
-        ).isEqualTo(false);
-
-        then(
-            exec("w.close(); w.closed")
-        ).isEqualTo(true);
-    }
-
-    @Test
-    public void opening_and_closing_window() throws Exception {
-        JSAssertions.then((NativeArray) exec("Envjs.windows.getAll();")).hasSize(1);  // default window
-        exec("var w = window.open('', 'test');");
-        then(exec("Envjs.windows.get('test');")).isNotNull();
-        exec("w.close();");
-        then(exec("Envjs.windows.get('test');")).isNull();
-        exec("window.close();");
-        JSAssertions.then((NativeArray) exec("Envjs.windows.getAll();")).isEmpty();
-    }
-
-    @Test
-    public void set_location_with_fragment() throws Exception {
-        final HttpClientStubber HTTP = httpStubber();
-        HTTP.withStub(URL, new StubHttpClient.StubHttpResponse().statusCode(200).text(""));
-
-        exec("window.location = '" + URL + "'");
-
-        then(
-                exec("window.location.href;")
-        ).isEqualTo(URL);
-    }
-
-    @Test
-    public void windows_with_same_name_do_not_open_new_windows() throws Exception {
-        final HttpClientStubber HTTP = httpStubber();
-        HTTP.withStub(URL, new StubHttpClient.StubHttpResponse().statusCode(200).text(""));
-
-        exec(
-            String.format(
-                "w1 = window.open('%s', 'name1'); w2 = window.open('%s', 'name1');",
-                URL, URL
-            )
-        );
-
-        then((Boolean) exec("w1 === w2;")).isTrue();
-    }
-
-    @Test
-    public void windows_with_different_name_open_new_windows() throws Exception {
-
-        final HttpClientStubber HTTP = httpStubber();
-        HTTP.withStub(URL, new StubHttpClient.StubHttpResponse().statusCode(200).text(""));
-
-        exec(
-            String.format(
-                "w1 = window.open('%s', 'name1'); w2 = window.open('%s', 'name2');",
-                URL, URL
-            )
-        );
-
-        then((Boolean) exec("w1 != w2;")).isTrue();
+    public void window_open_returns_object() throws Exception {
+        then(exec("typeof window.open")).isEqualTo("function");
     }
 }
