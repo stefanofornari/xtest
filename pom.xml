@@ -45,6 +45,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <argLine>--add-exports java.net.http/jdk.internal.net.http=ALL-UNNAMED</argLine>
         <javafx.version>21.0.12</javafx.version>
+        <langchain4j.version>1.20.2</langchain4j.version>
     </properties>
 
     <dependencies>
@@ -103,7 +104,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.5.2</version>
+            <version>3.27.7</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -142,6 +143,33 @@
             <version>1.10</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+         <dependency>
+            <groupId>com.github.stefanofornari</groupId>
+            <artifactId>lazyjava-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+         <dependency>
+            <groupId>com.github.stefanofornari</groupId>
+            <artifactId>lambda-loop</artifactId>
+            <version>0.6.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.13.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.7.7</version>
+        </dependency>
 
         <dependency>
             <groupId>org.mock-server</groupId>
@@ -160,6 +188,12 @@
                     <artifactId>javafx-base</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanofornari</groupId>
+            <artifactId>uzzo-llm</artifactId>
+            <version>0.0.0-SNAPSHOT</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
 
@@ -184,6 +218,7 @@
                         <arg>--add-exports</arg>
                         <arg>jdk.internal.net.http/jdk.internal.net.http=ALL-UNNAMED</arg>
                     </compilerArgs>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
             <plugin>
