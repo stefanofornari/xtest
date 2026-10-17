@@ -2,15 +2,15 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
 * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
 * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
 * Copyright 2014 the original author or authors.
  */
 package ste.xtest.json.api;
@@ -26,12 +26,12 @@ import org.junit.Test;
  * TODO: isEmpty/isNotEmpty
  */
 public class BugFreeJSONObjectAssertHasSize extends BugFreeJSONAssertBase {
-    
+
     @Test
     public void hasSizeOK() throws Exception {
         JSONObjectAssert a = new JSONObjectAssert(new JSONObject());
         a.hasSize(0);
-        
+
         a = new JSONObjectAssert(TEST_O1);
         a.hasSize(3);
 
@@ -50,14 +50,14 @@ public class BugFreeJSONObjectAssertHasSize extends BugFreeJSONAssertBase {
             a.hasSize(0);
             fail("assertion not rised");
         } catch (AssertionError e) {
-            then(e.getMessage()).contains("size:<0>").contains("was:<3>");
+            then(e.getMessage()).contains("size: 0 ").contains("was: 3");
         }
     }
-    
+
     @Test
     public void hasSizeWithInvalidExpectedSize() {
         JSONObjectAssert a = new JSONObjectAssert(new JSONObject());
-        
+
         try {
             a.hasSize(-1);
             fail("missing parameter sanity check");
@@ -68,5 +68,5 @@ public class BugFreeJSONObjectAssertHasSize extends BugFreeJSONAssertBase {
             fail("missing parameter sanity check");
         }
     }
-    
+
 }

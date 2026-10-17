@@ -52,7 +52,7 @@ public class BugFreeJSONArrayAssertContains extends BugFreeJSONAssertBase {
             fail("assertion not risen");
         } catch (AssertionError e) {
             then(e.getMessage())
-                .contains("Actual and expected should have same size but")
+                .contains("Actual and expected should have same size")
                 .contains("<0>")
                 .contains("<1>");
         }
@@ -67,9 +67,9 @@ public class BugFreeJSONArrayAssertContains extends BugFreeJSONAssertBase {
             fail("assertion not risen");
         } catch (AssertionError e) {
             then(e.getMessage())
-                .contains("Actual and expected have the same elements but not in the same order, at index 1 actual element was")
-                .contains("<[\"value one\",\"value two\"]>")
-                .contains("<[\"value one\", \"value three\"]>");
+                .contains("Expecting element at index 1 to be")
+                .contains("<value three>")
+                .contains("but was:\n <value two>");
         }
 
         //
@@ -80,7 +80,7 @@ public class BugFreeJSONArrayAssertContains extends BugFreeJSONAssertBase {
             fail("assertion not risen");
         } catch (AssertionError e) {
             then(e.getMessage())
-                .contains("Actual and expected should have same size but")
+                .contains("Actual and expected should have same size")
                 .contains("<2>")
                 .contains("<1>");
         }
