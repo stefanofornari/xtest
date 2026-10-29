@@ -23,9 +23,8 @@
 package ste.xtest.llm;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -50,18 +49,57 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.chat.response.StreamingHandle;
 import dev.langchain4j.model.output.TokenUsage;
 
-import java.nio.file.Paths;
 import ste.lazyjava.safe.Safe;
 
 import static ste.lloop.Loop._break_;
 import static ste.lloop.Loop.on;
 
+/**
+ * {@code DummyChatModelBase} is an abstract base class for mock chat models used in testing
+ * Langchain4j-based integrations. It simulates realistic chat model behaviors—including response
+ * generation, tool execution requests, thinking processes, token usage tracking, error injection,
+ * and streaming—controlled via instructions embedded in messages or explicit property settings.
+ *
+ * <h2>Key Features and Behavior:</h2>
+ * <ul>
+ *   <li><strong>Mock Response Loading:</strong> Reads response text from classpath resources located
+ *       under {@code /llm/mocks/}. The mock file can be explicitly requested in a message using the
+ *       phrase {@code use mock <filename>} (supports both quoted and unquoted filenames). If no file
+ *       is specified, it falls back to {@code default.txt}. If the requested file is missing, it
+ *       automatically loads {@code error.txt} and replaces any {@code {error}} placeholder with a descriptive
+ *       not-found message.
+ *   <li><strong>Instruction Detection:</strong> Automatically scans conversation messages for instructions
+ *       ({@code "use mock"} or {@code "execute tool"}). It inspects the latest user message, falls back
+ *       to the preceding AI message if applicable, or checks the initial system message.
+ *   <li><strong>Tool Execution Simulation:</strong> When {@link #toolChoice} is set to {@code AUTO} or
+ *       {@code REQUIRED}, the model checks if any provided tool specification matches an {@code execute tool <toolname>}
+ *       instruction.
+ *       <ul>
+ *          <li>You can pass arguments to the tool by appending <strong>{@code with arguments: <text>}</strong>
+ *              after the tool name (e.g., {@code execute tool myTool with arguments: hello world}).
+ *              The text up to the next newline is extracted and packaged as JSON: {@code {"prompt": "<text>"}}.
+ *       </ul>
+ *       On the first turn, it returns an {@link AiMessage} containing a {@link ToolExecutionRequest}
+ *       and toggles the internal {@link #toolExecuted} flag. On the subsequent turn, it resets the flag and returns
+ *       the regular mock response.
+ *   <li><strong>Error Injection:</strong> Setting the {@link #error} field to a {@link RuntimeException}
+ *       causes {@link #computeResponse(ChatRequest)} to immediately throw that exception.
+ *   <li><strong>Thinking/Reasoning Simulation:</strong> Setting the {@link #thinking} field causes the model
+ *       to simulate reasoning steps, including emitting partial thinking events during streaming or embedding
+ *       thinking content in the resulting {@link AiMessage}.
+ *   <li><strong>Token Usage:</strong> Supports stubbing response token usage via the {@link #tokenUsage} field,
+ *       which is populated into the resulting {@link ChatResponse} metadata.
+ *   <li><strong>Streaming Support:</strong> Implements {@link #doChat(ChatRequest, StreamingChatResponseHandler)}
+ *       to stream response and thinking content line-by-line, supporting cancellation checks via
+ *       {@link DummyStreamingHandle}.
+ * </ul>
+ */
 public abstract class DummyChatModelBase implements Safe {
 
     protected final Logger LOG = Logger.getLogger(getClass().getCanonicalName());
 
-    private static final String DEFAULT_MOCK_FILE = "src/test/resources/mocks/default.txt";
-    private static final String ERROR_MOCK_FILE = "src/test/resources/mocks/error.txt";
+    private static final String DEFAULT_MOCK_FILE = "/llm/mocks/default.txt";
+    private static final String ERROR_MOCK_FILE = "/llm/mocks/error.txt";
     private static final Pattern MOCK_INSTRUCTION_PATTERN =
         Pattern.compile("use mock\\s+(?:'([^']+)'|(\\S+))", Pattern.CASE_INSENSITIVE);
 
@@ -148,73 +186,78 @@ public abstract class DummyChatModelBase implements Safe {
                 toolExecuted = false;
 
                 final String mockInstructionAfterTool = messageWithInstruction(chatRequest.messages());
-                final Matcher matcher = MOCK_INSTRUCTION_PATTERN.matcher(mockInstructionAfterTool);
-                Path mockPath = Path.of(DEFAULT_MOCK_FILE);
-                String mockFile = null;
+                 final Matcher matcher = MOCK_INSTRUCTION_PATTERN.matcher(mockInstructionAfterTool);
+                 String mockFile = null;
 
-                while(matcher.find()) {
-                    mockFile = matcher.group(1);
-                    if (mockFile == null) {
-                        mockFile = matcher.group(2);
-                    }
-                }
+                 while(matcher.find()) {
+                     mockFile = matcher.group(1);
+                     if (mockFile == null) {
+                         mockFile = matcher.group(2);
+                     }
+                 }
 
-                if (mockFile != null) {
-                    mockPath = Paths.get("src/test/resources/mocks").resolve(mockFile).normalize();
-                }
-
-                String errorMessage = "";
-                if (!Files.exists(mockPath)) {
-                    errorMessage = "Mock file '%s' not found.".formatted(
-                        mockPath.toAbsolutePath().toString().replace('\\', '/')
-                    );
-                    mockPath = Path.of(ERROR_MOCK_FILE);
-                }
-
-                String mockContent;
-                try {
-                    mockContent = Files.readString(mockPath, StandardCharsets.UTF_8);
-                    mockContent = mockContent.replaceAll("\\{error}", errorMessage);
-                } catch (IOException x) {
-                    mockContent = "Error reading mock file: " + x.getMessage();
-                }
+                 String resourcePath;
+                 if (mockFile != null) {
+                     resourcePath = "/llm/mocks/" + mockFile;
+                 } else {
+                     resourcePath = DEFAULT_MOCK_FILE;
+                 }
+                 String errorMessage = "";
+                 InputStream input = getClass().getResourceAsStream(resourcePath);
+                 if (input == null) {
+                     errorMessage = "Mock file '%s' not found.".formatted(resourcePath);
+                     input = getClass().getResourceAsStream(ERROR_MOCK_FILE);
+                 }
+                 String mockContent;
+                 if (input == null) {
+                     mockContent = "Error reading mock file: Resource not found: " + resourcePath;
+                 } else {
+                     try {
+                         mockContent = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+                     } catch (IOException x) {
+                         mockContent = "Error reading mock file: " + x.getMessage();
+                     }
+                 }
+                 mockContent = mockContent.replaceAll("\\{error}", errorMessage);
 
                 responseMessage = AiMessage.from(mockContent);
             }
         }
 
         if (responseMessage == null) {
-            final Matcher matcher = MOCK_INSTRUCTION_PATTERN.matcher(mockInstruction);
+             final Matcher matcher = MOCK_INSTRUCTION_PATTERN.matcher(mockInstruction);
+             String mockFile = null;
 
-            Path mockPath = Path.of(DEFAULT_MOCK_FILE);
-            String mockFile = null;
+             while(matcher.find()) {
+                 mockFile = matcher.group(1);
+                 if (mockFile == null) {
+                     mockFile = matcher.group(2);
+                 }
+             }
 
-            while(matcher.find()) {
-                mockFile = matcher.group(1);
-                if (mockFile == null) {
-                    mockFile = matcher.group(2);
-                }
-            }
-
-            if (mockFile != null) {
-                mockPath = Paths.get("src/test/resources/mocks").resolve(mockFile).normalize();
-            }
-
-            String errorMessage = "";
-            if (!Files.exists(mockPath)) {
-                errorMessage = "Mock file '%s' not found.".formatted(
-                    mockPath.toAbsolutePath().toString().replace('\\', '/')
-                );
-                mockPath = Path.of(ERROR_MOCK_FILE);
-            }
-
-            String mockContent;
-            try {
-                mockContent = Files.readString(mockPath, StandardCharsets.UTF_8);
-                mockContent = mockContent.replaceAll("\\{error}", errorMessage);
-            } catch (IOException x) {
-                mockContent = "Error reading mock file: " + x.getMessage();
-            }
+             String resourcePath;
+             if (mockFile != null) {
+                 resourcePath = "/llm/mocks/" + mockFile;
+             } else {
+                 resourcePath = DEFAULT_MOCK_FILE;
+             }
+             String errorMessage = "";
+             InputStream input = getClass().getResourceAsStream(resourcePath);
+             if (input == null) {
+                 errorMessage = "Mock file '%s' not found.".formatted(resourcePath);
+                 input = getClass().getResourceAsStream(ERROR_MOCK_FILE);
+             }
+             String mockContent;
+             if (input == null) {
+                 mockContent = "Error reading mock file: Resource not found: " + resourcePath;
+             } else {
+                 try {
+                     mockContent = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+                 } catch (IOException x) {
+                     mockContent = "Error reading mock file: " + x.getMessage();
+                 }
+             }
+             mockContent = mockContent.replaceAll("\\{error}", errorMessage);
 
             responseMessage = AiMessage.from(mockContent);
         }

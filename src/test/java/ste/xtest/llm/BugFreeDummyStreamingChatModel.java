@@ -68,9 +68,15 @@ public class BugFreeDummyStreamingChatModel {
         ).isInstanceOf(RuntimeException.class).hasMessage("the chat has been canceled!");
 
         then(handler.messages).isEmpty();
-
     }
 
+    @Test
+    public void simulate_streaming_with_empty_lines() throws IOException {
+        final DummyStreamingChatModel chat = new DummyStreamingChatModel();
+        final DummyStreamingChatResponseHandler handler = new DummyStreamingChatResponseHandler();
 
+        chat.chat("use mock 'empty lines.txt'", handler);
 
+        then(handler.messages).containsExactly("line1", "\n", "line3", "line1\n\nline3");
+    }
 }

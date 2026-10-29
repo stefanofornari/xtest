@@ -27,29 +27,34 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.PartialResponse;
 import dev.langchain4j.model.chat.response.PartialResponseContext;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import java.util.Optional;
 
-public class DummyStreamingChatModel extends DummyChatModelBase implements dev.langchain4j.model.chat.StreamingChatModel {
+public class DummyStreamingChatModel extends DummyChatModelBase
+implements dev.langchain4j.model.chat.StreamingChatModel {
 
     @Override
     public void doChat(final ChatRequest chatRequest, final StreamingChatResponseHandler handler) {
         LOG.info(() -> "> " + chatRequest + ", " + handler);
 
         final ChatResponse response = super.computeResponse(chatRequest);
-        final String answer = response.aiMessage().text();
+        final Optional<String> answer = Optional.ofNullable(response.aiMessage().text());
 
-        if (answer != null) {
-            for (String m : answer.trim().split("\n")) {
+        answer.ifPresent((a) -> {
+            for (String m : a.split("\n")) {
+                if (m.isEmpty()) {
+                    m = "\n";
+                }
                 if (streamingHandle.isCancelled()) {
                     final String msg = "the chat has been canceled!";
                     LOG.info(msg);
                     throw new RuntimeException(msg);
                 }
                 handler.onPartialResponse(
-                    new PartialResponse(m.trim()),
+                    new PartialResponse(m),
                     new PartialResponseContext(streamingHandle)
                 );
             }
-        }
+        });
         handler.onCompleteResponse(response);
     }
 }
