@@ -1,7 +1,11 @@
-NEXT
+20261031
 - Improved JSONAssertions
-- Added dummy implementations for LangChain4j chat model
-- renamed changeslog.txt to changelog.txt
+- Added dummy implementations for LangChain4j chat model (under llm/mocks)
+- Fixed an issue with empty lines in LLM mocks
+- Moved jacoco to a dedicated Maven profile
+- Fixed test failures due to  mockserver/wiremock classpath clash
+- Renamed changeslog.txt to changelog.txt
+- Released 3.13.0
 
 20260906
 - Removed Rhino/Envjs in favour of JavaFX WebView
@@ -10,12 +14,12 @@ NEXT
 
 20250820
 - Improved HTTP Request stabbing
-  - Added a RequestMatcher base class to support more generic (or specific matching)
-  - Added ANDMatcher to match if and only if all provided RequestMachers match
-  - Added BodyMatcher to match a request based on the body (by equality with a string or regexp)
-  - Added HeaderMatcher to match a request if a given header is present or not
-  - Added URIMatcher to match a given request
-  - Moved HTTP stubbing to ste.xtest.net.http from ste.xtest.web -> THIS IS A BREAKING CHANGE
+- Added a RequestMatcher base class to support more generic (or specific matching)
+- Added ANDMatcher to match if and only if all provided RequestMachers match
+- Added BodyMatcher to match a request based on the body (by equality with a string or regexp)
+- Added HeaderMatcher to match a request if a given header is present or not
+- Added URIMatcher to match a given request
+- Moved HTTP stubbing to ste.xtest.net.http from ste.xtest.web -> THIS IS A BREAKING CHANGE
 - released 3.12.0
 
 20250720
