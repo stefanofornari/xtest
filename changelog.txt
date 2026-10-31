@@ -5,7 +5,7 @@
 - Moved jacoco to a dedicated Maven profile
 - Fixed test failures due to  mockserver/wiremock classpath clash
 - Renamed changeslog.txt to changelog.txt
-- Released 3.13.0
+- Released 3.14.0
 
 20260906
 - Removed Rhino/Envjs in favour of JavaFX WebView
