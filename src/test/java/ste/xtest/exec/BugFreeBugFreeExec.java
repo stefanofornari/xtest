@@ -97,9 +97,9 @@ public class BugFreeBugFreeExec {
         then(E.out()).isEmpty();
         then(E.err()).isEmpty();
 
-        then(E.exec("ls", "does_not_exist")).isEqualTo(2);
+        then(E.exec("sh", "-c", "echo oops >&2; exit 2")).isEqualTo(2);
         then(E.out()).isEmpty();
-        then(E.err()).isEqualTo("ls: cannot access 'does_not_exist': No such file or directory\n");
+        then(E.err()).isEqualTo("oops\n");
     }
 
     @Test

@@ -159,6 +159,14 @@
             <version>0.6.3</version>
         </dependency>
 
+        <!-- declared before wiremock-standalone, which bundles an older jsv-messages.properties that would shadow this one and break mockserver -->
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.0.76</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
