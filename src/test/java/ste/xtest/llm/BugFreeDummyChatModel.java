@@ -31,7 +31,6 @@ import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ToolChoice;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.assertj.core.api.BDDAssertions.thenThrownBy;
@@ -63,9 +62,7 @@ public class BugFreeDummyChatModel {
 
         then(chat.doChat(chatRequest).aiMessage().text().trim())
             .startsWith(
-                "Oops! Mock file '" +
-                Paths.get("src/test/resources/mocks/none.txt").toAbsolutePath().toString().replace('\\', '/') +
-                "' not found."
+                "Oops! Mock file '/llm/mocks/none.txt' not found."
             );
     }
 
