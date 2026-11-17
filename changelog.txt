@@ -1,3 +1,7 @@
+20261117
+- DummyChatModel: tool arguments given as a JSON object (with arguments: {...}) are
+  passed to the tool as they are; any other text is still passed as the "prompt" argument
+
 20261031
 - Improved JSONAssertions
 - Added dummy implementations for LangChain4j chat model (under llm/mocks)

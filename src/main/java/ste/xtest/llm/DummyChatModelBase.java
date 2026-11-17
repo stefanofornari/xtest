@@ -22,6 +22,10 @@
 
 package ste.xtest.llm;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -100,6 +104,8 @@ public abstract class DummyChatModelBase implements Safe {
 
     private static final String DEFAULT_MOCK_FILE = "/llm/mocks/default.txt";
     private static final String ERROR_MOCK_FILE = "/llm/mocks/error.txt";
+    private static final ObjectMapper JSON =
+        new ObjectMapper().enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
     private static final Pattern MOCK_INSTRUCTION_PATTERN =
         Pattern.compile("use mock\\s+(?:'([^']+)'|(\\S+))", Pattern.CASE_INSENSITIVE);
 
@@ -171,7 +177,14 @@ public abstract class DummyChatModelBase implements Safe {
                         }
                     }
                     if (!argsText.isEmpty()) {
-                        arguments = "{\"prompt\": \"" + escapeForJson(argsText) + "\"}";
+                        //
+                        // A JSON object is passed as it is (so that tools with
+                        // more arguments can be driven), any other text is
+                        // passed as the "prompt" argument
+                        //
+                        arguments = isJsonObject(argsText)
+                            ? argsText
+                            : "{\"prompt\": \"" + escapeForJson(argsText) + "\"}";
                     }
 
                     ToolExecutionRequest toolRequest = ToolExecutionRequest.builder()
@@ -388,6 +401,14 @@ public abstract class DummyChatModelBase implements Safe {
         final String lowerText = text.toLowerCase();
         return lowerText.toLowerCase().contains("use mock")
             || lowerText.toLowerCase().contains("execute tool");
+    }
+
+    private static boolean isJsonObject(final String text) {
+        try {
+            return JSON.readTree(text).isObject();
+        } catch (JsonProcessingException x) {
+            return false;
+        }
     }
 
     private static String escapeForJson(String s) {

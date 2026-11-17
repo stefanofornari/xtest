@@ -285,6 +285,38 @@ public class BugFreeDummyChatModel {
     }
 
     @Test
+    public void tool_without_arguments_gets_an_empty_json_object() throws IOException {
+        then(toolArguments("execute tool dummyTool")).isEqualTo("{}");
+    }
+
+    @Test
+    public void tool_arguments_given_as_text_are_passed_as_prompt() throws IOException {
+        then(toolArguments("execute tool dummyToolWithArgs with arguments: hello world"))
+            .isEqualTo("{\"prompt\": \"hello world\"}");
+    }
+
+    @Test
+    public void tool_arguments_given_as_json_object_are_passed_as_they_are() throws IOException {
+        final String json = "{\"arg1\": \"hello\", \"arg2\": [\"a\", \"b\"]}";
+
+        then(toolArguments("execute tool dummyToolWithArgs with arguments: " + json)).isEqualTo(json);
+        then(toolArguments("execute tool dummyTool with arguments: {}")).isEqualTo("{}");
+    }
+
+    @Test
+    public void tool_arguments_that_are_not_a_json_object_are_passed_as_prompt() throws IOException {
+        // starts and ends like an object, but it is not JSON
+        then(toolArguments("execute tool dummyTool with arguments: {not json}"))
+            .isEqualTo("{\"prompt\": \"{not json}\"}");
+        // JSON, but not an object
+        then(toolArguments("execute tool dummyTool with arguments: [1, 2]"))
+            .isEqualTo("{\"prompt\": \"[1, 2]\"}");
+        // an object followed by other text
+        then(toolArguments("execute tool dummyTool with arguments: {\"a\": 1} and more"))
+            .isEqualTo("{\"prompt\": \"{\\\"a\\\": 1} and more\"}");
+    }
+
+    @Test
     public void no_tools_support() throws IOException {
         final DummyChatModel chat = new DummyChatModel();
 
@@ -348,6 +380,17 @@ public class BugFreeDummyChatModel {
     }
 
     // --------------------------------------------------------- private methods
+
+    private String toolArguments(final String instruction) throws IOException {
+        final DummyChatModel chat = new DummyChatModel();
+
+        final ChatRequest request = ChatRequest.builder()
+            .messages(List.of(UserMessage.from(instruction)))
+            .toolSpecifications(ToolSpecifications.toolSpecificationsFrom(new DummyTool()))
+            .build();
+
+        return chat.chat(request).aiMessage().toolExecutionRequests().get(0).arguments();
+    }
 
     private void thenReceivedMessageIs(DummyChatModelListener testListener, UserMessage expectedUserMessage) {
         then(testListener.lastRequestContext).isPresent();
