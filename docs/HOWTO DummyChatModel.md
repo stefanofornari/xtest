@@ -99,6 +99,7 @@ use mock 'hello world.txt'
 use mock error.txt
 execute tool dummyTool
 execute tool dummyTool with arguments: hello world
+execute tool dummyToolWithArgs with arguments: {"arg1": "hello", "arg2": ["a", "b"]}
 ```
 
 ---
@@ -139,9 +140,12 @@ the `ChatRequest`:
   an `AiMessage` with one `ToolExecutionRequest`:
   - `id` is the fixed string `"XKSdkL2PU"`,
   - `name` is the matched tool name,
-  - `arguments` is `"{}"` by default, or
-    `{"prompt": "<text>"}` when the instruction contains
-    `with arguments: <text>` (text up to the next newline, JSON-escaped).
+  - `arguments` is `"{}"` by default. When the instruction contains
+    `with arguments: <text>` (text up to the next newline) it is:
+    - `<text>` itself, if `<text>` is a JSON object (e.g.
+      `{"city": "London", "unit": "CELSIUS"}`), so that tools with several
+      named parameters can be driven;
+    - `{"prompt": "<text>"}` (JSON-escaped) for any other text.
 - Second turn (`toolExecuted == true`): resets `toolExecuted = false` and
   returns the normal mock-file response for the (possibly updated) instruction.
 
@@ -154,6 +158,12 @@ Arguments are extracted like this:
 int argsIndex = mockInstruction.toLowerCase().indexOf("with arguments:");
 // text after the colon, trimmed, cut at the first newline
 ```
+
+The text is passed through as it is only if it parses as a single JSON object
+(Jackson, trailing text not allowed). Anything else - plain text, `{not json}`,
+a JSON array, an object followed by other text - is wrapped as the `prompt`
+argument. A JSON object must fit on one line, because the text is cut at the
+first newline.
 
 Only the first matching tool specification (in iteration order) is used.
 
@@ -326,10 +336,11 @@ So callers may use any convenience overload.
   instance across tests without resetting can cause off-by-one tool behaviour.
   Create a fresh `DummyChatModel` per test.
 - **Single tool per turn:** only the first matching tool specification is used.
-- **Argument format:** tool arguments are always wrapped as
-  `{"prompt": "<text>"}`; other JSON shapes are not supported.
-- **JSON escaping:** only `\`, `"`, newline, carriage return and tab are
-  escaped.
+- **Argument format:** tool arguments are either a JSON object given in the
+  instruction (passed as it is), or `{"prompt": "<text>"}` for any other text.
+  A JSON object cannot span more than one line.
+- **JSON escaping:** when text is wrapped as `prompt`, only `\`, `"`, newline,
+  carriage return and tab are escaped. A JSON object is not touched.
 - **Empty-line handling differs:** the base streaming method skips empty lines;
   `DummyStreamingChatModel` turns them into `"\n"`.
 - **No thread safety:** fields are plain mutable fields; not safe for
@@ -376,7 +387,9 @@ if toolChoice in {AUTO, REQUIRED} and not toolExecuted:
     for spec in chatRequest.toolSpecifications():
         if instruction matches "execute tool <spec.name>":
             toolExecuted = true
-            args = parse "with arguments:" (optional) -> {"prompt": ...} or {}
+            args = parse "with arguments:" (optional)
+                   -> the text itself if it is a JSON object,
+                      else {"prompt": <text>}, or {} if there is no text
             return AiMessage.from(ToolExecutionRequest(id="XKSdkL2PU", name, args))
     // no match -> fall through
 if toolExecuted (was true):   // second turn
