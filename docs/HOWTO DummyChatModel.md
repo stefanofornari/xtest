@@ -107,6 +107,7 @@ execute tool dummyToolWithArgs with arguments: {"arg1": "hello", "arg2": ["a", "
 ## 4. Public mutable state
 
 `DummyChatModelBase` exposes these public fields. Tests set them directly.
+Listeners are kept in a private list and registered with `addListener`.
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
@@ -117,7 +118,7 @@ execute tool dummyToolWithArgs with arguments: {"arg1": "hello", "arg2": ["a", "
 | `toolExecuted` | `boolean` | `false` | Internal toggle for the two-turn tool flow. |
 | `lastToolExecutionResult` | `String` | `null` | Scratch field for callers (not read by the model). |
 | `streamingHandle` | `DummyStreamingHandle` | new | Cancellation handle used during streaming. |
-| `listeners` | `List<ChatModelListener>` | empty | Registered listeners (use `addListener`). |
+| listeners | private `List<ChatModelListener>` | empty | Not a public field; use `addListener` and `listeners()`. |
 
 Accessors:
 
@@ -163,9 +164,13 @@ The text is passed through as it is only if it parses as a single JSON object
 (Jackson, trailing text not allowed). Anything else - plain text, `{not json}`,
 a JSON array, an object followed by other text - is wrapped as the `prompt`
 argument. A JSON object must fit on one line, because the text is cut at the
-first newline.
+first newline. (JSON object arguments need xtest 3.14.1 or later.)
 
 Only the first matching tool specification (in iteration order) is used.
+
+The tool-name match is case-insensitive. The implementation requires that the
+first character after the configured name is not an ASCII letter; digits and
+underscores therefore do not produce a match boundary.
 
 ### Example: two-turn tool flow
 
@@ -217,10 +222,13 @@ chat.thinking = "step one\nstep two";
 ```
 
 - Non-streaming: the resulting `AiMessage` has `.thinking(thinking)` and the
-  mock text as `.text(...)`.
+  mock text as `.text(...)` on mock-response turns. A tool-execution
+  `AiMessage` has no text and is not given the thinking value.
 - Streaming (`doChat(request, handler)`): emits one
   `onPartialThinking(PartialThinking, ...)` per non-empty trimmed line of
-  `thinking`, then the response lines.
+  `thinking`, then the response lines. This partial-thinking behavior belongs
+  to the base `DummyChatModelBase.doChat` method; `DummyStreamingChatModel`
+  does not emit partial thinking.
 
 ---
 
@@ -251,8 +259,9 @@ the response, then:
 ### 9.2 `DummyStreamingChatModel`
 
 A separate class implementing `StreamingChatModel` whose `doChat` overrides the
-base and streams every line of the answer (empty lines become `"\n"`), checks
-cancellation, then completes. Use this when the API under test requires a
+base and streams every line produced by splitting the answer on `"\n"` (empty
+lines become `"\n"`), checks cancellation, then completes. It does not emit
+partial thinking. Use this when the API under test requires a
 `StreamingChatModel`.
 
 ```java
@@ -272,6 +281,9 @@ chat.streamingHandle.cancel(); // DummyStreamingHandle
 
 `DummyStreamingHandle` implements `StreamingHandle` with `cancel()` and
 `isCancelled()`.
+
+Cancellation is a permanent state on the handle; `cancel()` does not reset
+until a new `DummyStreamingHandle`/model instance is created.
 
 ---
 
@@ -335,6 +347,9 @@ So callers may use any convenience overload.
 - **Stateful tool toggle:** `toolExecuted` is an instance field. Reuse the same
   instance across tests without resetting can cause off-by-one tool behaviour.
   Create a fresh `DummyChatModel` per test.
+- **Tool toggle and `ToolChoice.NONE`:** once `toolExecuted` is set by a tool
+  turn, switching `toolChoice` to `NONE` skips the tool-toggle branch and does
+  not reset the flag until a later call with `AUTO` or `REQUIRED`.
 - **Single tool per turn:** only the first matching tool specification is used.
 - **Argument format:** tool arguments are either a JSON object given in the
   instruction (passed as it is), or `{"prompt": "<text>"}` for any other text.
@@ -383,25 +398,25 @@ Response algorithm (pseudocode):
 ```
 if error != null: throw error
 instruction = messageWithInstruction(messages)
-if toolChoice in {AUTO, REQUIRED} and not toolExecuted:
-    for spec in chatRequest.toolSpecifications():
-        if instruction matches "execute tool <spec.name>":
-            toolExecuted = true
-            args = parse "with arguments:" (optional)
-                   -> the text itself if it is a JSON object,
-                      else {"prompt": <text>}, or {} if there is no text
-            return AiMessage.from(ToolExecutionRequest(id="XKSdkL2PU", name, args))
-    // no match -> fall through
-if toolExecuted (was true):   // second turn
-    toolExecuted = false
-    mockFile = parse "use mock" or default.txt
-    return AiMessage.from(loadMock(mockFile))  // with thinking if set
-// normal path
+if toolChoice in {AUTO, REQUIRED}:
+    if toolExecuted:
+        toolExecuted = false
+        // fall through to mock loading
+    else:
+        for spec in chatRequest.toolSpecifications():
+            if instruction matches "execute tool <spec.name>":
+                toolExecuted = true
+                args = parse "with arguments:" (optional)
+                       -> the text itself if it is a JSON object,
+                          else {"prompt": <text>}, or {} if there is no text
+                return AiMessage.from(ToolExecutionRequest(...))
+        // no match -> fall through
 mockFile = parse "use mock" or default.txt
-return AiMessage.from(loadMock(mockFile))      // with thinking if set
-```
+response = AiMessage.from(loadMock(mockFile))
+if thinking != null and response.text != null:
+    response = AiMessage.withThinking(thinking, response.text)
+return response
 ```
 
 Place this article next to your tests; the mock files it references must be
 available on the test classpath.
-```
