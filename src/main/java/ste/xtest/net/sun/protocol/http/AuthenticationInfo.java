@@ -31,8 +31,8 @@ import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Objects;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import ste.xtest.net.sun.www.HeaderParser;
 
 

@@ -30,7 +30,7 @@ import java.net.*;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.*;
-import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import ste.xtest.net.sun.NetworkClient;
 import ste.xtest.net.sun.ProgressSource;
 import static ste.xtest.net.sun.protocol.http.HttpURLConnection.TunnelState.TUNNELING;

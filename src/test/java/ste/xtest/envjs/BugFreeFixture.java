@@ -21,7 +21,8 @@
  */
 package ste.xtest.envjs;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Ignore;
@@ -48,7 +49,7 @@ public class BugFreeFixture extends BugFreeJavaScript {
         try {
             loadFixture("notexisting.fixture");
             fail("missing check for file not found");
-        } catch (FileNotFoundException x) {
+        } catch (NoSuchFileException x) {
             then(x.getMessage()).contains("notexisting.fixture");
         }
 

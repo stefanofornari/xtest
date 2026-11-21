@@ -32,7 +32,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import static ste.xtest.net.sun.protocol.http.AuthScheme.KERBEROS;
 import static ste.xtest.net.sun.protocol.http.AuthScheme.NEGOTIATE;
 import ste.xtest.net.sun.www.HeaderParser;

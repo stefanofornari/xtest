@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
-import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.configuration2.SystemConfiguration;
 import ste.xtest.net.sun.www.HeaderParser;
 import ste.xtest.net.sun.www.MessageHeader;
 

@@ -24,9 +24,9 @@
 package ste.xtest.net.http;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.http.HttpClient;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -190,8 +190,8 @@ public class BugFreeStubHttpResponse {
         try {
             R.file(TEST_FILE3);
             fail("missing error");
-        } catch (IOException x) {
-            then(x).isInstanceOf(FileNotFoundException.class);
+        } catch (NoSuchFileException x) {
+            then(x.getMessage()).contains("notexisting.unknown");
         }
 
         then(R.file(null)).isSameAs(R);
